@@ -1,0 +1,414 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Tổng Quan Vận Hành - Poseidon ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       1. CSS CHUẨN ENTERPRISE ERP (FLAT DESIGN)
+       ========================================== */
+    body { background-color: #f8fafc; }
+    
+    .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;}
+    .page-title { font-size: 1.4rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; display: flex; align-items: center; letter-spacing: -0.5px;}
+    .page-subtitle { font-size: 0.85rem; font-weight: 500; color: #64748b; margin: 0; }
+    
+    .btn-erp { background: #fff; color: #334155; height: 38px; border-radius: 8px; font-weight: 600; padding: 0 16px; border: 1px solid #e2e8f0; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); font-size: 0.85rem;}
+    .btn-erp:hover { background: #f1f5f9; border-color: #cbd5e1; color: #0f172a;}
+    
+    /* KPI Cards */
+    .kpi-card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between; height: 100%; transition: transform 0.2s;}
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.04); border-color: #cbd5e1;}
+    .kpi-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;}
+    .kpi-title { font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;}
+    .kpi-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    
+    .icon-blue { background: #eff6ff; color: #2563eb; }
+    .icon-green { background: #f0fdf4; color: #16a34a; }
+    .icon-orange { background: #fff7ed; color: #ea580c; }
+    .icon-red { background: #fef2f2; color: #dc2626; }
+
+    .kpi-value { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin: 0 0 8px 0; line-height: 1.1; }
+    .kpi-trend { font-size: 0.8rem; font-weight: 600; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; background: #f8fafc; color: #475569;}
+
+    /* Content Cards */
+    .erp-card { background: #fff; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; display: flex; flex-direction: column; height: 100%; overflow: hidden;}
+    .erp-card-header { padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;}
+    .erp-card-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; margin: 0; display: flex; align-items: center; gap: 8px;}
+    .erp-card-body { padding: 20px; flex-grow: 1; overflow-y: auto;}
+    
+    /* Dự báo Load Gauge (Thanh quá tải) */
+    .load-gauge-bg { background: #e2e8f0; height: 12px; border-radius: 10px; width: 100%; position: relative; overflow: hidden; margin-top: 10px;}
+    .load-gauge-fill { height: 100%; border-radius: 10px; transition: width 1.5s ease-in-out;}
+    .marker-limit { position: absolute; top: 0; bottom: 0; width: 2px; background: #dc2626; z-index: 2;}
+
+    .chart-wrapper { position: relative; width: 100%; height: 260px; }
+
+    /* Tables */
+    .table-erp { width: 100%; border-collapse: collapse;}
+    .table-erp th { color: #64748b; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; padding: 12px 16px; border-bottom: 2px solid #cbd5e1; text-align: left;}
+    .table-erp td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; color: #334155; vertical-align: middle;}
+    .table-erp tr:last-child td { border-bottom: none; }
+
+    /* Tags & Badges */
+    .badge-erp { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; border: 1px solid transparent;}
+    .badge-success { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0;}
+    .badge-warning { background: #fffbeb; color: #d97706; border-color: #fde68a;}
+    .badge-danger { background: #fef2f2; color: #dc2626; border-color: #fecaca;}
+    .badge-secondary { background: #f1f5f9; color: #64748b; border-color: #cbd5e1;}
+
+    /* Utilities */
+    .fade-in-up { animation: fadeInUp 0.4s ease forwards; opacity: 0; transform: translateY(10px); }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="page-header fade-in-up">
+        <div>
+            <h1 class="page-title"><i class="bi bi-speedometer2 text-primary me-2"></i> TỔNG QUAN VẬN HÀNH</h1>
+            <p class="page-subtitle">Giám sát hoạt động kinh doanh nhà hàng trong ngày</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted fw-bold d-none d-md-inline-block me-3" style="font-size: 0.85rem;">
+                <i class="bi bi-clock-history me-1"></i> Cập nhật: <span id="liveClock">{% now "H:i" %}</span>
+            </span>
+            <button id="btnReload" class="btn-erp"><i class="bi bi-arrow-clockwise text-primary"></i> Làm mới</button>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4 fade-in-up delay-1">
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-title">Doanh Thu Tạm Tính</span>
+                    <div class="kpi-icon icon-blue"><i class="bi bi-wallet2"></i></div>
+                </div>
+                <div class="kpi-value"><span class="format-money">{{ doanh_thu_hom_nay|default:"0" }}</span> ₫</div>
+                <div>
+                    <span class="kpi-trend"><i class="bi bi-person me-1"></i> ARPU: <span class="text-primary fw-bold ms-1"><span class="format-money">{{ rev_pax|default:"0" }}</span> ₫</span></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-title">Lượng Khách Đã Phục Vụ</span>
+                    <div class="kpi-icon icon-green"><i class="bi bi-people"></i></div>
+                </div>
+                <div class="kpi-value">{{ thuc_khach_hom_nay|default:"0"|intcomma }} <span class="fs-6 text-muted fw-bold">Người</span></div>
+                <div>
+                    <span class="kpi-trend"><i class="bi bi-arrow-repeat me-1"></i> Vòng lặp: <span class="text-success fw-bold ms-1">{{ turnover_rate|default:"0.0" }}</span> vòng/ca</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-title">Công Suất Bàn (Occupancy)</span>
+                    <div class="kpi-icon icon-orange"><i class="bi bi-shop"></i></div>
+                </div>
+                <div class="kpi-value">{{ occupancy_rate|default:"0" }} <span class="fs-6 text-muted fw-bold">%</span></div>
+                <div>
+                    <span class="kpi-trend"><i class="bi bi-grid-3x3-gap-fill me-1"></i> Đang dùng: <span class="text-warning fw-bold ms-1">{{ ban_dang_phuc_vu }}/{{ tong_ban }}</span> bàn</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="kpi-card">
+                <div class="kpi-header">
+                    <span class="kpi-title">Tỷ Trọng Chi Phí (Food Cost)</span>
+                    <div class="kpi-icon icon-red"><i class="bi bi-pie-chart"></i></div>
+                </div>
+                <div class="kpi-value">{{ food_cost_pct|default:"0" }} <span class="fs-6 text-muted fw-bold">%</span></div>
+                <div>
+                    <span class="kpi-trend"><i class="bi bi-person-badge me-1"></i> Cost nhân sự: <span class="text-danger fw-bold ms-1"><span class="format-money">{{ staff_cost_per_pax|default:"0" }}</span> ₫</span>/pax</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4 fade-in-up delay-2">
+        <div class="col-lg-8">
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title"><i class="bi bi-graph-up-arrow text-primary"></i> Lưu lượng Khách theo giờ (Thực tế vs AI Dự báo)</h2>
+                    <span class="badge badge-erp badge-success">Live Tracking</span>
+                </div>
+                <div class="erp-card-body">
+                    <div class="chart-wrapper">
+                        <canvas id="guestChart"></canvas>
+                    </div>
+                    <div class="d-flex justify-content-center gap-4 mt-3" style="font-size: 0.8rem;">
+                        <span class="d-flex align-items-center gap-2"><span style="width: 12px; height: 12px; background: #2563eb; border-radius: 50%;"></span> Khách Thực Tế</span>
+                        <span class="d-flex align-items-center gap-2"><span style="width: 12px; height: 12px; background: transparent; border: 2px dashed #9333ea; border-radius: 50%;"></span> AI Dự Báo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="erp-card">
+                <div class="erp-card-header">
+                    <h2 class="erp-card-title"><i class="bi bi-receipt text-secondary"></i> Bill Vừa Phục Vụ</h2>
+                </div>
+                <div class="erp-card-body p-0">
+                    <table class="table-erp">
+                        <thead>
+                            <tr>
+                                <th>Bàn</th>
+                                <th>Giờ</th>
+                                <th class="text-end">Số Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hd in hoa_don_gan_day|slice:":5" %}
+                            <tr>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ hd.ban_an.ten_ban|default:"Mang đi" }}</div>
+                                    <div class="small text-muted">#{{ hd.ma_hoa_don|default:hd.id }}</div>
+                                </td>
+                                <td>{{ hd.thoi_gian_vao|date:"H:i" }}</td>
+                                <td class="text-end">
+                                    <div class="fw-bold text-primary mb-1"><span class="format-money">{{ hd.khach_can_tra|floatformat:0 }}</span> ₫</div>
+                                    {% if hd.trang_thai == 'da_thanh_toan' %}
+                                        <span class="badge badge-erp badge-success" style="font-size:0.6rem;">Đã thu</span>
+                                    {% elif hd.trang_thai == 'da_huy' %}
+                                        <span class="badge badge-erp badge-danger" style="font-size:0.6rem;">Đã hủy</span>
+                                    {% elif hd.trang_thai == 'dang_phuc_vu' or hd.trang_thai == 'dang_an' %}
+                                        <span class="badge badge-erp badge-warning" style="font-size:0.6rem;">Đang ăn</span>
+                                    {% else %}
+                                        <span class="badge badge-erp badge-secondary" style="font-size:0.6rem;">Khác</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="3" class="text-center py-5 text-muted">Chưa có giao dịch nào hôm nay.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h6 class="fw-bold text-muted text-uppercase mb-3 mt-4" style="font-size: 0.8rem; letter-spacing: 0.5px;">GIÁM SÁT VẬN HÀNH TRONG CA</h6>
+    <div class="row g-4 mb-4 fade-in-up delay-2">
+        
+        <div class="col-lg-4">
+            <div class="erp-card border-primary" style="border-top-width: 4px;">
+                <div class="erp-card-header bg-white">
+                    <h2 class="erp-card-title"><i class="bi bi-speedometer text-primary"></i> Dự báo Tải trọng Ca tới</h2>
+                </div>
+                <div class="erp-card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-muted fw-bold small">DỰ KIẾN LƯỢNG KHÁCH</span>
+                        <span class="fs-4 fw-bold text-dark">{{ ai_khach_max|default:"0" }} <span class="fs-6 text-muted">Pax</span></span>
+                    </div>
+                    
+                    <div class="load-gauge-bg mb-3">
+                        <div id="capacityBar" class="load-gauge-fill bg-primary" style="width: 0%;"></div>
+                        <div class="marker-limit" style="left: 80%;" title="Ngưỡng quá tải"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between small text-muted mb-4">
+                        <span>0</span>
+                        <span>Sức chứa: 500</span>
+                    </div>
+
+                    <div class="p-3 rounded bg-light border">
+                        <div class="fw-bold text-dark mb-1 fs-6"><i class="bi bi-person-workspace text-secondary"></i> Khuyến nghị nhân sự:</div>
+                        <ul class="mb-0 small text-muted" style="padding-left: 1.2rem;">
+                            <li>Cần chuẩn bị tối thiểu <b>{% widthratio ai_khach_max 30 1 %} nhân viên</b> phục vụ (Tỷ lệ 1:30).</li>
+                            <li>Tình trạng tải trọng: <b id="capacityStatus" class="text-success">Trong ngưỡng an toàn</b>.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="erp-card border-danger" style="border-top-width: 4px;">
+                <div class="erp-card-header bg-white">
+                    <h2 class="erp-card-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Rủi ro cạn nguyên liệu (Trong ca)</h2>
+                </div>
+                <div class="erp-card-body p-3">
+                    <p class="small text-muted mb-3">Dựa trên tốc độ tiêu hao hiện tại, các món sau có nguy cơ hết trước khi đóng cửa:</p>
+                    
+                    {% for item in inventory_warnings|slice:":2" %}
+                    <div class="p-3 border rounded mb-2 bg-white" style="border-left: 4px solid #dc2626 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="fw-bold m-0 text-dark">{{ item.ten_nguyen_lieu }}</h6>
+                            <span class="badge badge-erp badge-danger">High Risk</span>
+                        </div>
+                        <div class="small text-muted">
+                            Kho còn: <b>{{ item.ton_kho }} {{ item.don_vi }}</b>. <br>
+                            Dự kiến thiếu: <b class="text-danger">{{ item.de_xuat_nhap }} {{ item.don_vi }}</b> để phục vụ ca tới.
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-check-circle-fill text-success fs-1 d-block mb-3"></i>
+                        Kho hiện tại đủ sức chịu tải cho ca bán hàng hôm nay.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="erp-card border-warning" style="border-top-width: 4px;">
+                <div class="erp-card-header bg-white">
+                    <h2 class="erp-card-title"><i class="bi bi-fire text-warning"></i> Top 5 Đồ Uống Hôm Nay</h2>
+                </div>
+                <div class="erp-card-body p-0">
+                    <table class="table-erp">
+                        <thead>
+                            <tr>
+                                <th>Tên Món</th>
+                                <th class="text-end">SL Bán</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mon in top_do_uong %}
+                            <tr>
+                                <td class="fw-bold text-dark">{{ mon.ten_mon_luu_tru }}</td>
+                                <td class="text-end text-primary fw-bold">{{ mon.total_sold|intcomma }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="text-center py-5 text-muted">Chưa có giao dịch.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{{ chart_labels|json_script:"chart-labels" }}
+{{ chart_thuc_te|json_script:"chart-actual" }}
+{{ chart_du_bao|json_script:"chart-forecast" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // Đồng hồ Live
+        const liveClockEl = document.getElementById('liveClock');
+        if (liveClockEl) {
+            setInterval(() => {
+                const now = new Date();
+                liveClockEl.innerText = now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+            }, 60000); 
+        }
+
+        // Action Buttons
+        document.getElementById('btnReload')?.addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin"></i> Đang tải...';
+            window.location.reload();
+        });
+
+        // Tự động làm mới 3 phút
+        setInterval(() => window.location.reload(), 180000);
+
+        // ==========================================
+        // 1. FORMAT TIỀN TỆ JS (Dấu Chấm)
+        // ==========================================
+        document.querySelectorAll('.format-money').forEach(function(el) {
+            let rawValue = el.innerText.trim().replace(/,/g, ''); 
+            let numberValue = parseFloat(rawValue);
+            if (!isNaN(numberValue)) {
+                el.innerText = numberValue.toLocaleString('vi-VN');
+            }
+        });
+
+        // ==========================================
+        // 2. HIỆU ỨNG THANH TẢI TRỌNG
+        // ==========================================
+        setTimeout(function() {
+            const capacityBar = document.getElementById('capacityBar');
+            if (capacityBar) {
+                const aiKhachMax = parseInt("{{ ai_khach_max|default:'0' }}"); 
+                const maxCapacity = 500; 
+                
+                let percentage = (aiKhachMax / maxCapacity) * 100;
+                if (percentage > 100) percentage = 100; 
+                
+                capacityBar.style.width = percentage + '%';
+                
+                if (percentage >= 80) {
+                    capacityBar.classList.remove('bg-primary');
+                    capacityBar.classList.add('bg-danger');
+                    
+                    const statusText = document.getElementById('capacityStatus');
+                    if(statusText) {
+                        statusText.innerText = 'Cảnh báo: Rủi ro quá tải phục vụ!';
+                        statusText.classList.replace('text-success', 'text-danger');
+                    }
+                }
+            }
+        }, 500);
+
+        // ==========================================
+        // 3. KHỞI TẠO BIỂU ĐỒ
+        // ==========================================
+        const canvasGuest = document.getElementById('guestChart');
+        if (canvasGuest) {
+            try {
+                const labels = JSON.parse(document.getElementById('chart-labels').textContent || "[]");
+                const actualData = JSON.parse(document.getElementById('chart-actual').textContent || "[]");
+                const forecastData = JSON.parse(document.getElementById('chart-forecast').textContent || "[]");
+                
+                new Chart(canvasGuest.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Khách Thực Tế', data: actualData,
+                                borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                borderWidth: 3, tension: 0.4, fill: true,
+                                pointBackgroundColor: '#fff', pointBorderColor: '#2563eb', pointRadius: 4,
+                            },
+                            {
+                                label: 'AI Dự Báo', data: forecastData,
+                                borderColor: '#9333ea', borderWidth: 2, borderDash: [5, 5],
+                                tension: 0.4, fill: false,
+                                pointBackgroundColor: '#fff', pointBorderColor: '#9333ea', pointRadius: 4,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { padding: 12 } },
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: '#f1f5f9' },
+                                ticks: {
+                                    callback: function(value) { return value.toLocaleString('vi-VN'); }
+                                }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            } catch (e) { console.error('Lỗi Biểu Đồ:', e); }
+        }
+    });
+</script>
+{% endblock %}

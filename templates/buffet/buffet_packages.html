@@ -1,0 +1,492 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Quản lý Gói Buffet - Poseidon ERP{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/airbnb.css">
+
+<style>
+    /* ==========================================
+       CSS RIÊNG CHO TRANG QUẢN LÝ GÓI BUFFET
+       ========================================== */
+    .page-header { margin-bottom: 24px; }
+    .page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+    .breadcrumb-saas { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0; display: flex; align-items: center; }
+    .breadcrumb-saas a { color: var(--accent); text-decoration: none; }
+    
+    /* Toolbar & Filters */
+    .toolbar-saas { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .filter-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap;}
+    
+    .search-box { position: relative; width: 280px; }
+    .search-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-box input { padding-left: 42px; border-radius: 10px; border: 1px solid var(--border-color); height: 42px; width: 100%; background: #fff; box-shadow: var(--shadow-sm); transition: var(--transition); font-size: 0.9rem;}
+    .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; }
+    
+    .filter-select { border-radius: 10px; border: 1px solid var(--border-color); height: 42px; padding: 0 36px 0 16px; color: var(--text-main); font-size: 0.9rem; font-weight: 500; background-color: #fff; cursor: pointer; box-shadow: var(--shadow-sm); transition: var(--transition); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 10px; }
+    .filter-select:focus { border-color: var(--primary); outline: none; }
+
+    .btn-create { background: var(--primary); color: #fff; height: 42px; border-radius: 10px; font-weight: 600; padding: 0 20px; border: none; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2); }
+    .btn-create:hover { background: var(--primary-hover); transform: translateY(-1px); color: #fff; }
+
+    /* Data Table */
+    .table-container { background: var(--bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-md); overflow-x: auto; margin-bottom: 24px; border: 1px solid var(--border-color); }
+    .table-saas { width: 100%; min-width: 900px; margin: 0; border-collapse: collapse; }
+    .table-saas th { background: #f8fafc; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; padding: 16px 20px; letter-spacing: 0.5px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    .table-saas td { padding: 16px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+    .table-saas tbody tr { transition: var(--transition); }
+    .table-saas tbody tr:hover { background-color: #f8fafc; }
+    .table-saas tbody tr:last-child td { border-bottom: none; }
+
+    .price-value { font-weight: 700; color: var(--text-main); }
+    
+    /* Badges */
+    .badge-soft { padding: 6px 12px; border-radius: 6px; font-weight: 600; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 6px; }
+    .badge-active { background: #dcfce7; color: #166534; }
+    .badge-inactive { background: #fee2e2; color: #b91c1c; }
+    .badge-time { background: #f8fafc; color: #64748b; font-weight: 600; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 14px; }
+
+    /* Action Buttons */
+    .btn-action { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: transparent; border: none; transition: 0.2s; cursor: pointer; }
+    .btn-action:hover { background: #f1f5f9; color: var(--primary); }
+    .btn-action.delete-btn:hover { background: #fee2e2; color: #dc3545; }
+
+    /* Custom Modal */
+    .modal-content { border-radius: 16px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
+    .modal-header { background: #f8fafc; border-bottom: 1px solid var(--border-color); padding: 20px 24px; }
+    .modal-title { font-weight: 800; color: var(--text-main); font-size: 1.25rem; }
+    .modal-body { padding: 24px; }
+    .modal-footer { border-top: 1px solid var(--border-color); padding: 20px 24px; background: #f8fafc; }
+    
+    .form-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+    .form-control, .form-select-modal { border-radius: 10px; border: 1px solid var(--border-color); padding: 12px 16px; font-size: 0.95rem; font-weight: 500; color: var(--text-main); transition: var(--transition); background: #fff;}
+    .form-control:focus, .form-select-modal:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; background: #fff;}
+    
+    .input-group-text { background: #f8fafc; border-color: var(--border-color); color: var(--text-muted); font-weight: 600; border-radius: 10px 0 0 10px; }
+    .form-control.price-input, .form-control.time-input { border-radius: 0 10px 10px 0; }
+    
+    /* FIX ĐỒNG HỒ NỔI LÊN TRÊN MODAL */
+    .time-input { background-color: #fff !important; cursor: pointer; text-align: center; font-weight: bold; font-size: 1.1rem;}
+    .flatpickr-calendar { z-index: 9999 !important; }
+
+    /* CSS CHO PHẦN CHỌN NGÀY TRONG TUẦN (SaaS Pills) */
+    .day-checkbox { display: none; }
+    .day-label {
+        padding: 8px 18px; border: 1px solid var(--border-color); border-radius: 8px;
+        color: var(--text-muted); font-weight: 600; cursor: pointer; transition: 0.2s;
+        background: #f8fafc; font-size: 0.9rem; flex-grow: 1; text-align: center;
+    }
+    .day-label:hover { border-color: #cbd5e1; background: #f1f5f9; }
+    .day-checkbox:checked + .day-label {
+        background: var(--primary); color: #fff; border-color: var(--primary);
+        box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2);
+    }
+
+    /* Custom Switch Toggle */
+    .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
+    .form-check-input:checked { background-color: var(--primary); border-color: var(--primary); }
+    .form-check-label { cursor: pointer; font-weight: 600; padding-top: 2px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in-up">
+    <h1 class="page-title">Quản lý Gói Buffet</h1>
+    <div class="breadcrumb-saas">
+        <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
+        <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+        <span>Buffet</span>
+        <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+        <span class="text-muted">Gói Buffet</span>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show fade-in-up" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="toolbar-saas fade-in-up delay-1">
+    <div class="filter-group">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Tìm kiếm tên gói buffet...">
+        </div>
+        
+        <select class="filter-select" id="timeFilter">
+            <option value="all">Tất cả thời gian</option>
+            <option value="trua">Buổi Trưa</option>
+            <option value="toi">Buổi Tối</option>
+            <option value="cangay">Cả ngày</option>
+        </select>
+
+        <select class="filter-select" id="statusFilter">
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Đang áp dụng</option>
+            <option value="inactive">Đã tạm dừng</option>
+        </select>
+    </div>
+
+    <button class="btn-create" id="btnAddPackage">
+        <i class="bi bi-plus-lg"></i> Thêm gói buffet
+    </button>
+</div>
+
+<div class="table-container fade-in-up delay-2">
+    <table class="table-saas">
+        <thead>
+            <tr>
+                <th>Tên Gói Buffet</th>
+                <th>Giá Bán</th>
+                <th>Khung Giờ Áp Dụng</th>
+                <th>Trạng Thái</th>
+                <th class="text-center">Thao Tác</th>
+            </tr>
+        </thead>
+        <tbody id="buffetTableBody">
+            {% for goi in danh_sach_goi %}
+            <tr class="package-row" 
+                data-name="{{ goi.ten_goi|lower }}" 
+                data-status="{% if goi.trang_thai %}active{% else %}inactive{% endif %}"
+                data-start="{% if goi.gio_bat_dau %}{{ goi.gio_bat_dau|time:'H:i' }}{% else %}cangay{% endif %}">
+                
+                <td>
+                    <div class="fw-bold text-dark fs-6">{{ goi.ten_goi }}</div>
+                    <div class="text-muted" style="font-size: 0.8rem;">{{ goi.mo_ta|default:"Gói Buffet Tiêu Chuẩn" }}</div>
+                </td>
+                <td class="price-value">{{ goi.gia_ban|floatformat:"0"|intcomma }} ₫</td>
+                
+                <td>
+                    <div class="d-flex flex-column align-items-start gap-2">
+                        <span class="badge-soft badge-time">
+                            <i class="bi bi-clock me-1"></i> 
+                            {% if goi.gio_bat_dau and goi.gio_ket_thuc %}
+                                {{ goi.gio_bat_dau|time:"H:i" }} - {{ goi.gio_ket_thuc|time:"H:i" }}
+                            {% else %}
+                                Cả ngày
+                            {% endif %}
+                        </span>
+                        <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">
+                            <i class="bi bi-calendar3 me-1"></i> 
+                            <span class="format-days text-primary" data-days="{{ goi.ngay_ap_dung }}"></span>
+                        </div>
+                    </div>
+                </td>
+
+                <td>
+                    {% if goi.trang_thai %}
+                        <span class="badge-soft badge-active"><i class="bi bi-check-circle-fill"></i> Đang áp dụng</span>
+                    {% else %}
+                        <span class="badge-soft badge-inactive"><i class="bi bi-pause-circle-fill"></i> Tạm dừng</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    <button class="btn-action edit-btn" title="Chỉnh sửa" 
+                        data-id="{{ goi.id }}" 
+                        data-name="{{ goi.ten_goi }}" 
+                        data-desc="{{ goi.mo_ta }}"
+                        data-price="{{ goi.gia_ban|floatformat:'0' }}" 
+                        data-time-start="{% if goi.gio_bat_dau %}{{ goi.gio_bat_dau|time:'H:i' }}{% endif %}"
+                        data-time-end="{% if goi.gio_ket_thuc %}{{ goi.gio_ket_thuc|time:'H:i' }}{% endif %}"
+                        data-days="{{ goi.ngay_ap_dung }}"
+                        data-status="{{ goi.trang_thai }}">
+                        <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn-action delete-btn" title="Xóa" 
+                        data-id="{{ goi.id }}" 
+                        data-name="{{ goi.ten_goi }}">
+                        <i class="bi bi-trash text-danger"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center py-4 text-muted">Chưa có gói Buffet nào trong hệ thống.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="packageModal" aria-labelledby="packageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="packageModalLabel">Thêm Gói Buffet Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form method="POST" action="{% url 'buffet_packages' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="formAction" value="add">
+                <input type="hidden" name="package_id" id="packageId" value="">
+
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label">Tên gói Buffet <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="ten_goi" id="inputTenGoi" placeholder="VD: Lunch Premium, Dinner Signature..." required>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Mô tả ngắn</label>
+                            <input type="text" class="form-control" name="mo_ta" id="inputMoTa" placeholder="VD: Áp dụng các ngày trong tuần từ T2-T6">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Giá Bán <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">VNĐ</span>
+                                <input type="number" class="form-control price-input" name="gia_ban" id="inputGiaBan" placeholder="0" required>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Khung giờ bắt đầu</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock text-primary"></i></span>
+                                <input type="text" class="form-control time-input timepicker" id="inputGioBatDau" name="gio_bat_dau" placeholder="--:--">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Khung giờ kết thúc</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock text-danger"></i></span>
+                                <input type="text" class="form-control time-input timepicker" id="inputGioKetThuc" name="gio_ket_thuc" placeholder="--:--">
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <label class="form-label">Ngày áp dụng trong tuần</label>
+                            <div class="d-flex w-100 gap-2">
+                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="2" id="day2" checked>
+                                <label class="day-label" for="day2">T2</label>
+
+                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="3" id="day3" checked>
+                                <label class="day-label" for="day3">T3</label>
+
+                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="4" id="day4" checked>
+                                <label class="day-label" for="day4">T4</label>
+
+                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="5" id="day5" checked>
+                                <label class="day-label" for="day5">T5</label>
+
+                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="6" id="day6" checked>
+                                <label class="day-label" for="day6">T6</label>
+
+                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="7" id="day7">
+                                <label class="day-label" for="day7">T7</label>
+
+                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="8" id="day8">
+                                <label class="day-label" for="day8">CN</label>
+                            </div>
+                            <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle"></i> Bỏ chọn T7, CN nếu đây là bảng giá chỉ áp dụng cho ngày thường.</small>
+                        </div>
+
+                        <div class="col-12 mt-4 pt-3 border-top border-light">
+                            <div class="form-check form-switch d-flex align-items-center gap-3">
+                                <input class="form-check-input m-0" type="checkbox" name="trang_thai" id="statusSwitch" checked>
+                                <label class="form-check-label text-dark m-0" for="statusSwitch">Kích hoạt & Áp dụng ngay</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light fw-bold px-4" style="border-radius: 8px; height: 42px;" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn-create px-5">Lưu thông tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'buffet_packages' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="package_id" id="deletePackageId">
+                
+                <div class="modal-body text-center p-4">
+                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3 fw-bold">Xác nhận xóa</h5>
+                    <p class="text-muted mb-4">Bạn có chắc chắn muốn xóa gói <strong id="deletePackageName" class="text-dark"></strong> không? Hành động này không thể hoàn tác.</p>
+                    
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger fw-bold">Xóa Gói</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // 1. TỰ ĐỘNG DỊCH CHUỖI "2,3,4" THÀNH "T2, T3, T4" TRONG BẢNG
+        document.querySelectorAll('.format-days').forEach(span => {
+            const rawDays = span.getAttribute('data-days');
+            if (rawDays && rawDays !== 'None') {
+                const formattedDays = rawDays.split(',').map(d => d.trim() === '8' ? 'CN' : 'T' + d.trim());
+                span.innerText = formattedDays.join(', ');
+            } else {
+                span.innerText = 'Chưa cấu hình ngày';
+                span.classList.replace('text-primary', 'text-danger');
+            }
+        });
+        
+        // 2. CHỐNG BOOTSTRAP CHẶN CLICK VÀO FLATPICKR
+        document.addEventListener('focusin', function(e) {
+            if (e.target.closest(".flatpickr-calendar") !== null) {
+                e.stopImmediatePropagation();
+            }
+        });
+
+        // 3. Khởi tạo Đồng hồ Flatpickr ĐÚNG CHUẨN 24H
+        const timeConfig = {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: true,
+            allowInput: true,
+            disableMobile: "true",
+            placeholder: "--:--"
+        };
+
+        const fpStart = flatpickr("#inputGioBatDau", timeConfig);
+        const fpEnd = flatpickr("#inputGioKetThuc", timeConfig);
+
+        const packageModal = new bootstrap.Modal(document.getElementById('packageModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+        // 4. Xử lý nút THÊM GÓI
+        document.getElementById('btnAddPackage').addEventListener('click', function() {
+            document.getElementById('formAction').value = 'add';
+            document.getElementById('packageId').value = '';
+            document.getElementById('packageModalLabel').innerText = 'Thêm Gói Buffet Mới';
+            
+            document.getElementById('inputTenGoi').value = '';
+            document.getElementById('inputMoTa').value = '';
+            document.getElementById('inputGiaBan').value = '';
+            
+            fpStart.clear();
+            fpEnd.clear();
+
+            document.querySelectorAll('.day-checkbox').forEach(cb => {
+                cb.checked = ['2','3','4','5','6'].includes(cb.value);
+            });
+            document.getElementById('statusSwitch').checked = true;
+
+            packageModal.show();
+        });
+
+        // 5. Xử lý các nút SỬA GÓI
+        const editBtns = document.querySelectorAll('.edit-btn');
+        editBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('formAction').value = 'edit';
+                document.getElementById('packageId').value = this.getAttribute('data-id');
+                document.getElementById('packageModalLabel').innerText = 'Cập nhật Gói Buffet';
+                
+                document.getElementById('inputTenGoi').value = this.getAttribute('data-name');
+                document.getElementById('inputMoTa').value = this.getAttribute('data-desc') !== 'None' ? this.getAttribute('data-desc') : '';
+                document.getElementById('inputGiaBan').value = parseFloat(this.getAttribute('data-price'));
+                
+                let timeStart = this.getAttribute('data-time-start');
+                let timeEnd = this.getAttribute('data-time-end');
+                
+                if (timeStart && timeStart !== 'None') {
+                    fpStart.setDate(timeStart);
+                } else {
+                    fpStart.clear();
+                }
+
+                if (timeEnd && timeEnd !== 'None') {
+                    fpEnd.setDate(timeEnd);
+                } else {
+                    fpEnd.clear();
+                }
+
+                let daysStr = this.getAttribute('data-days') || "";
+                let daysArr = daysStr.split(",");
+                document.querySelectorAll('.day-checkbox').forEach(cb => {
+                    cb.checked = daysArr.includes(cb.value);
+                });
+
+                document.getElementById('statusSwitch').checked = this.getAttribute('data-status') === 'True';
+
+                packageModal.show();
+            });
+        });
+
+        // 6. Xử lý các nút XÓA GÓI
+        const deleteBtns = document.querySelectorAll('.delete-btn');
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('deletePackageId').value = this.getAttribute('data-id');
+                document.getElementById('deletePackageName').innerText = this.getAttribute('data-name');
+                deleteModal.show();
+            });
+        });
+
+        // ==========================================
+        // 7. CHỨC NĂNG LỌC & TÌM KIẾM (MỚI THÊM)
+        // ==========================================
+        const searchInput = document.getElementById('searchInput');
+        const timeFilter = document.getElementById('timeFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const rows = document.querySelectorAll('.package-row');
+
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const timeVal = timeFilter.value;
+            const statusVal = statusFilter.value;
+
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name');
+                const status = row.getAttribute('data-status');
+                const start = row.getAttribute('data-start');
+
+                const matchSearch = name.includes(searchTerm);
+                const matchStatus = (statusVal === 'all') || (statusVal === status);
+
+                let matchTime = true;
+                if (timeVal !== 'all') {
+                    if (timeVal === 'cangay') {
+                        matchTime = (start === 'cangay');
+                    } else if (timeVal === 'trua') {
+                        matchTime = (start !== 'cangay' && start < '15:00');
+                    } else if (timeVal === 'toi') {
+                        matchTime = (start !== 'cangay' && start >= '15:00');
+                    }
+                }
+
+                if (matchSearch && matchStatus && matchTime) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        searchInput.addEventListener('input', filterTable);
+        timeFilter.addEventListener('change', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+
+    });
+</script>
+{% endblock %}

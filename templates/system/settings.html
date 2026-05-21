@@ -1,0 +1,598 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Cài đặt Hệ thống - Poseidon ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       CSS CHUẨN ĐỒNG BỘ SAAS CAO CẤP
+       ========================================== */
+    .page-header { margin-bottom: 30px; }
+    .page-title { font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 6px; letter-spacing: -0.5px;}
+    .page-subtitle { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin: 0; }
+    
+    .settings-layout { display: flex; gap: 24px; align-items: flex-start; }
+    
+    .settings-nav { width: 280px; background: #fff; border-radius: 16px; padding: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); flex-shrink: 0; position: sticky; top: 88px; }
+    .nav-pills-custom .nav-link { color: var(--text-muted); font-weight: 600; font-size: 0.9rem; padding: 12px 16px; border-radius: 10px; margin-bottom: 4px; transition: 0.2s; display: flex; align-items: center; gap: 12px; text-align: left; border: none; background: transparent; width: 100%;}
+    .nav-pills-custom .nav-link:hover { background: #f8fafc; color: var(--text-main); }
+    .nav-pills-custom .nav-link.active { background: #eff6ff; color: var(--accent); }
+    .nav-pills-custom .nav-link.ai-tab.active { background: #f5f3ff; color: #8b5cf6; }
+    
+    .settings-content { flex-grow: 1; background: #fff; border-radius: 16px; padding: 32px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); min-height: 600px;}
+    .tab-pane-title { font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;}
+
+    .form-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+    .form-control, .form-select { border-radius: 10px; border: 1px solid var(--border-color); padding: 10px 16px; font-size: 0.95rem; font-weight: 500; background: #f8fafc;}
+    .form-control:focus, .form-select:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1); outline: none; }
+    
+    .btn-save { background: var(--primary); color: #fff; height: 42px; border-radius: 10px; font-weight: 600; padding: 0 24px; border: none; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;}
+    .btn-save:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); color: white;}
+    .btn-save:disabled { opacity: 0.7; cursor: not-allowed; }
+
+    /* BẢNG PHÂN QUYỀN MỚI */
+    .role-list-box { border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: #fff; }
+    .role-item { padding: 14px 18px; cursor: pointer; border-bottom: 1px solid var(--border-color); font-weight: 600; color: var(--text-main); transition: 0.2s; display: flex; justify-content: space-between; align-items: center;}
+    .role-item:last-child { border-bottom: none; }
+    .role-item:hover { background: #f8fafc; }
+    .role-item.active { background: var(--accent); color: white; }
+    .role-item.active i { color: white !important; }
+    
+    .table-permissions { width: 100%; border-collapse: collapse; border: none; border-radius: 0; }
+    .table-permissions th { background: #f8fafc; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; font-weight: 800; padding: 14px 16px; border-bottom: 1px solid var(--border-color); text-align: center;}
+    .table-permissions th:first-child { text-align: left; }
+    .table-permissions td { padding: 16px 16px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; font-weight: 600; text-align: center;}
+    .table-permissions td:first-child { text-align: left; color: var(--text-main); }
+    .table-permissions tr:hover { background-color: #f8fafc; }
+    
+    /* Custom Checkbox dạng Toggle Switch nhỏ */
+    .perm-switch { width: 2.5em; height: 1.3em; cursor: pointer; margin: 0 auto; display: block;}
+    .perm-switch:checked { background-color: #10b981; border-color: #10b981; }
+
+    .fade-in { animation: fadeIn 0.3s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .logo-preview-box { width: 120px; height: 120px; border: 1px dashed #cbd5e1; border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f8fafc; cursor: pointer;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in">
+    <div>
+        <h1 class="page-title">Cấu Hình Doanh Nghiệp & Hệ Thống</h1>
+        <p class="page-subtitle">Thiết lập dữ liệu gốc, quy định vận hành và phân quyền truy cập</p>
+    </div>
+</div>
+
+{% if messages %}
+    <div id="django-messages" class="d-none">
+        {% for message in messages %}
+            <span class="d-msg" data-type="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</span>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<div class="settings-layout fade-in">
+    <div class="settings-nav">
+        <div class="nav flex-column nav-pills-custom" id="v-pills-tab" role="tablist">
+            <div class="text-uppercase text-muted fw-bold mt-2 mb-2 px-3" style="font-size: 0.7rem;">Doanh nghiệp</div>
+            <button class="nav-link active" id="v-general-tab" data-bs-toggle="pill" data-bs-target="#v-general" type="button"><i class="bi bi-shop"></i> Hồ sơ & Quy định</button>
+            <button class="nav-link" id="v-integrations-tab" data-bs-toggle="pill" data-bs-target="#v-integrations" type="button"><i class="bi bi-plug"></i> Thanh toán & Tích hợp</button>
+            
+            <div class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.7rem;">Bảo mật</div>
+            <button class="nav-link" id="v-roles-tab" data-bs-toggle="pill" data-bs-target="#v-roles" type="button"><i class="bi bi-shield-lock"></i> Vai trò & Phân quyền</button>
+            
+            <div class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.7rem;">Hệ thống & Dữ liệu</div>
+            <button class="nav-link ai-tab" id="v-ai-tab" data-bs-toggle="pill" data-bs-target="#v-ai" type="button"><i class="bi bi-robot"></i> AI Machine Learning</button>
+            <button class="nav-link" id="v-logs-tab" data-bs-toggle="pill" data-bs-target="#v-logs" type="button"><i class="bi bi-journal-text"></i> Lịch sử Hệ thống (Logs)</button>
+            <button class="nav-link" id="v-backup-tab" data-bs-toggle="pill" data-bs-target="#v-backup" type="button"><i class="bi bi-cloud-arrow-down"></i> Backup Dữ liệu</button>
+        </div>
+    </div>
+
+    <div class="settings-content tab-content" id="v-pills-tabContent">
+        
+        <div class="tab-pane fade show active" id="v-general" role="tabpanel">
+            <div class="tab-pane-title"><span class="d-flex align-items-center gap-2"><i class="bi bi-building text-primary"></i> Hồ sơ Doanh nghiệp & Vận hành</span></div>
+            <form method="POST" action="{% url 'settings_general' %}" enctype="multipart/form-data" class="auto-disable-form">
+                {% csrf_token %}
+                <div class="row g-4">
+                    <div class="col-lg-3 text-center">
+                        <label class="form-label d-block">Logo Thương hiệu</label>
+                        <div class="logo-preview-box mx-auto mb-3 shadow-sm" onclick="document.getElementById('logoInput').click()">
+                            {% if setting.logo %}
+                                <img src="{{ setting.logo.url }}" alt="Logo" id="logoPreview" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                            {% else %}
+                                <div id="no-logo-placeholder">
+                                    <i class="bi bi-cloud-arrow-up text-muted display-4"></i>
+                                </div>
+                                <img src="" id="logoPreview" style="display:none; max-width: 100%; max-height: 100%; object-fit: contain;">
+                            {% endif %}
+                        </div>
+                        <input type="file" name="logo" id="logoInput" class="d-none" accept="image/*" onchange="previewImage(event)">
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="document.getElementById('logoInput').click()">
+                            <i class="bi bi-upload me-1"></i> Thay đổi ảnh
+                        </button>
+                    </div>
+
+                    <div class="col-lg-9">
+                        <h6 class="fw-bold text-dark mb-3">Thông tin định danh</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Tên Nhà Hàng <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="restaurant_name" value="{{ setting.restaurant_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Hotline <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="hotline" value="{{ setting.hotline }}" required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Địa chỉ trụ sở chính <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="address" value="{{ setting.address }}" required>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-dark mb-3 mt-4 pt-4 border-top">Quy định Vận hành & Phí</h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Giờ Mở cửa</label>
+                                <input type="time" class="form-control" name="open_time" value="{{ setting.open_time|time:'H:i' }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Giờ Đóng cửa</label>
+                                <input type="time" class="form-control" name="close_time" value="{{ setting.close_time|time:'H:i' }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">T.Gian giữ bàn (Phút)</label>
+                                <input type="number" class="form-control" name="hold_table_time" value="{{ setting.hold_table_time|default:15 }}" title="Đã qua bao nhiêu phút thì hủy bàn">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Thuế VAT (%)</label>
+                                <input type="number" class="form-control text-primary fw-bold" name="vat_tax" value="{{ setting.vat_tax }}" min="0" max="100">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Phí Dịch vụ (%)</label>
+                                <input type="number" class="form-control text-primary fw-bold" name="service_charge" value="{{ setting.service_charge }}" min="0" max="100">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Tỷ lệ Cọc bàn (%)</label>
+                                <input type="number" class="form-control text-primary fw-bold" name="deposit_percent" value="{{ setting.deposit_percent|default:20 }}" min="0" max="100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-top text-end">
+                    <button type="submit" class="btn-save px-5"><i class="bi bi-save me-2"></i> LƯU THÔNG TIN</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="v-integrations" role="tabpanel">
+            <div class="tab-pane-title"><span class="d-flex align-items-center gap-2"><i class="bi bi-plug text-primary"></i> Tích hợp Hệ thống & API</span></div>
+            <form method="POST" action="{% url 'settings_integrations' %}" class="auto-disable-form">
+                {% csrf_token %}
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="p-4 border rounded-3 bg-light">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-qr-code-scan text-success me-2"></i> Cổng thanh toán VietQR</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Ngân hàng (Mã định danh)</label>
+                                <input type="text" class="form-control" name="bank_id" value="{{ setting.bank_id }}" placeholder="VD: MB, VCB...">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Số tài khoản hưởng thụ</label>
+                                <input type="text" class="form-control" name="bank_account_no" value="{{ setting.bank_account_no }}">
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label">Tên chủ tài khoản</label>
+                                <input type="text" class="form-control" name="bank_account_name" value="{{ setting.bank_account_name }}" placeholder="NGUYEN VAN A">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="p-4 border rounded-3 bg-light h-100">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-chat-dots-fill text-primary me-2"></i> Tích hợp Zalo ZNS (Sắp ra mắt)</h6>
+                            <p class="text-muted small">Cấu hình gửi tin nhắn xác nhận tự động qua Zalo cho khách hàng khi đặt bàn.</p>
+                            <div class="mb-3">
+                                <label class="form-label">Zalo OA Access Token</label>
+                                <input type="password" class="form-control" disabled placeholder="••••••••••••••••">
+                            </div>
+                            <div class="alert alert-info py-2 px-3 m-0 small border-0"><i class="bi bi-info-circle me-1"></i> Tính năng đang được phát triển.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-top text-end">
+                    <button type="submit" class="btn-save px-5"><i class="bi bi-save me-2"></i> LƯU CẤU HÌNH API</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="v-roles" role="tabpanel">
+            <div class="tab-pane-title d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom">
+                <span class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background: #fee2e2; color: #ef4444; border-radius: 10px;">
+                        <i class="bi bi-shield-lock-fill fs-5"></i>
+                    </div>
+                    Quản lý Vai trò & Phân quyền Truy cập
+                </span>
+                <button class="btn btn-sm fw-bold px-3 py-2" style="background: #e0e7ff; color: #4338ca; border: none; border-radius: 8px;" data-bs-toggle="modal" data-bs-target="#createRoleModal">
+                    <i class="bi bi-plus-lg fw-bold me-1"></i> Vai trò mới
+                </button>
+            </div>
+            
+            <form method="POST" action="{% url 'settings_permissions' %}" class="auto-disable-form">
+                {% csrf_token %}
+                <div class="row g-4">
+                    <div class="col-xl-3 col-lg-4">
+                        <div class="role-list-box shadow-sm">
+                            <div class="bg-light fw-bold text-muted text-uppercase px-3 py-2" style="font-size: 0.75rem; border-bottom: 1px solid var(--border-color); letter-spacing: 0.5px;">Danh sách vai trò</div>
+                            {% for role in roles %}
+                                <div class="role-item {% if forloop.first %}active{% endif %}" onclick="switchRoleTab('role_{{ role.id }}', this)">
+                                    <span>{{ role.name }}</span>
+                                    <i class="bi bi-chevron-right text-muted" style="font-size: 0.8rem;"></i>
+                                </div>
+                            {% empty %}
+                                <div class="p-4 text-muted text-center" style="font-size: 0.9rem;">
+                                    <i class="bi bi-inbox fs-3 d-block mb-2"></i> Chưa có vai trò
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-9 col-lg-8">
+                        {% for role in roles %}
+                        <div class="role-permission-matrix" id="role_{{ role.id }}" style="display: {% if forloop.first %}block{% else %}none{% endif %};">
+                            
+                            <div class="card shadow-sm border-0" style="border-radius: 14px; overflow: hidden; outline: 1px solid var(--border-color);">
+                                <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="fw-bold text-primary m-0" style="font-size: 1.1rem;"><i class="bi bi-person-badge me-2"></i>Chi tiết phân quyền: {{ role.name }}</h6>
+                                        <small class="text-muted d-block mt-1">Bật công tắc để cấp quyền sử dụng hệ thống cho nhóm nhân viên này.</small>
+                                    </div>
+                                    <a href="#" class="btn btn-sm btn-outline-danger px-3 fw-bold" onclick="deleteRole('{{role.id}}')" title="Xóa vai trò này">
+                                        <i class="bi bi-trash3-fill me-1"></i> Xóa
+                                    </a>
+                                </div>
+                                
+                                <div class="card-body p-0">
+                                    <table class="table-permissions">
+                                        <thead>
+                                            <tr>
+                                                <th width="40%" class="ps-4">Phân hệ (Module)</th>
+                                                <th width="20%">Xem (Read)</th>
+                                                <th width="20%">Thêm/Sửa (Write)</th>
+                                                <th width="20%">Xóa (Delete)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="fw-bold text-dark"><i class="bi bi-grid-1x2 me-2 text-primary"></i> Quản lý Sơ đồ bàn</div>
+                                                    <div class="small text-muted ms-4 ps-1 mt-1">Xem trạng thái, ghép bàn, dọn bàn</div>
+                                                </td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][table][view]" {% if role.quyen.table_view %}checked{% endif %}></td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][table][edit]" {% if role.quyen.table_edit %}checked{% endif %}></td>
+                                                <td class="text-muted small"><i class="bi bi-dash-lg"></i></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="fw-bold text-dark"><i class="bi bi-calendar-check me-2 text-primary"></i> Đặt bàn trước (Booking)</div>
+                                                    <div class="small text-muted ms-4 ps-1 mt-1">Lịch hẹn, khách hàng, nhận cọc</div>
+                                                </td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][booking][view]" {% if role.quyen.booking_view %}checked{% endif %}></td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][booking][edit]" {% if role.quyen.booking_edit %}checked{% endif %}></td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][booking][delete]" {% if role.quyen.booking_delete %}checked{% endif %}></td>
+                                            </tr>
+                                            
+                                            <tr style="background: #fdfbf7;">
+                                                <td class="ps-4">
+                                                    <div class="fw-bold text-dark"><i class="bi bi-display me-2" style="color: #ea580c;"></i> Bán hàng (POS)</div>
+                                                    <div class="small text-muted ms-4 ps-1 mt-1">Gọi món, lên bill, nhà bếp</div>
+                                                </td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][pos][view]" {% if role.quyen.pos_view %}checked{% endif %}></td>
+                                                <td>
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][pos][edit]" {% if role.quyen.pos_edit %}checked{% endif %}>
+                                                        <span class="small mt-1 fw-bold text-muted" style="font-size: 0.7rem;">LÊN ORDER</span>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][pos][checkout]" {% if role.quyen.pos_checkout %}checked{% endif %}>
+                                                        <span class="small text-danger mt-1 fw-bold" style="font-size: 0.7rem;">THANH TOÁN</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="fw-bold text-dark"><i class="bi bi-cup-straw me-2 text-primary"></i> Quản lý Thực đơn (Menu)</div>
+                                                    <div class="small text-muted ms-4 ps-1 mt-1">Đồ uống, phụ thu, gói buffet</div>
+                                                </td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][menu][view]" {% if role.quyen.menu_view %}checked{% endif %}></td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][menu][edit]" {% if role.quyen.menu_edit %}checked{% endif %}></td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][menu][delete]" {% if role.quyen.menu_delete %}checked{% endif %}></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="fw-bold text-dark"><i class="bi bi-box-seam me-2 text-primary"></i> Quản lý Kho (Inventory)</div>
+                                                    <div class="small text-muted ms-4 ps-1 mt-1">Nhập/xuất, tồn kho, nhà cung cấp</div>
+                                                </td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][inventory][view]" {% if role.quyen.inventory_view %}checked{% endif %}></td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][inventory][edit]" {% if role.quyen.inventory_edit %}checked{% endif %}></td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][inventory][delete]" {% if role.quyen.inventory_delete %}checked{% endif %}></td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="ps-4">
+                                                    <div class="fw-bold text-dark"><i class="bi bi-bar-chart me-2 text-primary"></i> Báo cáo Thống kê</div>
+                                                    <div class="small text-muted ms-4 ps-1 mt-1">Doanh thu, tiêu thụ, hiệu suất</div>
+                                                </td>
+                                                <td><input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][report][view]" {% if role.quyen.report_view %}checked{% endif %}></td>
+                                                <td colspan="2" class="text-muted small"><i class="bi bi-shield-lock me-1"></i> Quyền xem đặc biệt</td>
+                                            </tr>
+                                            <tr style="background-color: #fff5f5;">
+                                                <td class="ps-4">
+                                                    <div class="fw-bold text-danger"><i class="bi bi-gear-fill me-2"></i> Quản trị Hệ thống</div>
+                                                    <div class="small text-muted ms-4 ps-1 mt-1">Cài đặt, AI, Backup, Logs</div>
+                                                </td>
+                                                <td colspan="3">
+                                                    <div class="d-flex flex-column align-items-center">
+                                                        <input type="checkbox" class="form-check-input perm-switch" name="perm[{{role.id}}][system][all]" {% if role.quyen.system_all %}checked{% endif %} style="border-color: #ef4444; background-color: {% if role.quyen.system_all %}#ef4444{% endif %};">
+                                                        <span class="small mt-1 text-danger fw-bold" style="font-size: 0.75rem;">TOÀN QUYỀN (ADMINISTRATOR)</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="mt-4 pt-3 border-top text-end">
+                    <button type="submit" class="btn-save px-5 fs-6"><i class="bi bi-shield-check me-2 fs-5"></i> CẬP NHẬT QUYỀN TRUY CẬP</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="v-ai" role="tabpanel">
+            <div class="tab-pane-title" style="color: #8b5cf6;">
+                <span class="d-flex align-items-center gap-2"><i class="bi bi-cpu text-purple"></i> AI & Machine Learning Engine</span>
+                <span class="badge bg-success">Status: Online</span>
+            </div>
+            <form method="POST" action="{% url 'settings_ai' %}" class="auto-disable-form">
+                {% csrf_token %}
+                <div class="ai-card">
+                    <h6 class="fw-bold text-dark mb-1">Dữ liệu huấn luyện Model</h6>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label" style="color: #6b21a8;">Lịch sử lấy mẫu (Dataset)</label>
+                            <select class="form-select border-primary" name="ai_dataset_window">
+                                <option value="1_month" {% if setting.ai_dataset_window == '1_month' %}selected{% endif %}>1 Tháng qua</option>
+                                <option value="3_months" {% if setting.ai_dataset_window == '3_months' %}selected{% endif %}>3 Tháng qua (Khuyên dùng)</option>
+                                <option value="6_months" {% if setting.ai_dataset_window == '6_months' %}selected{% endif %}>6 Tháng qua</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="color: #6b21a8;">Thời gian dự phóng (Window)</label>
+                            <select class="form-select border-primary" name="ai_prediction_window">
+                                <option value="7_days" {% if setting.ai_prediction_window == '7_days' %}selected{% endif %}>Dự đoán 7 ngày tới</option>
+                                <option value="14_days" {% if setting.ai_prediction_window == '14_days' %}selected{% endif %}>Dự đoán 14 ngày tới</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end mt-4 pt-3 border-top"><button type="submit" class="btn text-white fw-bold btn-save px-5" style="background: #8b5cf6;"><i class="bi bi-magic me-2"></i> LƯU CẤU HÌNH AI</button></div>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="v-logs" role="tabpanel">
+            <div class="tab-pane-title"><span>Nhật ký (System Logs)</span></div>
+            <div class="table-responsive" style="max-height: 600px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 12px;">
+                <table class="table-saas m-0">
+                    <thead style="position: sticky; top: 0; z-index: 1;">
+                        <tr>
+                            <th>Thời gian</th>
+                            <th>Tài khoản</th>
+                            <th>Hành động</th>
+                            <th>Module</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr {% if log.level == 'danger' %}style="background: #fff5f5;"{% endif %}>
+                            <td class="text-muted">{{ log.timestamp|date:"d/m/Y H:i:s" }}</td>
+                            <td class="fw-bold {% if log.level == 'danger' %}text-danger{% endif %}">{{ log.user.username|default:"Hệ thống" }}</td>
+                            <td class="fw-bold text-{{ log.level }}">{{ log.action }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ log.module }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center py-4">Chưa có bản ghi hoạt động nào.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="v-backup" role="tabpanel">
+            <div class="tab-pane-title text-danger"><span><i class="bi bi-shield-check me-2"></i> Sao lưu (Backup)</span></div>
+            <div class="card p-4 border border-primary shadow-sm bg-light mb-4">
+                <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-cloud-arrow-up"></i> Tải Xuống Dữ Liệu Gốc</h5>
+                <p class="text-muted mb-4" style="font-size: 0.95rem;">Lưu trữ toàn bộ dữ liệu (Hóa đơn, Khách hàng, Menu, Kho) dưới dạng tệp tin mã hóa JSON để phòng ngừa rủi ro máy chủ.</p>
+                <form method="POST" action="{% url 'settings_backup' %}" class="auto-disable-form" onsubmit="return confirm('Bạn có chắc chắn muốn xuất toàn bộ dữ liệu Database ngay bây giờ?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary fw-bold px-4 py-2"><i class="bi bi-hdd-fill me-2"></i> KHỞI TẠO BẢN SAO LƯU (.JSON)</button>
+                </form>
+            </div>
+            <div class="card p-4 border border-danger shadow-sm bg-white">
+                <h5 class="fw-bold text-danger mb-3"><i class="bi bi-arrow-counterclockwise"></i> Phục Hồi Dữ Liệu (Restore)</h5>
+                <p class="text-muted mb-4" style="font-size: 0.95rem;">Cảnh báo: Việc phục hồi sẽ ghi đè lên dữ liệu hiện tại. Chỉ dành cho Quản trị viên cấp cao.</p>
+                <button class="btn btn-outline-danger fw-bold w-100 py-2" onclick="alert('Lý do bảo mật: Tính năng Restore JSON bị khóa trên Web. Vui lòng liên hệ Admin IT để import qua Terminal!')"><i class="bi bi-exclamation-triangle-fill me-2"></i> Mở Trình Phục Hồi</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal fade" id="createRoleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header bg-light border-0" style="border-radius: 16px 16px 0 0; padding: 20px 24px;">
+                <h5 class="modal-title fw-bold text-primary"><i class="bi bi-shield-plus me-2"></i> Thêm Vai Trò</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'settings_create_role' %}" class="auto-disable-form">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <label class="form-label">Tên Vai Trò Mới <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="role_name" placeholder="VD: Quản lý chi nhánh..." required>
+                </div>
+                <div class="modal-footer bg-light border-0" style="border-radius: 0 0 16px 16px; padding: 16px 24px;">
+                    <button type="submit" class="btn btn-primary fw-bold w-100 py-2">KHỞI TẠO NGAY</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<form id="formDeleteRole" method="POST" action="{% url 'settings_delete_role' %}" class="d-none">
+    {% csrf_token %}
+    <input type="hidden" name="role_id" id="deleteRoleId">
+</form>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // 1. Xử lý thông báo Alert (SweetAlert2)
+    document.addEventListener('DOMContentLoaded', function() {
+        const msgDiv = document.getElementById('django-messages');
+        if (msgDiv) {
+            const msgs = msgDiv.querySelectorAll('.d-msg');
+            msgs.forEach(msg => {
+                Swal.fire({ toast: true, position: 'top-end', icon: msg.dataset.type, title: msg.innerText, showConfirmButton: false, timer: 3000 });
+            });
+        }
+
+        // 2. Chống Spam Submit Form
+        const autoDisableForms = document.querySelectorAll('.auto-disable-form');
+        autoDisableForms.forEach(form => {
+            form.addEventListener('submit', function() {
+                const btn = this.querySelector('button[type="submit"]');
+                if(btn) {
+                    btn.disabled = true;
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span> Đang xử lý...';
+                    setTimeout(() => { btn.disabled = false; btn.innerHTML = originalText; }, 5000);
+                }
+            });
+        });
+    });
+
+    // 3. UX Preview Logo
+    function previewImage(event) {
+        var reader = new FileReader();
+        reader.onload = function() {
+            var output = document.getElementById('logoPreview');
+            var icon = document.getElementById('no-logo-placeholder');
+            output.src = reader.result;
+            output.style.display = 'block';
+            if(icon) icon.style.display = 'none';
+        };
+        reader.readAsDataURL(event.target.files[0]);
+    }
+
+    // 4. UX Chuyển Tab Master-Detail của Phân Quyền
+    function switchRoleTab(roleId, el) {
+        document.querySelectorAll('.role-permission-matrix').forEach(div => div.style.display = 'none');
+        document.getElementById(roleId).style.display = 'block';
+        document.querySelectorAll('.role-item').forEach(item => {
+            item.classList.remove('active');
+            // Cập nhật mũi tên
+            const icon = item.querySelector('i');
+            if(icon) {
+                icon.classList.remove('text-white');
+                icon.classList.add('text-muted');
+            }
+        });
+        el.classList.add('active');
+        const activeIcon = el.querySelector('i');
+        if(activeIcon) {
+            activeIcon.classList.remove('text-muted');
+            activeIcon.classList.add('text-white');
+        }
+    }
+
+    // 5. Logic Công tắc TOÀN QUYỀN (Master Switch)
+    document.addEventListener('DOMContentLoaded', function() {
+        const masterCheckboxes = document.querySelectorAll('input[name*="[system][all]"]');
+        masterCheckboxes.forEach(master => {
+            master.addEventListener('change', function() {
+                const table = this.closest('.table-permissions');
+                const allOtherSwitches = table.querySelectorAll('.perm-switch');
+                allOtherSwitches.forEach(sw => {
+                    if (sw !== this) sw.checked = this.checked;
+                });
+            });
+        });
+    });
+
+    // 6. Hàm Xóa Role an toàn
+    function deleteRole(id) {
+        Swal.fire({
+            title: 'Cảnh báo Nguy hiểm!',
+            text: 'Xóa vai trò sẽ thu hồi toàn bộ quyền của các nhân viên thuộc nhóm này. Hệ thống không thể phục hồi!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Vẫn Xóa',
+            cancelButtonText: 'Hủy bỏ'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('deleteRoleId').value = id;
+                document.getElementById('formDeleteRole').submit();
+            }
+        });
+    }
+
+    // =========================================================================
+    // 7. FIX LỖI NHẢY TAB KHI LOAD TRANG (LOGIC MỚI, CHẮC CHẮN HOẠT ĐỘNG 100%)
+    // =========================================================================
+    document.addEventListener("DOMContentLoaded", function() {
+        let hash = window.location.hash;
+        if (hash) {
+            // Tìm nút button trên menu bên trái tương ứng với Hash URL
+            let targetButton = document.querySelector(`button[data-bs-target="${hash}"]`);
+            if (targetButton) {
+                // Xóa hết các class 'active' hiện tại của Menu
+                document.querySelectorAll('#v-pills-tab .nav-link').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                // Xóa hết class 'active show' của các Tab Content
+                document.querySelectorAll('.tab-content .tab-pane').forEach(pane => {
+                    pane.classList.remove('active', 'show');
+                });
+
+                // Kích hoạt lại đúng cái nút và cái Panel mà Hash chỉ định
+                targetButton.classList.add('active');
+                document.querySelector(hash).classList.add('active', 'show');
+            }
+        }
+
+        // Cập nhật lại thanh địa chỉ URL mỗi khi người dùng bấm qua Tab khác
+        const tabButtons = document.querySelectorAll('#v-pills-tab button[data-bs-toggle="pill"]');
+        tabButtons.forEach(btn => {
+            btn.addEventListener('shown.bs.tab', function (e) {
+                let targetId = e.target.getAttribute('data-bs-target');
+                // Thay đổi URL mà không làm tải lại trang
+                history.pushState(null, null, targetId);
+            });
+        });
+    });
+</script>
+{% endblock %}

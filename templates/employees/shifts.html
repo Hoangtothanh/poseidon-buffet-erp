@@ -1,0 +1,546 @@
+{% extends 'base.html' %}
+
+{% block title %}Phân ca làm việc - Poseidon ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       CSS CHUẨN ĐỒNG BỘ SAAS
+       ========================================== */
+    .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;}
+    .page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+    .page-subtitle { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0 0 8px 0; }
+    
+    .breadcrumb-saas { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0; display: flex; align-items: center; }
+    .breadcrumb-saas a { color: var(--accent); text-decoration: none; transition: 0.2s; }
+    .breadcrumb-saas a:hover { color: #0b5ed7; text-decoration: underline; }
+    
+    /* Toolbar & Filters */
+    .toolbar-saas { background: var(--bg-card); padding: 16px; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .filter-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-grow: 1;}
+    
+    .search-box { position: relative; min-width: 250px; }
+    .search-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-box input { padding-left: 42px; border-radius: 10px; border: 1px solid var(--border-color); height: 40px; width: 100%; background: #f8fafc; transition: var(--transition); font-size: 0.9rem;}
+    .search-box input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; }
+    
+    .filter-input { border-radius: 10px; border: 1px solid var(--border-color); height: 40px; padding: 0 16px; color: var(--text-main); font-size: 0.9rem; font-weight: 500; background-color: #f8fafc; cursor: pointer; transition: var(--transition); appearance: none;}
+    .filter-select { border-radius: 10px; border: 1px solid var(--border-color); height: 40px; padding: 0 36px 0 16px; color: var(--text-main); font-size: 0.9rem; font-weight: 500; background-color: #f8fafc; cursor: pointer; transition: var(--transition); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 10px; }
+    .filter-select:focus, .filter-input:focus { border-color: var(--primary); background-color: #fff; outline: none; }
+
+    .btn-create { background: var(--primary); color: #fff; height: 40px; border-radius: 10px; font-weight: 600; padding: 0 20px; border: none; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2); }
+    .btn-create:hover { background: var(--primary-hover); transform: translateY(-1px); color: #fff; }
+    .btn-outline-custom { background: #fff; color: var(--text-main); height: 40px; border-radius: 10px; font-weight: 600; padding: 0 16px; border: 1px solid var(--border-color); transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: var(--shadow-sm); text-decoration: none; cursor: pointer;}
+    .btn-outline-custom:hover { background: #f8fafc; border-color: #cbd5e1; color: var(--text-main);}
+
+    /* KPI Cards */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px; }
+    .kpi-card { background: var(--bg-card); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; transition: var(--transition); height: 100%; position: relative; overflow: hidden;}
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); border-radius: 4px 0 0 4px;}
+    .kpi-card.c-primary { border-color: #cbd5e1; }
+    .kpi-card.c-primary::before { background: #1e293b; }
+    .kpi-card.c-success { background-color: #f0fdf4; border-color: #86efac; }
+    .kpi-card.c-success::before { background: #10b981; }
+    .kpi-card.c-warning::before { background: #f59e0b; }
+    .kpi-card.c-info::before { background: #0ea5e9; }
+    
+    .kpi-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.2; }
+    
+    .icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;}
+    .icon-primary { background: #e2e8f0; color: #1e293b; }
+    .icon-success { background: #dcfce7; color: #10b981; }
+    .icon-warning { background: #fef3c7; color: #f59e0b; }
+    .icon-info { background: #e0f2fe; color: #0ea5e9; }
+
+    /* Table Styles */
+    .table-container { background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); overflow: hidden; padding: 1px;}
+    .table-saas { width: 100%; border-collapse: collapse; min-width: 1000px;}
+    .table-saas th { background: #f8fafc; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; padding: 16px 20px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    .table-saas td { padding: 16px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+    .table-saas tr:last-child td { border-bottom: none; }
+    .table-saas tr:hover { background-color: #f8fafc; }
+
+    /* Custom Shift Badges & Staff Pills */
+    .shift-time { font-weight: 800; color: var(--text-main); font-size: 1.05rem; display: flex; align-items: center; gap: 6px; }
+    .shift-type { font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-top: 4px;}
+    .shift-morning { background: #fef3c7; color: #b45309; }
+    .shift-evening { background: #e0f2fe; color: #0369a1; }
+    .shift-full { background: #f3e8ff; color: #7e22ce; }
+    
+    .dept-name { font-weight: 700; color: var(--text-main); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;}
+    
+    .staff-container { display: flex; flex-wrap: wrap; gap: 8px; }
+    .staff-pill { background: #f8fafc; border: 1px solid #cbd5e1; padding: 4px 10px 4px 4px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; color: var(--text-main); transition: 0.2s;}
+    .staff-pill:hover { background: #e2e8f0; cursor: pointer; }
+    .staff-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;}
+
+    /* Actions */
+    .row-actions .btn-action { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: transparent; border: none; transition: 0.2s; cursor: pointer; }
+    .row-actions .btn-action:hover { background: #e2e8f0; color: var(--primary); }
+
+    /* Modal Form */
+    .modal-content { border-radius: 16px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    .modal-header { background: #f8fafc; border-bottom: 1px solid var(--border-color); padding: 20px 24px; border-radius: 16px 16px 0 0;}
+    .modal-title { font-weight: 800; color: var(--text-main); font-size: 1.25rem; }
+    .modal-body { padding: 24px; }
+    .modal-footer { border-top: 1px solid var(--border-color); padding: 20px 24px; background: #f8fafc; border-radius: 0 0 16px 16px;}
+    .form-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;}
+    .form-control, .form-select { border-radius: 10px; border: 1px solid var(--border-color); padding: 10px 16px; font-size: 0.95rem; font-weight: 500; transition: var(--transition); background: #fff;}
+
+    /* Custom Checkbox trong Modal */
+    .multi-select-box { border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; max-height: 250px; overflow-y: auto; background: #fff; }
+    .check-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; transition: 0.2s; cursor: pointer;}
+    .check-item:hover { background: #f8fafc; }
+    .check-item input[type="checkbox"] { width: 1.2rem; height: 1.2rem; cursor: pointer; accent-color: var(--primary);}
+    .check-item label { cursor: pointer; font-weight: 600; margin: 0; flex-grow: 1; color: var(--text-main); }
+    
+    /* In Ấn */
+    .print-only { display: none !important; }
+    @media print {
+        @page { size: A4 landscape; margin: 15mm; }
+        body * { visibility: hidden; }
+        #printable-area, #printable-area * { visibility: visible; }
+        #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        .table-container { box-shadow: none !important; border: none !important; padding: 0 !important; }
+        .table-saas { min-width: auto !important; width: 100% !important; border-collapse: collapse !important; }
+        .table-saas th, .table-saas td { border: 1px solid #000 !important; padding: 8px !important; color: #000 !important; font-size: 13px !important; }
+        .staff-pill { border: none !important; padding: 0 !important; display: block !important; margin-bottom: 4px; }
+        .staff-avatar { display: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px; font-weight: 500;">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div id="printable-area">
+    <div class="page-header no-print fade-in-up">
+        <div>
+            <h1 class="page-title">Phân Ca Làm Việc</h1>
+            <p class="page-subtitle">Sắp xếp lịch trực, nhân sự cho các ca Sáng / Tối tại nhà hàng</p>
+            <div class="breadcrumb-saas">
+                <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
+                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+                <span>Nhân sự</span>
+                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+                <span class="text-muted">Phân ca</span>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn-outline-custom text-danger border-danger bg-light" data-bs-toggle="modal" data-bs-target="#leaveModal">
+                <i class="bi bi-calendar-x me-2"></i> Báo Nghỉ Phép
+            </button>
+            <a href="{% url 'weekly_shifts' %}" class="btn-outline-custom text-primary border-primary bg-light text-decoration-none">
+                <i class="bi bi-calendar3 me-2"></i> Lịch Tuần
+            </a>
+            <button class="btn-outline-custom" onclick="window.print()">
+                <i class="bi bi-printer text-success me-2"></i> In Lịch Trực
+            </button>
+        </div>
+    </div>
+
+    <div class="kpi-grid no-print fade-in-up delay-1">
+        <div class="kpi-card c-info">
+            <div>
+                <div class="kpi-title">Tổng NV Đi Làm Hôm Nay</div>
+                <div class="kpi-value">{{ tong_nv_hom_nay|default:"0" }} <span class="fs-6 fw-bold text-muted">Người</span></div>
+            </div>
+            <div class="icon-box icon-info"><i class="bi bi-people-fill"></i></div>
+        </div>
+        <div class="kpi-card c-warning">
+            <div>
+                <div class="kpi-title text-warning">Ca Sáng (09:00 - 15:00)</div>
+                <div class="kpi-value text-warning">{{ ca_sang_count|default:"0" }} <span class="fs-6 fw-bold">Người</span></div>
+            </div>
+            <div class="icon-box icon-warning"><i class="bi bi-brightness-alt-high-fill"></i></div>
+        </div>
+        <div class="kpi-card c-primary">
+            <div>
+                <div class="kpi-title">Ca Tối (15:00 - 22:30)</div>
+                <div class="kpi-value text-dark">{{ ca_toi_count|default:"0" }} <span class="fs-6 fw-bold text-muted">Người</span></div>
+            </div>
+            <div class="icon-box icon-primary"><i class="bi bi-moon-stars-fill"></i></div>
+        </div>
+        <div class="kpi-card c-success">
+            <div>
+                <div class="kpi-title text-success">Nghỉ phép / Off</div>
+                <div class="kpi-value text-success">{{ nv_nghi_off|default:"0" }} <span class="fs-6 fw-bold">Người</span></div>
+            </div>
+            <div class="icon-box icon-success"><i class="bi bi-cup-hot-fill"></i></div>
+        </div>
+    </div>
+
+    <div class="toolbar-saas no-print fade-in-up delay-2">
+        <div class="filter-group">
+            <div class="search-box">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchInput" placeholder="Tìm tên nhân viên..." oninput="filterLocal()">
+            </div>
+
+            <form method="GET" action="{% url 'shifts' %}" id="filterForm" class="m-0 p-0 d-inline-block">
+                <input type="date" class="filter-input fw-bold text-primary" name="date" value="{{ target_date }}" onchange="document.getElementById('filterForm').submit();" title="Chọn ngày xem lịch">
+            </form>
+            
+            <select class="filter-select" id="shiftTypeFilter" onchange="filterLocal()">
+                <option value="all">Tất cả Ca</option>
+                <option value="morning">Ca Sáng</option>
+                <option value="evening">Ca Tối</option>
+                <option value="full">Full-time</option>
+            </select>
+
+            <select class="filter-select" id="deptFilter" onchange="filterLocal()">
+                <option value="all">Tất cả Bộ phận</option>
+                <option value="kitchen">Bếp</option>
+                <option value="service">Phục vụ Sảnh</option>
+                <option value="cashier">Lễ tân / Thu ngân</option>
+                <option value="other">Khác</option>
+            </select>
+        </div>
+
+        <button class="btn-create" onclick="openAddModal()">
+            <i class="bi bi-plus-lg"></i> Xếp Ca Mới
+        </button>
+    </div>
+
+    <div class="print-only" style="margin-bottom: 20px;">
+        <div style="text-align: center; margin-top: 20px;">
+            <h2 style="margin: 0; font-weight: bold; font-size: 22px; color: #000; text-transform: uppercase;">LỊCH PHÂN CA NHÂN VIÊN</h2>
+            <div style="font-size: 15px; font-style: italic; margin-top: 5px; color: #000; font-weight: bold;">Ngày áp dụng: {{ target_date }}</div>
+        </div>
+    </div>
+
+    <div class="table-container mb-5 fade-in-up delay-3">
+        <div class="table-responsive">
+            <table class="table-saas">
+                <thead>
+                    <tr>
+                        <th width="20%">Ca Làm Việc</th>
+                        <th width="15%">Bộ Phận</th>
+                        <th width="55%">Nhân Viên Được Phân Công</th>
+                        <th width="10%" class="text-end no-print">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ca in danh_sach_ca %}
+                    <tr class="item-row" data-shift="{{ ca.loai_ca }}" data-dept="{{ ca.bo_phan }}">
+                        <td>
+                            {% if ca.loai_ca == 'morning' %}
+                                <div class="shift-time"><i class="bi bi-brightness-alt-high text-warning"></i> Ca Sáng</div>
+                                <span class="shift-type shift-morning">09:00 - 15:00</span>
+                            {% elif ca.loai_ca == 'evening' %}
+                                <div class="shift-time"><i class="bi bi-moon-stars text-info"></i> Ca Tối</div>
+                                <span class="shift-type shift-evening">15:00 - 22:30</span>
+                            {% else %}
+                                <div class="shift-time"><i class="bi bi-clock-history text-purple"></i> Full-time</div>
+                                <span class="shift-type shift-full">Cả ngày</span>
+                            {% endif %}
+                            
+                            {% if ca.ghi_chu %}
+                                <div class="text-muted mt-2" style="font-size: 0.75rem;"><i class="bi bi-info-circle me-1"></i>{{ ca.ghi_chu }}</div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if ca.bo_phan == 'kitchen' %}
+                                <span class="dept-name"><i class="bi bi-fire text-danger me-1"></i> Bếp</span>
+                            {% elif ca.bo_phan == 'service' %}
+                                <span class="dept-name"><i class="bi bi-cup-hot text-primary me-1"></i> Phục vụ Sảnh</span>
+                            {% elif ca.bo_phan == 'cashier' %}
+                                <span class="dept-name"><i class="bi bi-cash-coin text-success me-1"></i> Lễ tân / Thu ngân</span>
+                            {% else %}
+                                <span class="dept-name"><i class="bi bi-building text-secondary me-1"></i> Khác</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="staff-container">
+                                <div class="d-none staff-id-list">
+                                    {% for chitiet in ca.chi_tiet_ca.all %}
+                                        {{ chitiet.nhan_vien.id }},
+                                    {% endfor %}
+                                </div>
+                                
+                                {% for chitiet in ca.chi_tiet_ca.all %}
+                                    <div class="staff-pill" title="{{ chitiet.nhan_vien.chuc_vu }}">
+                                        <div class="staff-avatar auto-avatar" data-name="{{ chitiet.nhan_vien.ho_ten }}">{{ chitiet.nhan_vien.ho_ten|make_list|first|upper }}</div> 
+                                        {{ chitiet.nhan_vien.ho_ten }}
+                                    </div>
+                                {% empty %}
+                                    <span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Chưa có nhân viên nào trong ca này.</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="text-end row-actions no-print">
+                            <div class="d-flex justify-content-end gap-1">
+                                <button class="btn-action text-primary" onclick="openEditModal(this, '{{ ca.id }}', '{{ ca.ngay_lam_viec|date:'Y-m-d' }}', '{{ ca.loai_ca }}', '{{ ca.bo_phan }}', '{{ ca.ghi_chu|default:''|escapejs }}')">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                
+                                <button type="button" class="btn-action text-danger delete-btn" data-id="{{ ca.id }}">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">Không có lịch phân ca nào trong ngày {{ target_date }}.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade no-print" id="shiftModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle"><i class="bi bi-calendar-event text-primary me-2"></i> Thiết lập Phân Ca</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_shift' %}" id="formShift">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save">
+                <input type="hidden" name="ca_id" id="caId">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày làm việc <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control fw-bold text-primary" name="ngay_lam_viec" id="inNgayLam" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Chọn Ca <span class="text-danger">*</span></label>
+                            <select class="form-select fw-bold" name="loai_ca" id="inLoaiCa" required>
+                                <option value="morning">Ca Sáng (09:00 - 15:00)</option>
+                                <option value="evening">Ca Tối (15:00 - 22:30)</option>
+                                <option value="full">Full-time (Cả ngày)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label">Bộ phận <span class="text-danger">*</span></label>
+                            <select class="form-select" name="bo_phan" id="inBoPhan" required>
+                                <option value="kitchen">Bộ phận Bếp</option>
+                                <option value="service">Phục vụ Sảnh</option>
+                                <option value="cashier">Thu ngân / Lễ tân</option>
+                                <option value="other">Khác</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 mt-4 border-top pt-3">
+                            <label class="form-label d-flex justify-content-between align-items-center">
+                                <span>Chọn Nhân Viên tham gia ca này <span class="text-danger">*</span></span>
+                                <span style="font-size: 0.75rem; color: var(--text-muted); cursor: pointer;" onclick="toggleAllStaff()"><i class="bi bi-check-all"></i> Chọn hết</span>
+                            </label>
+                            <div class="multi-select-box" id="staffCheckContainer">
+                                {% for nv in danh_sach_nv %}
+                                    <div class="check-item {% if nv.id in nv_nghi_hom_nay %}opacity-50 bg-light{% endif %}">
+                                        <input type="checkbox" name="nhan_vien_ids" value="{{ nv.id }}" id="nv_{{ nv.id }}" class="staff-checkbox" {% if nv.id in nv_nghi_hom_nay %}disabled{% endif %}>
+                                        <label for="nv_{{ nv.id }}">
+                                            {% if 'quản lý' in nv.chuc_vu|lower or 'trưởng' in nv.chuc_vu|lower %}
+                                                <span class="badge bg-danger me-1">{{ nv.chuc_vu }}</span>
+                                            {% endif %}
+                                            {{ nv.ho_ten }} 
+                                            {% if nv.id in nv_nghi_hom_nay %}
+                                                <span class="badge bg-secondary ms-2"><i class="bi bi-airplane"></i> Nghỉ phép</span>
+                                            {% else %}
+                                                <span class="text-muted" style="font-size:0.75rem;">- {{ nv.chuc_vu }}</span>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                {% empty %}
+                                    <div class="text-center text-muted" style="font-size: 0.85rem;">Hệ thống chưa có nhân viên nào.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <label class="form-label">Ghi chú (Tùy chọn)</label>
+                            <input type="text" class="form-control" name="ghi_chu" id="inGhiChu" placeholder="VD: Bếp trưởng Nam có việc đến muộn 30p...">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-light fw-bold px-4 border" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn-create px-5">Lưu Lịch Trực</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade no-print" id="deleteShiftModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content" style="border: 2px solid #fca5a5;">
+            <form method="POST" action="{% url 'manage_shift' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="ca_id" id="deleteShiftId">
+                <input type="hidden" name="ngay_lam_viec" value="{{ target_date }}">
+                <div class="modal-body text-center p-4">
+                    <div class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10 text-danger" style="width: 60px; height: 60px;">
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Hủy Phân Ca?</h5>
+                    <p class="text-muted" style="font-size: 0.85rem;">Hành động này sẽ xóa ca làm việc này và danh sách nhân viên trực khỏi lịch. Bạn có chắc chắn?</p>
+                    
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="button" class="btn btn-light fw-bold flex-grow-1" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-danger fw-bold flex-grow-1" style="background-color: var(--primary);">Hủy Ca</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade no-print" id="leaveModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fs-6 fw-bold"><i class="bi bi-calendar-x text-danger me-2"></i> Báo Nhân Viên Nghỉ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_shift' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_leave">
+                <div class="modal-body">
+                    <label class="form-label">Chọn Nhân Viên <span class="text-danger">*</span></label>
+                    <select class="form-select mb-3" name="nhan_vien_id" required>
+                        {% for nv in danh_sach_nv %}
+                            <option value="{{ nv.id }}">{{ nv.ho_ten }} - {{ nv.chuc_vu }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <label class="form-label">Ngày Nghỉ <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control mb-3" name="ngay_nghi" value="{{ target_date }}" required>
+
+                    <label class="form-label">Lý do</label>
+                    <input type="text" class="form-control" name="ly_do_nghi" placeholder="Ốm, Việc bận...">
+                </div>
+                <div class="modal-footer p-2">
+                    <button type="submit" class="btn btn-danger w-100 fw-bold">Xác nhận nghỉ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Hàm sinh màu nền Avatar ngẫu nhiên theo tên
+    function stringToColor(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const colors = [
+            { bg: '#fee2e2', text: '#b91c1c' }, { bg: '#dcfce7', text: '#166534' }, 
+            { bg: '#e0f2fe', text: '#0369a1' }, { bg: '#fef3c7', text: '#b45309' }, 
+            { bg: '#f3e8ff', text: '#7e22ce' }, { bg: '#ffedd5', text: '#b45309' }  
+        ];
+        return colors[Math.abs(hash) % colors.length];
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Áp dụng màu cho tất cả Avatar
+        document.querySelectorAll('.auto-avatar').forEach(el => {
+            const name = el.getAttribute('data-name');
+            if(name) {
+                const colorSet = stringToColor(name);
+                el.style.backgroundColor = colorSet.bg;
+                el.style.color = colorSet.text;
+                el.style.borderColor = colorSet.bg;
+            }
+        });
+    });
+
+    // Hàm Lọc theo Tên NV, Ca và Bộ phận trên Front-end
+    function filterLocal() {
+        const query = document.getElementById('searchInput') ? document.getElementById('searchInput').value.toLowerCase() : '';
+        const shiftFilter = document.getElementById('shiftTypeFilter').value;
+        const deptFilter = document.getElementById('deptFilter').value;
+        const rows = document.querySelectorAll('.item-row');
+
+        rows.forEach(row => {
+            const rowShift = row.dataset.shift;
+            const rowDept = row.dataset.dept;
+            const rowText = row.innerText.toLowerCase(); 
+            
+            const matchQuery = rowText.includes(query);
+            const matchShift = (shiftFilter === 'all' || rowShift === shiftFilter);
+            const matchDept = (deptFilter === 'all' || rowDept === deptFilter);
+
+            row.style.display = (matchQuery && matchShift && matchDept) ? '' : 'none';
+        });
+    }
+
+    // Tiện ích: Chọn tất cả Checkbox (bỏ qua những người đang nghỉ phép bị disabled)
+    function toggleAllStaff() {
+        const checkboxes = document.querySelectorAll('.staff-checkbox:not([disabled])');
+        let allChecked = true;
+        checkboxes.forEach(cb => { if(!cb.checked) allChecked = false; });
+        checkboxes.forEach(cb => { cb.checked = !allChecked; });
+    }
+
+    // Mở Modal Thêm Ca Mới
+    function openAddModal() {
+        document.getElementById('formShift').reset();
+        document.getElementById('caId').value = '';     
+        // Giữ lại ngày hiện tại đang xem trên bộ lọc (nếu có)
+        document.getElementById('inNgayLam').value = document.querySelector('input[name="date"]').value; 
+        
+        document.getElementById('modalTitle').innerHTML = '<i class="bi bi-calendar-plus text-primary me-2"></i> Thiết Lập Phân Ca Mới';
+        new bootstrap.Modal(document.getElementById('shiftModal')).show();
+    }
+
+    // Mở Modal Sửa Ca Đã Có
+    function openEditModal(btnObj, id, ngay_lam, loai_ca, bo_phan, ghi_chu) {
+        document.getElementById('caId').value = id;
+        document.getElementById('inNgayLam').value = ngay_lam;
+        document.getElementById('inLoaiCa').value = loai_ca;
+        document.getElementById('inBoPhan').value = bo_phan;
+        document.getElementById('inGhiChu').value = ghi_chu;
+        
+        // Reset toàn bộ Checkbox
+        document.querySelectorAll('.staff-checkbox').forEach(cb => cb.checked = false);
+        
+        // Đọc danh sách ID nhân viên từ HTML
+        let tr = btnObj.closest('tr');
+        let staffListStr = tr.querySelector('.staff-id-list').textContent;
+        if(staffListStr) {
+            let ids = staffListStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
+            ids.forEach(nv_id => {
+                let cb = document.getElementById('nv_' + nv_id);
+                // Nếu nv đó đang có ca (dù có thể hôm nay đang khóa do nghỉ), vẫn check cho họ
+                if(cb) cb.checked = true;
+            });
+        }
+        
+        document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil-square text-primary me-2"></i> Cập Nhật Phân Ca';
+        new bootstrap.Modal(document.getElementById('shiftModal')).show();
+    }
+
+    // Gọi Modal Xóa Đồng Bộ
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('deleteShiftId').value = this.dataset.id;
+            new bootstrap.Modal(document.getElementById('deleteShiftModal')).show();
+        });
+    });
+</script>
+{% endblock %}

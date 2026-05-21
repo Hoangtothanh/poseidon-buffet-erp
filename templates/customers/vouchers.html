@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Quản lý Khuyến Mãi - Poseidon ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       CSS CHUẨN ĐỒNG BỘ SAAS
+       ========================================== */
+    .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;}
+    .page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+    .page-subtitle { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0 0 8px 0; }
+    
+    .breadcrumb-saas { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0; display: flex; align-items: center; }
+    .breadcrumb-saas a { color: var(--accent); text-decoration: none; transition: 0.2s; }
+    .breadcrumb-saas a:hover { color: #0b5ed7; text-decoration: underline; }
+    
+    .toolbar-saas { background: var(--bg-card); padding: 16px; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .filter-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-grow: 1;}
+    
+    .search-box { position: relative; min-width: 280px; }
+    .search-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-box input { padding-left: 42px; border-radius: 10px; border: 1px solid var(--border-color); height: 40px; width: 100%; background: #f8fafc; transition: var(--transition); font-size: 0.9rem;}
+    .search-box input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; }
+    
+    .filter-select { border-radius: 10px; border: 1px solid var(--border-color); height: 40px; padding: 0 36px 0 16px; color: var(--text-main); font-size: 0.9rem; font-weight: 500; background-color: #f8fafc; cursor: pointer; transition: var(--transition); appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 10px; }
+    .filter-select:focus { border-color: var(--primary); background-color: #fff; outline: none; }
+
+    .btn-create { background: var(--primary); color: #fff; height: 40px; border-radius: 10px; font-weight: 600; padding: 0 20px; border: none; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2); }
+    .btn-create:hover { background: var(--primary-hover); transform: translateY(-1px); color: #fff; }
+
+    .table-container { background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); overflow: hidden; }
+    .table-saas { width: 100%; border-collapse: collapse; min-width: 900px;}
+    .table-saas th { background: #f8fafc; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; padding: 16px 20px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+    .table-saas td { padding: 16px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+    .table-saas tr:hover { background-color: #f8fafc; }
+    
+    .voucher-code { background: #f1f5f9; border: 1px dashed #94a3b8; font-family: monospace; font-size: 1.1rem; padding: 6px 12px; border-radius: 8px; color: var(--primary); letter-spacing: 1px; font-weight: 800;}
+    .ai-badge { background: #f3e8ff; color: #7e22ce; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; border: 1px solid #e9d5ff; font-weight: bold;}
+    
+    .status-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; font-weight: bold;}
+    .status-active { background: #dcfce7; color: #166534; }
+    .status-expired { background: #f1f5f9; color: #475569; }
+    
+    .row-actions .btn-action { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: transparent; border: none; transition: 0.2s; cursor: pointer;}
+    .row-actions .btn-action:hover { background: #e2e8f0; color: var(--primary); }
+    
+    .modal-content { border-radius: 16px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    .modal-header { background: #f8fafc; border-bottom: 1px solid var(--border-color); padding: 20px 24px; border-radius: 16px 16px 0 0;}
+    .modal-title { font-weight: 800; color: var(--text-main); font-size: 1.25rem; }
+    .modal-body { padding: 24px; }
+    .modal-footer { border-top: 1px solid var(--border-color); padding: 20px 24px; background: #f8fafc; border-radius: 0 0 16px 16px;}
+    .form-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;}
+    .form-control, .form-select { border-radius: 10px; border: 1px solid var(--border-color); padding: 10px 16px; font-size: 0.95rem; font-weight: 500; transition: var(--transition); background: #fff;}
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px; font-weight: 500;">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="page-header fade-in-up">
+    <div>
+        <h1 class="page-title">Mã Khuyến Mãi (Voucher)</h1>
+        <p class="page-subtitle">Quản lý chiến dịch giảm giá, kích cầu và đề xuất từ AI</p>
+        <div class="breadcrumb-saas">
+            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+            <span class="text-muted">Khách hàng & Khuyến mãi</span>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+            <span class="text-muted">Voucher</span>
+        </div>
+    </div>
+</div>
+
+<div class="toolbar-saas fade-in-up delay-1">
+    <div class="filter-group">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Tìm theo mã Voucher...">
+        </div>
+        <select class="filter-select" id="statusFilter">
+            <option value="all">Tất cả Trạng thái</option>
+            <option value="active">Đang áp dụng</option>
+            <option value="expired">Đã hết hạn/Khóa</option>
+        </select>
+    </div>
+    <button class="btn-create" onclick="openVoucherModal()">
+        <i class="bi bi-plus-lg"></i> Tạo Voucher Mới
+    </button>
+</div>
+
+<div class="table-container mb-5 fade-in-up delay-2">
+    <div class="table-responsive">
+        <table class="table-saas">
+            <thead>
+                <tr>
+                    <th width="20%">Mã Voucher</th>
+                    <th width="15%">Mức giảm</th>
+                    <th width="25%">Điều kiện áp dụng</th>
+                    <th width="20%">Hạn sử dụng</th>
+                    <th width="10%">Trạng thái</th>
+                    <th width="10%" class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vouchers %}
+                <tr class="item-row" data-code="{{ v.ma_code }}" data-status="{% if v.trang_thai and not v.da_het_han %}active{% else %}expired{% endif %}">
+                    <td>
+                        <span class="voucher-code">{{ v.ma_code }}</span>
+                        {% if v.ai_de_xuat %}
+                        <div class="mt-2"><span class="ai-badge"><i class="bi bi-robot"></i> AI Đề xuất</span></div>
+                        {% endif %}
+                    </td>
+                    <td><strong class="text-danger fs-5">{{ v.muc_giam }}</strong></td>
+                    <td>
+                        <div class="text-dark fw-bold">Hóa đơn từ {{ v.dieu_kien_toi_thieu|intcomma }}đ</div>
+                    </td>
+                    <td>
+                        <div class="fw-bold">{{ v.ngay_het_han|date:"d/m/Y" }}</div>
+                        {% if v.da_het_han %}
+                             <div class="text-danger small">Đã hết hạn</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if v.trang_thai and not v.da_het_han %}
+                             <span class="status-badge status-active">Đang áp dụng</span>
+                        {% else %}
+                             <span class="status-badge status-expired">Ngừng áp dụng</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end row-actions d-flex justify-content-end gap-1">
+                        <button class="btn-action text-primary" title="Sửa" 
+                            onclick="openEditVoucherModal('{{ v.id }}', '{{ v.ma_code|escapejs }}', '{{ v.muc_giam|escapejs }}', '{{ v.dieu_kien_toi_thieu }}', '{{ v.ngay_het_han|date:'Y-m-d' }}', '{% if v.trang_thai %}yes{% else %}no{% endif %}')">
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        
+                        <form action="{% url 'delete_voucher' v.id %}" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa mã {{ v.ma_code }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-action text-danger" title="Xóa">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">
+                        <i class="bi bi-ticket-perforated" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 10px;"></i>
+                        Chưa có mã khuyến mãi nào trong hệ thống.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="voucherModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-ticket-detailed text-primary me-2"></i> Thông Tin Voucher</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <form method="POST" action="{% url 'save_voucher' %}" id="voucherForm">
+                {% csrf_token %}
+                <input type="hidden" name="voucher_id" id="modalVoucherId">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Mã Code <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control text-uppercase" name="ma_code" id="modalCode" placeholder="VD: TET2026" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Mức giảm <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="muc_giam" id="modalDiscount" placeholder="15% hoặc 200000" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Điều kiện hóa đơn (Tối thiểu)</label>
+                            <input type="number" class="form-control" name="dieu_kien_toi_thieu" id="modalMinOrder" placeholder="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ngày hết hạn <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" name="ngay_het_han" id="modalExpire" required>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" name="trang_thai" id="modalActive" checked>
+                                <label class="form-check-label fw-bold" for="modalActive">Kích hoạt ngay</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light fw-bold px-4 border" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn-create px-5">Lưu Voucher</button>
+                </div>
+            </form>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // JS Lọc bảng đơn giản
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    const rows = document.querySelectorAll('.item-row');
+
+    function filterTable() {
+        const query = searchInput.value.toLowerCase();
+        const status = statusFilter.value.toLowerCase();
+        rows.forEach(row => {
+            const matchSearch = row.dataset.code.toLowerCase().includes(query);
+            const matchStatus = (status === 'all' || row.dataset.status === status);
+            row.style.display = (matchSearch && matchStatus) ? '' : 'none';
+        });
+    }
+    
+    if(searchInput) searchInput.addEventListener('input', filterTable);
+    if(statusFilter) statusFilter.addEventListener('change', filterTable);
+
+    // Mở Form Thêm Mới
+    function openVoucherModal() {
+        document.getElementById('voucherForm').reset();
+        document.getElementById('modalVoucherId').value = '';
+        document.getElementById('modalActive').checked = true;
+        document.querySelector('#voucherModal .modal-title').innerHTML = '<i class="bi bi-plus-circle text-primary me-2"></i> Thêm Voucher Mới';
+        new bootstrap.Modal(document.getElementById('voucherModal')).show();
+    }
+
+    // Mở Form Cập nhật (Đổ dữ liệu)
+    function openEditVoucherModal(id, code, discount, minOrder, expire, isActive) {
+        document.getElementById('modalVoucherId').value = id;
+        document.getElementById('modalCode').value = code;
+        document.getElementById('modalDiscount').value = discount;
+        document.getElementById('modalMinOrder').value = minOrder;
+        document.getElementById('modalExpire').value = expire;
+        document.getElementById('modalActive').checked = (isActive === 'yes');
+        
+        document.querySelector('#voucherModal .modal-title').innerHTML = '<i class="bi bi-pencil-square text-primary me-2"></i> Cập nhật Voucher';
+        new bootstrap.Modal(document.getElementById('voucherModal')).show();
+    }
+</script>
+{% endblock %}

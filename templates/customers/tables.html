@@ -1,0 +1,850 @@
+{% extends 'base.html' %}
+
+{% block title %}Sơ đồ Bàn - Poseidon ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================
+       CSS ĐỒNG BỘ 100% VỚI TRANG POS
+       ========================================== */
+    .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;}
+    .page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+    .page-subtitle { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0 0 8px 0; }
+    
+    .breadcrumb-saas { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0; display: flex; align-items: center; }
+    .breadcrumb-saas a { color: var(--accent); text-decoration: none; transition: 0.2s; }
+    .breadcrumb-saas a:hover { color: #0b5ed7; text-decoration: underline; }
+    
+    .toolbar-saas { background: var(--bg-card); padding: 16px; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .filter-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-grow: 1;}
+    
+    .search-box { position: relative; min-width: 250px; }
+    .search-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-box input { padding-left: 42px; border-radius: 10px; border: 1px solid var(--border-color); height: 40px; width: 100%; background: #f8fafc; transition: var(--transition); font-size: 0.9rem;}
+    .search-box input:focus { border-color: var(--primary); background: #fff; outline: none; }
+    
+    .btn-create { background: var(--primary); color: #fff; height: 40px; border-radius: 10px; font-weight: 600; padding: 0 20px; border: none; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2); }
+    .btn-create:hover { background: var(--primary-hover); transform: translateY(-1px); color: #fff; }
+
+    /* KPI Cards */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px; }
+    .kpi-card { background: var(--bg-card); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; transition: var(--transition); height: 100%; position: relative; overflow: hidden;}
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); border-radius: 4px 0 0 4px;}
+    .kpi-card.c-primary::before { background: var(--primary); }
+    .kpi-card.c-warning::before { background: #f59e0b; }
+    .kpi-card.c-success::before { background: #10b981; }
+    .kpi-card.c-info::before { background: #3b82f6; }
+    .kpi-card.c-purple::before { background: #8b5cf6; } 
+    
+    .kpi-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+    .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.2; }
+    .icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;}
+
+    /* GIAO DIỆN BÀN CHUẨN POS */
+    .zone-container { margin-bottom: 35px; background: transparent; }
+    .zone-header { display: flex; align-items: center; margin-bottom: 15px; padding-left: 5px;}
+    .zone-title { font-size: 1.3rem; font-weight: 800; color: #334155; margin: 0;}
+    .zone-count { background: #cbd5e1; color: #334155; font-size: 0.8rem; font-weight: bold; padding: 3px 8px; border-radius: 20px; margin-left: 10px;}
+    .zone-line { flex-grow: 1; height: 2px; background: #cbd5e1; margin-left: 15px; opacity: 0.5;}
+    
+    .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px;}
+    
+    .t-card { border-radius: 16px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); cursor: pointer; overflow: hidden; display: flex; flex-direction: column; background: #fff; border: 2px solid transparent; transition: transform 0.1s, box-shadow 0.2s; position: relative;}
+    .t-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+    .t-card:active { transform: scale(0.95); }
+    
+    .t-head { padding: 12px 10px 8px; font-weight: 900; text-align: center; font-size: 1.3rem; line-height: 1;}
+    .t-body { padding: 5px 10px 15px; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; flex-grow: 1; min-height: 70px;}
+    
+    .t-pax { color: #64748b; font-size: 0.85rem; font-weight: 600;}
+    
+    .t-customer { text-align: center; margin-top: 8px; background: rgba(255,255,255,0.5); padding: 6px; border-radius: 8px;}
+    .t-customer .cust-name { font-size: 0.85rem; font-weight: 800; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+    .t-customer .cust-meta { font-size: 0.75rem; font-weight: 600; display: flex; justify-content: center; flex-wrap: wrap; gap: 4px;}
+    .badge-doan { display: block; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;}
+    
+    .t-status-badge { font-size: 0.8rem; font-weight: 700; margin-top: 8px; display: inline-block; padding: 4px 10px; border-radius: 12px;}
+    
+    .bg-trong { border-color: #e2e8f0; background: #fff;}
+    .bg-trong .t-head { color: #475569; }
+    .bg-trong .t-pax { color: #94a3b8;}
+    .bg-trong .t-status-badge { background: #f1f5f9; color: #64748b; }
+    
+    .bg-dang_phuc_vu { border-color: var(--primary); background: #fffef2;}
+    .bg-dang_phuc_vu .t-head { color: var(--primary); }
+    .bg-dang_phuc_vu .t-customer .cust-name { color: #991b1b; }
+    .bg-dang_phuc_vu .t-customer .cust-meta { color: #b91c1c; }
+    .bg-dang_phuc_vu .t-status-badge { background: #fee2e2; color: #b91c1c;}
+
+    .bg-cho_thanh_toan { border-color: #f59e0b; background: #fffbeb;}
+    .bg-cho_thanh_toan .t-head { color: #d97706; }
+    .bg-cho_thanh_toan .t-customer .cust-name { color: #92400e; }
+    .bg-cho_thanh_toan .t-customer .cust-meta { color: #b45309; }
+    .bg-cho_thanh_toan .t-status-badge { background: #fef3c7; color: #b45309;}
+
+    .bg-da_dat { border-color: #3b82f6; background: #eff6ff;}
+    .bg-da_dat .t-head { color: #1d4ed8; }
+    .bg-da_dat .t-customer .cust-name { color: #1e40af; }
+    .bg-da_dat .t-customer .cust-meta { color: #2563eb; }
+    .bg-da_dat .t-status-badge { background: #dbeafe; color: #1e40af;}
+
+    .bg-cho_phuc_vu { border-color: #8b5cf6; background: #f5f3ff;}
+    .bg-cho_phuc_vu .t-head { color: #6d28d9; }
+    .bg-cho_phuc_vu .t-customer .cust-name { color: #5b21b6; }
+    .bg-cho_phuc_vu .t-customer .cust-meta { color: #7c3aed; }
+    .bg-cho_phuc_vu .t-status-badge { background: #ede9fe; color: #5b21b6;}
+
+    .t-action-icon { position: absolute; top: 10px; right: 10px; color: #94a3b8; font-size: 1.2rem; transition: 0.2s;}
+    .t-card:hover .t-action-icon { color: var(--primary); }
+
+    /* Modal Form CSS */
+    .modal-content { border-radius: 16px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+    .modal-header { background: #f8fafc; border-bottom: 1px solid var(--border-color); padding: 20px 24px; border-radius: 16px 16px 0 0;}
+    .modal-body { padding: 24px; }
+    .modal-footer { border-top: 1px solid var(--border-color); padding: 20px 24px; background: #f8fafc; border-radius: 0 0 16px 16px;}
+    .form-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;}
+    .form-control, .form-select { border-radius: 10px; border: 1px solid var(--border-color); padding: 10px 16px; font-size: 0.95rem; font-weight: 500; transition: var(--transition); background: #fff;}
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; }
+
+    /* CSS khu vực Hóa đơn mới */
+    .invoice-details-box { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+    .invoice-items-list { max-height: 380px; overflow-y: auto; font-size: 0.95rem; margin-bottom: 15px; padding-right: 8px; }
+    .invoice-items-list::-webkit-scrollbar { width: 6px; }
+    .invoice-items-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+
+    /* ==========================================
+       CSS MINI MAP DÀNH CHO GỘP, TÁCH, CHUYỂN BÀN
+       ========================================== */
+    .minimap-wrapper { max-height: 400px; overflow-y: auto; padding: 10px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border-color); }
+    .minimap-wrapper::-webkit-scrollbar { width: 6px; }
+    .minimap-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+
+    .mini-table {
+        flex: 1 1 120px; max-width: 150px; background: #fff; border: 2px solid #e2e8f0;
+        border-radius: 12px; padding: 15px 10px; text-align: center; cursor: pointer;
+        transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02); position: relative;
+    }
+    .mini-table:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); border-color: var(--primary);}
+    .mini-table h4 { margin: 0 0 5px 0; font-size: 1rem; font-weight: 800; color: #334155; transition: 0.2s; }
+    .mini-table span { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+    
+    .mini-table.selected { background-color: #eff6ff; border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); transform: translateY(-2px);}
+    .mini-table.selected h4 { color: #1d4ed8; }
+    .check-icon { display: none; position: absolute; top: -8px; right: -8px; background: #fff; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 1.2rem;}
+    .mini-table.selected .check-icon { display: block; }
+    
+    /* Giao diện màu chuyên biệt cho từng loại Modal */
+    .modal-transfer .mini-table.selected { background-color: #ecfeff; border-color: #0ea5e9;}
+    .modal-transfer .mini-table.selected h4 { color: #0369a1; }
+    .modal-transfer .check-icon { color: #0ea5e9; }
+
+    .modal-merge .mini-table.selected { background-color: #dcfce7; border-color: #10b981;}
+    .modal-merge .mini-table.selected h4 { color: #166534; }
+    .modal-merge .check-icon { color: #10b981; }
+
+    .modal-split .mini-table.selected { background-color: #fef3c7; border-color: #f59e0b;}
+    .modal-split .mini-table.selected h4 { color: #b45309; }
+    .modal-split .check-icon { color: #f59e0b; }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px; font-weight: 500;">
+            <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<div class="page-header fade-in-up">
+    <div>
+        <h1 class="page-title">Sơ Đồ Bàn (Table Layout)</h1>
+        <p class="page-subtitle">Quản lý và điều phối luồng hóa đơn, chuyển/gộp bàn</p>
+        <div class="breadcrumb-saas">
+            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+            <span>Khách & Bàn</span>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+            <span class="text-muted">Sơ đồ bàn</span>
+        </div>
+    </div>
+</div>
+
+<div class="kpi-grid fade-in-up delay-1">
+    <div class="kpi-card c-primary">
+        <div>
+            <div class="kpi-title">Tổng Số Bàn</div>
+            <div class="kpi-value">{{ tat_ca_ban.count|default:"0" }}</div>
+        </div>
+        <div class="icon-box icon-primary" style="background: #e0f2fe; color: #0284c7;"><i class="bi bi-grid-fill"></i></div>
+    </div>
+    <div class="kpi-card c-success">
+        <div>
+            <div class="kpi-title text-success">Bàn Đang Trống</div>
+            <div class="kpi-value text-success">{{ ban_trong|default:"0" }}</div>
+        </div>
+        <div class="icon-box icon-success"><i class="bi bi-check-circle-fill"></i></div>
+    </div>
+    
+    <div class="kpi-card c-purple" style="background-color: #f5f3ff; border-color: #c4b5fd;">
+        <div>
+            <div class="kpi-title" style="color: #7c3aed;">Chờ Phục Vụ</div>
+            <div class="kpi-value" style="color: #6d28d9;">{{ cho_phuc_vu|default:"0" }}</div>
+        </div>
+        <div class="icon-box" style="background: #ede9fe; color: #6d28d9;"><i class="bi bi-person-raised-hand"></i></div>
+    </div>
+
+    <div class="kpi-card c-danger" style="background-color: #fff5f5; border-color: #fca5a5;">
+        <div>
+            <div class="kpi-title text-danger">Đang Phục Vụ</div>
+            <div class="kpi-value text-danger">{{ dang_phuc_vu|default:"0" }}</div>
+        </div>
+        <div class="icon-box icon-danger"><i class="bi bi-fire"></i></div>
+    </div>
+</div>
+
+<div class="toolbar-saas fade-in-up delay-2">
+    <div class="filter-group">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Nhập tên bàn (VD: Bàn 101)...">
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <a href="{% url 'table_zones' %}" class="btn btn-outline-secondary fw-bold" style="border-radius: 10px; height: 40px; display: inline-flex; align-items: center;">
+            <i class="bi bi-geo-alt-fill me-1"></i> Quản lý Khu Vực
+        </a>
+        <button class="btn-create" id="btnAddTable">
+            <i class="bi bi-plus-lg"></i> Thêm Bàn Mới
+        </button>
+    </div>
+</div>
+
+<div class="fade-in-up delay-3" id="restaurantLayout">
+    {% for khu_vuc, danh_sach_ban in ban_theo_khu_vuc.items %}
+        <div class="zone-container">
+            <div class="zone-header">
+                <h2 class="zone-title">{{ khu_vuc.ten_khu_vuc|default:"Khu vực chung" }}</h2>
+                <span class="zone-count">{{ danh_sach_ban|length }} Bàn</span>
+                <div class="zone-line"></div>
+            </div>
+            
+            <div class="table-grid">
+                {% for ban in danh_sach_ban %}
+                    <div class="t-card bg-{{ ban.trang_thai_hien_thi }} table-item" 
+                         data-name="{{ ban.ten_ban|lower }}"
+                         onclick="openTableActions(
+                             {{ ban.id }}, 
+                             '{{ ban.ten_ban|escapejs }}', 
+                             '{{ ban.trang_thai }}', 
+                             {{ ban.so_ghe }}, 
+                             '{{ ban.khu_vuc.id|default:"" }}',
+                             '{{ ban.kh_ten|escapejs }}',
+                             '{{ ban.kh_sdt|escapejs }}',
+                             '{{ ban.kh_time|escapejs }}',
+                             '{{ ban.kh_adults|escapejs }}',
+                             '{{ ban.kh_children|escapejs }}',
+                             '{{ ban.kh_ghi_chu|escapejs }}'
+                         )">
+                        
+                        <i class="bi bi-three-dots-vertical t-action-icon"></i>
+                        
+                        <div class="t-head">{{ ban.ten_ban }}</div>
+                        <div class="t-body">
+                            <div class="t-pax"><i class="bi bi-people-fill"></i> {{ ban.so_ghe }} ghế</div>
+                            
+                            {% if ban.kh_ten %}
+                                <div class="t-customer">
+                                    <div class="cust-name">
+                                        {% if ban.is_doan %}<span class="badge-doan bg-danger text-white px-1 rounded d-inline-block">ĐOÀN</span>{% endif %}
+                                        {{ ban.kh_ten }}
+                                    </div>
+                                    <div class="cust-meta">
+                                        <span class="badge bg-light text-dark border" title="Người lớn"><i class="bi bi-person-standing"></i> {{ ban.kh_adults }}</span>
+                                        {% if ban.kh_children and ban.kh_children|add:"0" > 0 %}
+                                            <span class="badge bg-light text-dark border" title="Trẻ em"><i class="bi bi-person"></i> {{ ban.kh_children }}</span>
+                                        {% endif %}
+                                    </div>
+                                    {% if ban.kh_time %}
+                                        <div class="cust-meta mt-1">
+                                            <span class="badge bg-light text-dark border"><i class="bi bi-clock-fill"></i> {{ ban.kh_time }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+
+                            <div class="t-status-badge">
+                                {% if ban.trang_thai_hien_thi == 'trong' %}<i class="bi bi-circle"></i> Trống
+                                {% elif ban.trang_thai_hien_thi == 'dang_phuc_vu' %}<i class="bi bi-fire"></i> Đang phục vụ
+                                {% elif ban.trang_thai_hien_thi == 'cho_phuc_vu' %}<i class="bi bi-person-raised-hand"></i> Chờ phục vụ
+                                {% elif ban.trang_thai_hien_thi == 'cho_thanh_toan' %}<i class="bi bi-wallet2"></i> Chờ thanh toán
+                                {% elif ban.trang_thai_hien_thi == 'da_dat' %}<i class="bi bi-calendar-check"></i> Đã đặt trước
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="text-center py-5 text-muted bg-white rounded-4 border">
+            <i class="bi bi-grid-3x3-gap fs-1 d-block mb-3"></i>
+            Chưa có bàn nào trong hệ thống. Hãy bấm "Thêm Bàn Mới" để tạo sơ đồ!
+        </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="tableActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg"> 
+        <div class="modal-content" style="background: #f8fafc;">
+            <div class="modal-header bg-white border-bottom">
+                <h5 class="modal-title fw-bold text-dark" id="actionModalTitle">Tên Bàn</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pb-0">
+                
+                <div id="customerInfoCard" class="bg-white p-3 rounded-4 shadow-sm border mb-4" style="display: none;">
+                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                            <i class="bi bi-person-lines-fill"></i>
+                        </div>
+                        <h6 class="fw-bold m-0">Thông tin Khách Đặt</h6>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 d-flex justify-content-between"><span class="text-muted small">Tên KH:</span> <span class="fw-bold text-dark" id="infoName">---</span></div>
+                        <div class="col-6 d-flex justify-content-between"><span class="text-muted small">SĐT:</span> <span class="fw-bold text-dark" id="infoPhone">---</span></div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6 d-flex justify-content-between"><span class="text-muted small">Người lớn:</span> <span class="fw-bold text-dark" id="infoAdults">---</span></div>
+                        <div class="col-6 d-flex justify-content-between"><span class="text-muted small">Trẻ em:</span> <span class="fw-bold text-dark" id="infoChildren">---</span></div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-12 d-flex justify-content-between"><span class="text-muted small">Giờ đến:</span> <span class="fw-bold text-danger" id="infoTime">---</span></div>
+                    </div>
+                    <div class="mt-3 text-muted small fst-italic p-2 bg-light rounded" id="infoNote" style="display: none;"></div>
+                </div>
+
+                <div id="invoiceDetailsGroup" style="display: none;" class="invoice-details-box">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-primary m-0"><i class="bi bi-receipt"></i> Chi Tiết Hóa Đơn</h6>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots-vertical"></i> Điều khiển
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 py-2" style="border-radius: 12px; width: 180px;">
+                                <li><a class="dropdown-item fw-bold text-info py-2" href="#" onclick="showTransferModal()"><i class="bi bi-arrow-left-right me-2"></i> Chuyển Bàn</a></li>
+                                <li><a class="dropdown-item fw-bold text-success py-2" href="#" onclick="showMergeModal()"><i class="bi bi-intersect me-2"></i> Gộp Bàn</a></li>
+                                <li><a class="dropdown-item fw-bold text-warning py-2" href="#" onclick="showSplitModal()"><i class="bi bi-layout-split me-2"></i> Tách Bill</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item fw-bold text-danger py-2" href="#" onclick="cancelCurrentInvoice()"><i class="bi bi-trash3-fill me-2"></i> Hủy Hóa Đơn</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div id="invoiceItemsList" class="invoice-items-list">
+                        </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-2">
+                        <span class="fw-bold text-muted">Tổng tạm tính:</span>
+                        <span class="fw-bold text-danger fs-4" id="invoiceTotalAmount">0 ₫</span>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'pos' %}" class="btn btn-primary w-100 fw-bold py-2 shadow-sm" style="border-radius: 10px;">
+                            <i class="bi bi-display me-1"></i> MỞ MÀN HÌNH POS
+                        </a>
+                    </div>
+                </div>
+
+                <div id="posActionSuggest" class="mb-4 text-center">
+                    <a href="{% url 'pos' %}" class="btn btn-outline-primary w-100 fw-bold py-3 shadow-sm" style="border-radius: 12px; font-size: 1rem; border-width: 2px;">
+                        <i class="bi bi-display me-1"></i> MỞ BÀN TẠI POS
+                    </a>
+                </div>
+
+            </div>
+            
+            <div class="modal-footer border-top bg-white d-flex p-3">
+                <button class="btn btn-light fw-bold border flex-grow-1" id="btnOpenEditModal"><i class="bi bi-pencil-square me-1"></i> Sửa thông tin bàn</button>
+                
+                {% if request.user.is_superuser %}
+                <form method="POST" action="" class="m-0" style="width: 80px;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete">
+                    <input type="hidden" name="table_id" class="hidden-table-id">
+                    <button type="submit" class="btn btn-outline-danger fw-bold w-100" title="Xóa bàn khỏi sơ đồ" onclick="return confirm('Xác nhận xóa mềm bàn này khỏi sơ đồ?')"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="tableModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="">
+                {% csrf_token %}
+                <input type="hidden" name="action" id="formAction" value="add">
+                <input type="hidden" name="table_id" id="tableId">
+
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modalTitle"><i class="bi bi-plus-circle-fill text-primary me-2"></i> Thêm Bàn Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên Bàn <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="ten_ban" id="inputTenBan" placeholder="VD: Bàn 101" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số Ghế Tối Đa <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="so_ghe" id="inputSoGhe" value="4" min="1" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Thuộc Khu Vực <span class="text-danger">*</span></label>
+                            <select class="form-select w-100" name="khu_vuc" id="inputKhuVuc" required>
+                                {% for kv in danh_sach_khu_vuc %}
+                                    <option value="{{ kv.id }}">{{ kv.ten_khu_vuc }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12" id="statusGroup" style="display: none;">
+                            <label class="form-label">Trạng thái gốc</label>
+                            <select class="form-select border-primary fw-bold" name="trang_thai" id="inputTrangThai">
+                                <option value="trong">Bàn Trống</option>
+                                <option value="dang_an">Đang Phục Vụ</option>
+                                <option value="da_dat">Đã Đặt Trước</option>
+                                <option value="cho_thanh_toan">Chờ Thanh Toán</option>
+                            </select>
+                            <small id="statusWarning" class="text-danger mt-2 d-none fw-bold" style="font-size: 0.8rem;">
+                                <i class="bi bi-exclamation-triangle-fill"></i> Bàn đang có hóa đơn, không thể tự ý đổi trạng thái!
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light fw-bold border" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-4">Lưu Thông Tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="transferModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-transfer">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-arrow-left-right me-2"></i> Chuyển Bàn</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <label class="fw-bold mb-3 text-info">Vui lòng chọn 1 bàn đích (Chỉ hiện bàn trống):</label>
+                <div id="transferMiniMap" class="minimap-wrapper bg-white"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light fw-bold border px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-info text-white fw-bold px-5" onclick="submitTransfer()">Xác nhận Chuyển Bàn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mergeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-merge">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-intersect me-2"></i> Gộp Bàn</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <label class="fw-bold mb-3 text-success">Vui lòng chọn 1 bàn để gộp vào (Chỉ hiện bàn có khách):</label>
+                <div id="mergeMiniMap" class="minimap-wrapper bg-white"></div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light fw-bold border px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success fw-bold px-5" onclick="submitMerge()">Xác nhận Gộp Hóa Đơn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="splitModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content modal-split">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-layout-split me-2"></i> Tách Bàn (Split Bill)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light p-4">
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <label class="fw-bold mb-3 text-dark"><i class="bi bi-1-circle-fill text-warning me-1"></i> Điều chỉnh món cần tách:</label>
+                        <div id="splitItemsContainer" class="invoice-items-list bg-white border rounded-3 p-3 shadow-sm" style="max-height: 400px;">
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-7 border-start">
+                        <label class="fw-bold mb-3 text-dark"><i class="bi bi-2-circle-fill text-warning me-1"></i> Chọn bàn đích:</label>
+                        <div id="splitMiniMap" class="minimap-wrapper bg-white"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-light fw-bold border px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-warning fw-bold text-dark px-5" onclick="submitSplit()">Xác Nhận Tách Bàn</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : '';
+    let editingTableData = {};
+    let currentActionOrderId = null;
+    let currentActionOrderItems = [];
+    
+    // Biến lưu ID bàn được chọn từ Mini Map
+    let selectedTargetTableId = null;
+
+    // Dữ liệu toàn bộ bàn, BỔ SUNG TRƯỜNG KHU VỰC ĐỂ NHÓM
+    const allTablesList = [
+        {% for khu_vuc, danh_sach_ban in ban_theo_khu_vuc.items %}
+            {% for b in danh_sach_ban %}
+                { 
+                    id: {{ b.id }}, 
+                    ten_ban: "{{ b.ten_ban|escapejs }}", 
+                    trang_thai: "{{ b.trang_thai }}",
+                    khu_vuc: "{{ khu_vuc.ten_khu_vuc|default:'Khu vực chung'|escapejs }}"
+                },
+            {% endfor %}
+        {% endfor %}
+    ];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const actionModal = new bootstrap.Modal(document.getElementById('tableActionModal'));
+        const tableModal = new bootstrap.Modal(document.getElementById('tableModal'));
+
+        document.getElementById('btnAddTable').addEventListener('click', function() {
+            document.querySelector('#tableModal form').reset();
+            document.getElementById('formAction').value = 'add';
+            document.getElementById('tableId').value = '';
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-plus-circle-fill text-primary me-2"></i> Thêm Bàn Mới';
+            document.getElementById('statusGroup').style.display = 'none';
+            tableModal.show();
+        });
+
+        window.openTableActions = function(id, tenBan, status, soGhe, khuVucId, khTen, khSdt, khTime, khAdults, khChildren, khGhiChu) {
+            document.getElementById('actionModalTitle').innerText = tenBan;
+            document.querySelectorAll('.hidden-table-id').forEach(input => input.value = id);
+            
+            const infoCard = document.getElementById('customerInfoCard');
+            const noteEl = document.getElementById('infoNote');
+
+            const detailsGroup = document.getElementById('invoiceDetailsGroup');
+            const posSuggest = document.getElementById('posActionSuggest');
+
+            if (status === 'dang_an' || status === 'cho_thanh_toan') {
+                detailsGroup.style.display = 'block';
+                posSuggest.style.display = 'none'; 
+
+                document.getElementById('invoiceItemsList').innerHTML = '<div class="text-center text-muted py-4"><div class="spinner-border spinner-border-sm text-primary" role="status"></div> Đang tải dữ liệu...</div>';
+                
+                getManagerOrderData(id, (success, data) => {
+                    if(success && data) {
+                        let itemsHtml = '';
+                        let tongTienTinhNham = 0;
+
+                        if (data.items && data.items.length > 0) {
+                            data.items.forEach(item => {
+                                let donGia = item.don_gia_luu_tru || item.don_gia || item.gia_ban || item.gia || 0;
+                                let soLuong = item.so_luong || 1;
+                                let thanhTien = item.thanh_tien || (donGia * soLuong) || 0;
+                                let tenMon = item.ten_mon_luu_tru || item.ten_mon || "Món không tên";
+
+                                itemsHtml += `
+                                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light">
+                                    <div class="fw-bold text-dark text-truncate pe-3" style="flex: 2; font-size: 1.05rem;">${tenMon}</div>
+                                    <div class="text-center" style="flex: 0 0 80px;">
+                                        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2" style="font-size: 1rem; border: 1px solid #bfdbfe;">x${soLuong}</span>
+                                    </div>
+                                    <div class="text-end text-muted fw-bold ps-3" style="flex: 1.5; font-size: 1.05rem;">${thanhTien.toLocaleString('vi-VN')} ₫</div>
+                                </div>`;
+                                tongTienTinhNham += thanhTien;
+                            });
+                        } else {
+                            itemsHtml = '<div class="text-muted text-center py-4 fst-italic"><i class="bi bi-cart-x fs-1 d-block mb-2 text-secondary"></i> Bàn chưa gọi món nào. Vui lòng order tại POS.</div>';
+                        }
+                        
+                        document.getElementById('invoiceItemsList').innerHTML = itemsHtml;
+                        const tongTienFinal = data.khach_can_tra || data.tong_tien_hang || data.tong_tien || tongTienTinhNham;
+                        document.getElementById('invoiceTotalAmount').innerText = tongTienFinal.toLocaleString('vi-VN') + ' ₫';
+                    } else {
+                        document.getElementById('invoiceItemsList').innerHTML = '<div class="text-danger fw-bold text-center py-4"><i class="bi bi-exclamation-octagon fs-1 d-block mb-2"></i>Lỗi tải dữ liệu hóa đơn. Bàn này có thể đang kẹt hệ thống.</div>';
+                        document.getElementById('invoiceTotalAmount').innerText = '--- ₫';
+                    }
+                });
+
+            } else {
+                detailsGroup.style.display = 'none';
+                posSuggest.style.display = 'block'; 
+            }
+
+            if (khTen && khTen.trim() !== "") {
+                infoCard.style.display = 'block';
+                document.getElementById('infoName').innerText = khTen;
+                document.getElementById('infoPhone').innerText = khSdt || "---";
+                document.getElementById('infoAdults').innerText = khAdults || "---";
+                document.getElementById('infoChildren').innerText = khChildren || "0";
+                document.getElementById('infoTime').innerText = khTime;
+                if (khGhiChu && khGhiChu.trim() !== "") {
+                    noteEl.innerText = khGhiChu; noteEl.style.display = 'block';
+                } else { noteEl.style.display = 'none'; }
+            } else {
+                infoCard.style.display = 'none';
+            }
+            
+            editingTableData = { id, tenBan, status, soGhe, khuVucId };
+            actionModal.show();
+        };
+
+        // KHÓA SỬA TRẠNG THÁI
+        document.getElementById('btnOpenEditModal').addEventListener('click', function() {
+            actionModal.hide();
+            document.getElementById('formAction').value = 'edit';
+            document.getElementById('tableId').value = editingTableData.id;
+            document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil-square text-primary me-2"></i> Cập Nhật Thông Tin Bàn';
+            
+            document.getElementById('inputTenBan').value = editingTableData.tenBan;
+            document.getElementById('inputSoGhe').value = editingTableData.soGhe;
+            if(editingTableData.khuVucId) document.getElementById('inputKhuVuc').value = editingTableData.khuVucId;
+            
+            document.getElementById('statusGroup').style.display = 'block';
+            const statusSelect = document.getElementById('inputTrangThai');
+            const statusWarning = document.getElementById('statusWarning');
+            statusSelect.value = editingTableData.status;
+
+            if (editingTableData.status === 'dang_an' || editingTableData.status === 'cho_thanh_toan') {
+                statusSelect.style.pointerEvents = 'none';
+                statusSelect.style.backgroundColor = '#e2e8f0'; 
+                statusSelect.style.opacity = '0.6';
+                statusWarning.classList.remove('d-none');
+            } else {
+                statusSelect.style.pointerEvents = 'auto';
+                statusSelect.style.backgroundColor = '#fff';
+                statusSelect.style.opacity = '1';
+                statusWarning.classList.add('d-none');
+            }
+            tableModal.show();
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        const tables = document.querySelectorAll('.table-item');
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            tables.forEach(table => {
+                table.style.display = table.dataset.name.includes(query) ? '' : 'none';
+            });
+            document.querySelectorAll('.zone-container').forEach(zone => {
+                const visibleTables = zone.querySelectorAll('.table-item[style=""]').length;
+                const totalTables = zone.querySelectorAll('.table-item').length;
+                zone.style.display = (totalTables > 0 && visibleTables === 0 && query !== "") ? 'none' : '';
+            });
+        });
+    });
+
+    // ========================================================
+    // TÍNH NĂNG CHUYỂN, GỘP, TÁCH MỚI VỚI MINI MAP
+    // ========================================================
+    function getManagerOrderData(tableId, callback) {
+        fetch(`/pos/api/order/${tableId}/`) 
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                currentActionOrderId = data.hoa_don_id;
+                currentActionOrderItems = data.items || [];
+                callback(true, data);
+            } else {
+                callback(false, null);
+            }
+        }).catch(err => {
+            console.error("Lỗi API: ", err); callback(false, null);
+        });
+    }
+
+    // Hàm Tạo Giao Diện Mini Map Nhóm theo Khu Vực
+    function renderZoneMiniMap(containerId, filteredTables, actionClass) {
+        const container = document.getElementById(containerId);
+        if(filteredTables.length === 0) {
+            container.innerHTML = '<div class="alert alert-warning text-center w-100 fw-bold"><i class="bi bi-exclamation-circle me-1"></i> Không tìm thấy bàn phù hợp để chọn!</div>';
+            return;
+        }
+        
+        const zones = {};
+        filteredTables.forEach(t => { 
+            const zoneName = t.khu_vuc || 'Khu vực chung'; 
+            if (!zones[zoneName]) zones[zoneName] = []; 
+            zones[zoneName].push(t); 
+        });
+        
+        let html = '';
+        for (const [zoneName, tables] of Object.entries(zones)) {
+            html += `<div class="w-100 mb-2 mt-2 border-bottom pb-1"><h6 class="fw-bold text-secondary m-0" style="font-size: 0.9rem;"><i class="bi bi-geo-alt-fill me-1"></i> ${zoneName}</h6></div><div class="d-flex flex-wrap gap-2 w-100 mb-3">`;
+            tables.forEach(t => {
+                let statusText = t.trang_thai === 'trong' ? 'Bàn trống' : 'Đang bận';
+                let iconClass = t.trang_thai === 'trong' ? 'bi-circle text-muted' : 'bi-fire text-danger';
+                html += `
+                <div class="mini-table" id="mtbl-${actionClass}-${t.id}" onclick="selectSingleTable(${t.id}, '${actionClass}')">
+                    <i class="bi bi-check-circle-fill check-icon"></i>
+                    <h4>${t.ten_ban}</h4>
+                    <span><i class="${iconClass} me-1"></i>${statusText}</span>
+                </div>`;
+            });
+            html += `</div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    // Chọn duy nhất 1 bàn trên Mini Map
+    window.selectSingleTable = function(tableId, actionClass) {
+        selectedTargetTableId = tableId;
+        document.querySelectorAll(`.modal-${actionClass} .mini-table`).forEach(el => el.classList.remove('selected'));
+        document.getElementById(`mtbl-${actionClass}-${tableId}`).classList.add('selected');
+    }
+
+    // 0. HỦY HÓA ĐƠN
+    window.cancelCurrentInvoice = function() {
+        if(!currentActionOrderId) return Swal.fire('Lỗi', 'Không xác định được ID Hóa đơn!', 'error');
+        Swal.fire({
+            title: 'Xác nhận Hủy Hóa Đơn?', text: "Hóa đơn và toàn bộ món sẽ bị hủy!", icon: 'warning',
+            showCancelButton: true, confirmButtonColor: '#dc2626', cancelButtonColor: '#64748b', confirmButtonText: 'Đồng ý Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch('/pos/api/checkout/', { 
+                    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({ hoa_don_id: currentActionOrderId, action: 'cancel' })
+                }).then(res => res.json()).then(data => {
+                    if(data.status === 'success') location.reload();
+                    else Swal.fire('Lỗi', data.message, 'error');
+                });
+            }
+        })
+    };
+
+    // 1. CHUYỂN BÀN
+    window.showTransferModal = function() {
+        getManagerOrderData(editingTableData.id, (success) => {
+            if(!success) return Swal.fire('Lỗi', 'Bàn chưa có bill hợp lệ.', 'info');
+            selectedTargetTableId = null; 
+            const filtered = allTablesList.filter(b => b.trang_thai === 'trong');
+            renderZoneMiniMap('transferMiniMap', filtered, 'transfer');
+            bootstrap.Modal.getInstance(document.getElementById('tableActionModal')).hide();
+            new bootstrap.Modal(document.getElementById('transferModal')).show();
+        });
+    }
+    
+    window.submitTransfer = function() {
+        if(!selectedTargetTableId) return Swal.fire('Cảnh báo', 'Vui lòng chọn 1 bàn đích từ sơ đồ!', 'warning');
+        fetch('/api/table-transfer/', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ hoa_don_id: currentActionOrderId, ban_moi_id: selectedTargetTableId })
+        }).then(res => res.json()).then(data => {
+            if(data.status === 'success') location.reload(); else Swal.fire('Lỗi', data.message, 'error');
+        });
+    }
+
+    // 2. GỘP BÀN
+    window.showMergeModal = function() {
+        getManagerOrderData(editingTableData.id, (success) => {
+            if(!success) return Swal.fire('Lỗi', 'Bàn chưa có bill hợp lệ.', 'info');
+            selectedTargetTableId = null;
+            const filtered = allTablesList.filter(b => b.trang_thai !== 'trong' && b.id !== editingTableData.id);
+            renderZoneMiniMap('mergeMiniMap', filtered, 'merge');
+            bootstrap.Modal.getInstance(document.getElementById('tableActionModal')).hide();
+            new bootstrap.Modal(document.getElementById('mergeModal')).show();
+        });
+    }
+
+    window.submitMerge = function() {
+        if(!selectedTargetTableId) return Swal.fire('Cảnh báo', 'Vui lòng chọn 1 bàn đích từ sơ đồ!', 'warning');
+        fetch('/api/table-merge/', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ hoa_don_id: currentActionOrderId, ban_dich_id: selectedTargetTableId })
+        }).then(res => res.json()).then(data => {
+            if(data.status === 'success') location.reload(); else Swal.fire('Lỗi', data.message, 'error');
+        });
+    }
+
+    // 3. TÁCH BÀN
+    window.showSplitModal = function() {
+        getManagerOrderData(editingTableData.id, (success) => {
+            if(!success || currentActionOrderItems.length === 0) return Swal.fire('Lỗi', 'Bàn chưa có món nào để tách.', 'info');
+            selectedTargetTableId = null;
+            
+            // Tải Mini Map (Hiện cả bàn trống lẫn bàn đang có khách để ghép món sang)
+            const filtered = allTablesList.filter(b => b.id !== editingTableData.id);
+            renderZoneMiniMap('splitMiniMap', filtered, 'split');
+
+            // Render Danh sách món
+            let itemsHtml = '';
+            currentActionOrderItems.forEach(i => {
+                let tenMon = i.ten_mon_luu_tru || i.ten_mon || "Món ăn";
+                itemsHtml += `
+                <div class="d-flex align-items-center justify-content-between border-bottom py-2">
+                    <div style="flex:1">
+                        <div class="fw-bold text-dark" style="font-size:0.95rem">${tenMon}</div>
+                        <small class="text-muted"><i class="bi bi-tag-fill"></i> Có sẵn: <b>${i.so_luong}</b> phần</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <input type="number" class="form-control text-center split-qty-input border-warning bg-light" data-ctid="${i.id}" data-max="${i.so_luong}" value="0" min="0" max="${i.so_luong}" style="width: 80px; font-weight:bold; font-size: 1.1rem;">
+                    </div>
+                </div>`;
+            });
+            document.getElementById('splitItemsContainer').innerHTML = itemsHtml;
+            
+            // Xử lý chống nhập quá lố
+            document.querySelectorAll('.split-qty-input').forEach(input => {
+                input.addEventListener('change', function() {
+                    let max = parseInt(this.dataset.max); let val = parseInt(this.value) || 0;
+                    if(val > max) this.value = max; if(val < 0) this.value = 0;
+                });
+            });
+            
+            bootstrap.Modal.getInstance(document.getElementById('tableActionModal')).hide();
+            new bootstrap.Modal(document.getElementById('splitModal')).show();
+        });
+    }
+
+    window.submitSplit = function() {
+        if(!selectedTargetTableId) return Swal.fire('Cảnh báo', 'Vui lòng chọn 1 bàn đích từ sơ đồ bên phải!', 'warning');
+        
+        let itemsToSplit = [];
+        document.querySelectorAll('.split-qty-input').forEach(input => {
+            let qty = parseInt(input.value) || 0;
+            if(qty > 0) itemsToSplit.push({ ct_id: input.dataset.ctid, qty_move: qty });
+        });
+        
+        if(itemsToSplit.length === 0) return Swal.fire('Cảnh báo', 'Chọn số lượng ít nhất 1 món để tách!', 'warning');
+        
+        fetch('/api/table-split/', {
+            method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ hoa_don_id: currentActionOrderId, ban_moi_id: selectedTargetTableId, items: itemsToSplit })
+        }).then(res => res.json()).then(data => {
+            if(data.status === 'success') location.reload(); else Swal.fire('Lỗi', data.message, 'error');
+        });
+    }
+</script>
+{% endblock %}

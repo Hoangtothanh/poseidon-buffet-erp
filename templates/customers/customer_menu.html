@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ global_setting.restaurant_name|default:"Trường Đại học Công nghệ Đông Á" }} - Đặt Bàn Trực Tuyến</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #0f172a; 
+            --accent-color: #f97316;  
+            --text-dark: #1e293b;
+            --text-light: #f8fafc;
+        }
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: var(--text-dark); overflow-x: hidden; }
+        
+        /* NAVBAR */
+        .navbar { background-color: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); transition: 0.3s; padding: 15px 0;}
+        .navbar-brand { font-weight: 900; font-size: 1.2rem; color: var(--accent-color) !important; display: flex; align-items: center; gap: 10px;}
+        .nav-link { color: var(--text-light) !important; font-weight: 600; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px;}
+        .nav-link:hover { color: var(--accent-color) !important; }
+        .btn-book-nav { background-color: var(--accent-color); color: white; font-weight: 800; border-radius: 30px; padding: 8px 24px; text-transform: uppercase; border: none; transition: 0.2s;}
+        .btn-book-nav:hover { background-color: #ea580c; color: white; transform: translateY(-2px);}
+
+        /* HERO SECTION */
+        .hero-section {
+            height: 100vh;
+            min-height: 700px;
+            background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.8)), url('https://images.unsplash.com/photo-1559742811-822873691df8?q=80&w=1920&auto=format&fit=crop') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .hero-title { font-weight: 900; font-size: 3.5rem; color: white; line-height: 1.2; text-transform: uppercase; margin-bottom: 20px;}
+        .hero-title span { color: var(--accent-color); }
+        .hero-subtitle { font-size: 1.2rem; color: #cbd5e1; margin-bottom: 40px; font-weight: 300;}
+
+        /* BOOKING FORM CARD */
+        .booking-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 10;
+            border-top: 5px solid var(--accent-color);
+        }
+        .booking-title { font-weight: 800; color: var(--primary-color); margin-bottom: 20px; text-align: center;}
+        .form-control, .form-select { padding: 12px 15px; border-radius: 10px; border: 1px solid #cbd5e1; font-weight: 600; color: var(--primary-color);}
+        .form-control::placeholder { font-weight: 400; color: #94a3b8; }
+        .btn-submit { background-color: var(--accent-color); color: white; font-weight: 800; padding: 15px; border-radius: 10px; width: 100%; border: none; font-size: 1.1rem; text-transform: uppercase; transition: 0.3s; display: flex; justify-content: center; align-items: center;}
+        .btn-submit:hover { background-color: #ea580c; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);}
+
+        /* BOX TẠM TÍNH */
+        .estimate-box { background: #fef2f2; border: 1px dashed #ef4444; border-radius: 10px; padding: 15px; display: none; text-align: center; animation: fadeIn 0.3s ease-in-out;}
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FEATURES */
+        .features { padding: 80px 0; background: white;}
+        .feature-box { text-align: center; padding: 20px;}
+        .feature-icon { font-size: 3rem; color: var(--accent-color); margin-bottom: 15px;}
+        .feature-title { font-weight: 800; font-size: 1.2rem;}
+        
+        /* MENU SHOWCASE */
+        .menu-showcase { padding: 80px 0; background: #f8fafc;}
+        .section-heading { text-align: center; font-weight: 900; font-size: 2.5rem; color: var(--primary-color); margin-bottom: 30px; text-transform: uppercase;}
+        
+        .menu-tabs { border: none; justify-content: center; gap: 10px; margin-bottom: 40px;}
+        .menu-tabs .nav-link { color: #64748b !important; font-weight: 700; border-radius: 30px; padding: 10px 25px; border: 2px solid transparent; background: white; box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
+        .menu-tabs .nav-link.active { background: var(--accent-color); color: white !important; box-shadow: 0 8px 15px rgba(249, 115, 22, 0.3);}
+        
+        .menu-item-card { border-radius: 15px; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.05); background: white; transition: 0.3s;}
+        .menu-item-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.1);}
+        .menu-img { width: 100%; height: 250px; object-fit: cover;}
+        .menu-content { padding: 20px;}
+        .menu-name { font-weight: 800; font-size: 1.2rem; color: var(--primary-color);}
+        
+        /* PRICING */
+        .pricing-section { padding: 80px 0; background: var(--primary-color); color: white;}
+        .price-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 30px 20px; text-align: center; backdrop-filter: blur(10px); transition: 0.3s; height: 100%; display: flex; flex-direction: column;}
+        .price-card:hover { transform: translateY(-10px); border-color: rgba(255,255,255,0.3);}
+        .price-card.vip { background: linear-gradient(135deg, rgba(249,115,22,0.2), rgba(249,115,22,0.05)); border-color: var(--accent-color);}
+        .price-title { font-weight: 800; font-size: 1.3rem; margin-bottom: 10px; text-transform: uppercase; min-height: 55px;}
+        .price-amount { font-size: 2.5rem; font-weight: 900; color: var(--accent-color); margin-bottom: 15px;}
+        .price-card ul { flex-grow: 1; }
+
+        /* GALLERY */
+        .gallery-section { padding: 80px 0; background: white;}
+        .gallery-img { border-radius: 15px; transition: 0.4s; cursor: pointer;}
+        .gallery-img:hover { transform: scale(1.03); box-shadow: 0 15px 30px rgba(0,0,0,0.2); z-index: 2; position: relative;}
+
+        /* BẢN ĐỒ & CƠ SỞ */
+        .location-section { padding: 80px 0; background: #f8fafc;}
+        .branch-list { height: 500px; overflow-y: auto; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); background: white;}
+        .branch-item { border: none; border-bottom: 1px solid #f1f5f9; padding: 20px; cursor: pointer; transition: 0.3s; border-left: 4px solid transparent;}
+        .branch-item:hover { background-color: #f8fafc;}
+        .branch-item.active { border-left-color: var(--accent-color); background-color: #fff7ed;}
+        .branch-item .b-name { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; margin-bottom: 5px;}
+        .branch-item.active .b-name { color: var(--accent-color); }
+        .branch-item .b-addr { font-size: 0.85rem; color: #64748b; margin-bottom: 8px;}
+        .branch-item .b-phone { font-size: 0.95rem; font-weight: 700; color: #dc2626;}
+        .branch-item .b-phone a { color: #dc2626; text-decoration: none;}
+        .branch-item .b-phone a:hover { text-decoration: underline;}
+        .map-container { height: 500px; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #e2e8f0; border: 2px solid white;}
+        
+        .branch-list::-webkit-scrollbar { width: 6px; }
+        .branch-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px;}
+        .branch-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px;}
+
+        /* FLOATING CONTACT */
+        .floating-contact { position: fixed; bottom: 30px; right: 30px; z-index: 999; display: flex; flex-direction: column; gap: 15px;}
+        .float-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: white; text-decoration: none; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: 0.3s;}
+        .float-btn.phone { background-color: #22c55e; animation: pulse 2s infinite;}
+        .float-btn.messenger { background-color: #0084ff; }
+        .float-btn:hover { transform: scale(1.1); color: white;}
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* FOMO TOAST */
+        .fomo-toast { position: fixed; bottom: 30px; left: -400px; background: white; border-radius: 15px; padding: 12px 20px 12px 12px; display: flex; align-items: center; gap: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.15); z-index: 1000; transition: left 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-left: 4px solid var(--accent-color);}
+        .fomo-toast.show { left: 30px; }
+        .fomo-icon { width: 45px; height: 45px; background: #fef2f2; color: var(--accent-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;}
+        .fomo-name { font-weight: 800; font-size: 0.9rem; color: var(--primary-color);}
+        .fomo-action { font-size: 0.85rem; color: #64748b;}
+        .fomo-time { font-size: 0.75rem; color: var(--accent-color); font-weight: 700; margin-top: 2px;}
+
+        /* MOBILE STICKY */
+        .mobile-sticky-bar { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 15px 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); z-index: 998; transform: translateY(100%); transition: transform 0.3s ease-in-out;}
+        .mobile-sticky-bar.show { transform: translateY(0); }
+
+        /* FULL MENU MODAL */
+        .modal-full-menu .modal-dialog { max-width: 1200px; }
+        .modal-full-menu .modal-content { border-radius: 20px; overflow: hidden; border: none; box-shadow: 0 25px 50px rgba(0,0,0,0.3); height: 90vh; display: flex; flex-direction: column;}
+        .modal-full-menu .modal-header { background: var(--primary-color); border-bottom: 3px solid var(--accent-color); padding: 20px 30px; flex-shrink: 0;}
+        .modal-full-menu .modal-body { flex: 1; min-height: 0; overflow: hidden; } 
+        
+        .menu-sidebar { background: #f8fafc; border-right: 1px solid #e2e8f0; overflow-y: auto; height: 100%;}
+        .menu-sidebar .list-group-item { background: transparent; border: none; font-weight: 700; color: #64748b; padding: 15px 20px; border-radius: 10px; margin-bottom: 5px; transition: 0.2s;}
+        .menu-sidebar .list-group-item:hover { background: #e2e8f0; color: var(--primary-color);}
+        .menu-sidebar .list-group-item.active { background: var(--accent-color); color: white; box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3);}
+        
+        .full-menu-content { overflow-y: auto; padding: 30px; padding-bottom: 60px; background: white; height: 100%;}
+        
+        .fm-category-title { font-weight: 900; color: var(--primary-color); font-size: 1.8rem; margin-bottom: 25px; border-bottom: 2px dashed #e2e8f0; padding-bottom: 15px;}
+        .fm-item { display: flex; align-items: flex-start; padding: 12px 15px; border: 1px solid #f1f5f9; border-radius: 12px; margin-bottom: 10px; background: #fff; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+        .fm-item:hover { border-color: var(--accent-color); transform: translateX(5px); box-shadow: 0 5px 15px rgba(0,0,0,0.05);}
+        .fm-icon { color: var(--accent-color); font-size: 1.2rem; margin-right: 15px; margin-top: 2px;}
+        .fm-name { font-weight: 700; color: var(--text-dark); font-size: 1rem; margin-bottom: 2px;}
+        .fm-price { font-weight: 800; color: var(--accent-color); font-size: 0.95rem;}
+        .fm-note { font-size: 0.75rem; background: #fef2f2; color: #ef4444; padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-block; margin-top: 5px;}
+
+        /* FOOTER */
+        footer { background: #0b1120; color: #cbd5e1; padding: 60px 0 20px 0;}
+        .footer-title { color: white; font-weight: 800; margin-bottom: 20px;}
+        .footer-links { list-style: none; padding: 0;}
+        .footer-links li { margin-bottom: 10px;}
+        .footer-links a { color: #cbd5e1; text-decoration: none; transition: 0.2s;}
+        .footer-links a:hover { color: var(--accent-color);}
+        
+        @media (max-width: 768px) {
+            .hero-title { font-size: 2.2rem; }
+            .booking-card { margin-top: 30px; }
+            .hero-section { height: auto; padding: 120px 0 60px 0; }
+            .floating-contact { bottom: 90px; right: 20px; } 
+            .float-btn { width: 50px; height: 50px; font-size: 1.5rem;}
+            .mobile-sticky-bar { display: block; }
+            .fomo-toast { bottom: auto; top: 80px; left: 50%; transform: translateX(-50%) translateY(-200px); transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); border-left: none; border-top: 4px solid var(--accent-color); width: 90%; max-width: 350px;}
+            .fomo-toast.show { left: 50%; transform: translateX(-50%) translateY(0); }
+            
+            .modal-full-menu .modal-content { height: 100vh; border-radius: 0; }
+            .menu-sidebar { display: flex; flex-direction: row; overflow-x: auto; white-space: nowrap; border-right: none; border-bottom: 1px solid #e2e8f0; padding: 10px; height: auto; flex-shrink: 0;}
+            .menu-sidebar .list-group-item { margin-bottom: 0; margin-right: 10px; padding: 10px 20px;}
+            .full-menu-content { padding: 20px 15px 80px 15px; height: 100%; overflow-y: auto;}
+
+            .branch-list { height: 350px; margin-bottom: 20px;}
+            .map-container { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+    {% csrf_token %}
+
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#" style="gap: 10px;">
+                {% if global_setting and global_setting.logo %}
+                    <img src="{{ global_setting.logo.url }}" alt="Logo" style="height: 40px; width: auto; object-fit: contain; border-radius: 6px;">
+                {% else %}
+                    <i class="bi bi-tsunami"></i>
+                {% endif %}
+                <span style="font-size: 1.1rem; line-height: 1.2;">{{ global_setting.restaurant_name|default:"TRƯỜNG ĐẠI HỌC CÔNG NGHỆ ĐÔNG Á"|upper }}</span>
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="bi bi-list text-white fs-1"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item"><a class="nav-link" href="#ve-chung-toi">Về Chúng Tôi</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#thuc-don">Thực Đơn</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#bang-gia">Bảng Giá</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#he-thong-co-so">Hệ Thống Cơ Sở</a></li>
+                </ul>
+                <a href="#dat-ban" class="btn btn-book-nav"><i class="bi bi-calendar-check me-1"></i> Đặt Bàn Ngay</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="floating-contact">
+        <a href="https://www.facebook.com/shopcuahoangtothanh/" target="_blank" class="float-btn messenger" title="Chat Messenger"><i class="bi bi-messenger"></i></a>        
+        <a href="tel:{{ global_setting.phone_number|default:'0964329485' }}" class="float-btn phone" title="Gọi Hotline"><i class="bi bi-telephone-outbound-fill"></i></a>
+    </div>
+
+    <div class="mobile-sticky-bar" id="mobileStickyBar">
+        <a href="#dat-ban" class="btn btn-submit m-0">ĐẶT BÀN NGAY - ƯU ĐÃI 10%</a>
+    </div>
+
+    <div id="fomoToast" class="fomo-toast">
+        <div class="fomo-icon"><i class="bi bi-bell-fill"></i></div>
+        <div>
+            <div class="fomo-name" id="fomoName">Khách hàng Nguyễn Văn A</div>
+            <div class="fomo-action" id="fomoAction">Vừa đặt bàn cho 4 người</div>
+            <div class="fomo-time" id="fomoTime">Khoảng 2 phút trước</div>
+        </div>
+    </div>
+
+    <section class="hero-section" id="dat-ban">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 col-md-12 mb-5 mb-lg-0" data-aos="fade-right" data-aos-duration="1000">
+                    <h1 class="hero-title">Vua Lẩu Nướng<br><span>Hải Sản</span> Số 1</h1>
+                    <p class="hero-subtitle">Thưởng thức hơn 200+ món ăn tinh hoa từ đại dương và các quầy thịt nướng thượng hạng trong không gian sang trọng đẳng cấp.</p>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn btn-outline-light rounded-pill px-4 py-2 fw-bold" data-bs-toggle="modal" data-bs-target="#fullMenuModal">Xem Menu 200 Món</button>
+                    </div>
+                </div>
+
+                <div class="col-lg-5 offset-lg-1 col-md-12" data-aos="fade-left" data-aos-duration="1000" data-aos-delay="200">
+                    <div class="booking-card">
+                        <h3 class="booking-title">ĐẶT BÀN GIỮ CHỖ</h3>
+                        <form id="bookingForm">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <input type="text" class="form-control" id="bookName" placeholder="Tên người đặt (*)" required>
+                                </div>
+                                <div class="col-12">
+                                    <input type="tel" class="form-control" id="bookPhone" placeholder="Số điện thoại (*)" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted mb-1">Ngày đến</label>
+                                    <input type="date" class="form-control" id="bookDate" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted mb-1">Giờ đến</label>
+                                    <input type="time" class="form-control" id="bookTime" required>
+                                </div>
+                                
+                                <div class="col-md-6 col-6">
+                                    <label class="form-label small fw-bold text-muted mb-1">Người lớn</label>
+                                    <input type="number" class="form-control pax-input" id="adultCount" placeholder="0" min="1" required>
+                                </div>
+                                <div class="col-md-6 col-6">
+                                    <label class="form-label small fw-bold text-muted mb-1">Trẻ em (1m - 1m3)</label>
+                                    <input type="number" class="form-control pax-input" id="childCount" placeholder="0" min="0">
+                                </div>
+
+                                <div class="col-12">
+                                    <textarea class="form-control" id="bookNote" rows="2" placeholder="Ghi chú thêm (VD: Cần ghế trẻ em, dị ứng, đặt bánh sinh nhật...)"></textarea>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="estimate-box" id="estimateBox">
+                                        <div class="text-danger fw-bold fs-5">Tạm tính: <span id="estimateAmount">0đ</span></div>
+                                        <small class="text-muted fst-italic">Giá tạm tính chưa bao gồm đồ uống & 8% VAT</small>
+                                    </div>
+                                </div>
+
+                                <div class="col-12">
+                                    <select class="form-select" id="bookBranch" required>
+                                        <option value="" disabled selected>Chọn cơ sở của chúng tôi...</option>
+                                        <option value="CS1 - Trường Đại học Công nghệ Đông Á">CS1 - Trường Đại học Công nghệ Đông Á</option>
+                                        <option value="CS2 - Bắc Ninh">CS2 - Bắc Ninh</option>
+                                        <option value="CS3 - Cơ sở Thực hành Nhà hàng - Khách sạn">CS3 - Cơ sở Thực hành Nhà hàng - Khách sạn</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 mt-2">
+                                    <button type="submit" class="btn-submit" id="btnSubmitBooking">
+                                        <span id="btnText">Xác Nhận Đặt Bàn</span>
+                                        <div class="spinner-border spinner-border-sm text-light ms-2 d-none" id="btnLoading" role="status"></div>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="ve-chung-toi">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="feature-box">
+                        <i class="bi bi-droplet-half feature-icon"></i>
+                        <h4 class="feature-title">Hải Sản Tươi Sống</h4>
+                        <p class="text-muted">Bắt tại bể, chế biến tại bàn. Cam kết độ tươi ngon 100% từ biển cả.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="feature-box">
+                        <i class="bi bi-fire feature-icon"></i>
+                        <h4 class="feature-title">Thực Đơn 200+ Món</h4>
+                        <p class="text-muted">Từ Sashimi Nhật Bản, BBQ Hàn Quốc đến Lẩu Thái Tomyum cay nồng.</p>
+                    </div>
+                </div>
+                <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="feature-box">
+                        <i class="bi bi-stars feature-icon"></i>
+                        <h4 class="feature-title">Không Gian 5 Sao</h4>
+                        <p class="text-muted">Sức chứa lên đến 500 khách, phòng VIP riêng tư, điều hòa mát lạnh.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="menu-showcase" id="thuc-don">
+        <div class="container" data-aos="fade-up">
+            <h2 class="section-heading">TINH HOA ẨM THỰC</h2>
+            
+            <ul class="nav nav-pills menu-tabs" id="pills-tab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-haisan" type="button">Hải Sản Cấp Cao</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-bbq" type="button">BBQ Nướng</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-trangmieng" type="button">Tráng Miệng</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="tab-haisan" role="tabpanel">
+                    <div class="row g-4">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="menu-item-card">
+                                <img src="https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?q=80&w=600" class="menu-img" alt="Sashimi">
+                                <div class="menu-content">
+                                    <h4 class="menu-name">Sashimi Cá Hồi Tươi</h4>
+                                    <p class="text-muted mb-0">Thái lát mọng nước, chuẩn vị Nhật Bản, không giới hạn.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="menu-item-card">
+                                <img src="https://images.unsplash.com/photo-1599084993091-1cb5c0721cc6?q=80&w=600" class="menu-img" alt="Hàu nướng">
+                                <div class="menu-content">
+                                    <h4 class="menu-name">Hàu Nướng Phô Mai</h4>
+                                    <p class="text-muted mb-0">Hàu sữa béo ngậy, nướng mỡ hành và phô mai thơm lừng.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="menu-item-card">
+                                <img src="https://images.unsplash.com/photo-1559737558-2f5a35f4523b?q=80&w=600" class="menu-img" alt="Cua ghẹ">
+                                <div class="menu-content">
+                                    <h4 class="menu-name">Cua Ghẹ Hấp Sả</h4>
+                                    <p class="text-muted mb-0">Cua ghẹ đang bơi bắt tại bể, hấp sả gừng ngọt thịt tự nhiên.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tab-bbq" role="tabpanel">
+                    <div class="row g-4 justify-content-center">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="menu-item-card">
+                                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=600" class="menu-img" alt="Thịt nướng">
+                                <div class="menu-content">
+                                    <h4 class="menu-name">Dẻ Sườn Bò BBQ</h4>
+                                    <p class="text-muted mb-0">Thịt bò tảng nhập khẩu ướp sốt Galbi nướng xèo xèo.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="tab-trangmieng" role="tabpanel">
+                    <div class="row g-4 justify-content-center">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="menu-item-card">
+                                <img src="https://images.unsplash.com/photo-1563805042-7684c8a9e9cb?q=80&w=600" class="menu-img" alt="Kem">
+                                <div class="menu-content">
+                                    <h4 class="menu-name">Kem Gelato Ý</h4>
+                                    <p class="text-muted mb-0">Hơn 10 vị kem nhập khẩu ngọt ngào, mát lạnh.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <button type="button" class="btn btn-outline-dark rounded-pill px-5 py-3 fw-bold" data-bs-toggle="modal" data-bs-target="#fullMenuModal">
+                    <i class="bi bi-book me-2"></i>Xem Menu Đầy Đủ 200+ Món
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="pricing-section" id="bang-gia">
+        <div class="container">
+            <h2 class="section-heading text-white" data-aos="fade-down">BẢNG GIÁ BUFFET</h2>
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-3 col-md-6" data-aos="flip-left" data-aos-delay="100">
+                    <div class="price-card">
+                        <h4 class="price-title">Trưa ngày thường<br><small class="text-muted fs-6 text-lowercase">(Trưa T2 - T6)</small></h4>
+                        <div class="price-amount">528.000đ</div>
+                        <ul class="text-start list-unstyled mt-4" style="color: #cbd5e1;">
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Áp dụng mỗi suất ăn</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Full 200+ món Hải sản & BBQ</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6" data-aos="flip-left" data-aos-delay="200">
+                    <div class="price-card vip">
+                        <span class="badge bg-danger mb-3 px-3 py-2 rounded-pill fw-bold">PHỔ BIẾN</span>
+                        <h4 class="price-title text-white">Tối & Cuối tuần<br><small class="text-white fs-6 text-lowercase">(Tối T2-T6 & T7-CN)</small></h4>
+                        <div class="price-amount">598.000đ</div>
+                        <ul class="text-start list-unstyled mt-4 text-white">
+                            <li><i class="bi bi-check-circle-fill text-warning me-2"></i> Áp dụng mỗi suất ăn</li>
+                            <li><i class="bi bi-check-circle-fill text-warning me-2"></i> Full 200+ món Hải sản & BBQ</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6" data-aos="flip-left" data-aos-delay="300">
+                    <div class="price-card">
+                        <h4 class="price-title">Lễ Tết<br><small class="text-muted fs-6 text-lowercase">(Các ngày cận & Lễ Tết)</small></h4>
+                        <div class="price-amount">648.000đ</div>
+                        <ul class="text-start list-unstyled mt-4" style="color: #cbd5e1;">
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Menu đặc biệt dịp Lễ</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Trải nghiệm không gian VIP</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6" data-aos="flip-left" data-aos-delay="400">
+                    <div class="price-card">
+                        <h4 class="price-title">Trẻ em<br><small class="text-muted fs-6 text-lowercase">(Cao 1m - 1m3)</small></h4>
+                        <div class="price-amount">258.000đ</div>
+                        <ul class="text-start list-unstyled mt-4" style="color: #cbd5e1;">
+                            <li><i class="bi bi-info-circle-fill text-info me-2"></i> Trên 1m3: Tính như người lớn</li>
+                            <li><i class="bi bi-info-circle-fill text-info me-2"></i> Dưới 1m: Miễn phí hoàn toàn</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i> Khu vui chơi an toàn cho bé</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center mt-4 fst-italic fw-bold" style="color: var(--accent-color);" data-aos="fade-up">* Giá chưa bao gồm đồ uống và thuế VAT bắt buộc.</p>
+        </div>
+    </section>
+
+    <section class="gallery-section" id="khong-gian">
+        <div class="container" data-aos="fade-up">
+            <h2 class="section-heading">KHÔNG GIAN ĐẲNG CẤP</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=800" class="img-fluid w-100 h-100 object-fit-cover gallery-img" style="min-height: 350px;" alt="Không gian 1">
+                </div>
+                <div class="col-md-6">
+                    <div class="row g-3 h-100">
+                        <div class="col-6">
+                            <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?q=80&w=400" class="img-fluid w-100 h-100 object-fit-cover gallery-img" alt="Không gian 2">
+                        </div>
+                        <div class="col-6">
+                            <img src="https://images.unsplash.com/photo-1578683010236-d716f9a3f461?q=80&w=400" class="img-fluid w-100 h-100 object-fit-cover gallery-img" alt="Không gian 3">
+                        </div>
+                        <div class="col-6">
+                            <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400" class="img-fluid w-100 h-100 object-fit-cover gallery-img" alt="Không gian 4">
+                        </div>
+                        <div class="col-6">
+                            <img src="https://images.unsplash.com/photo-1587314168485-3236d6710814?q=80&w=400" class="img-fluid w-100 h-100 object-fit-cover gallery-img" alt="Không gian 5">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="location-section" id="he-thong-co-so">
+        <div class="container" data-aos="fade-up">
+            <h2 class="section-heading">HỆ THỐNG CƠ SỞ ĐÀO TẠO & THỰC HÀNH</h2>
+            <div class="row g-4">
+                
+                <div class="col-lg-5">
+                    <div class="branch-list p-2">
+                        <div class="branch-item active" onclick="changeMap('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.863855881452!2d105.7445984154023!3d21.03813279283533!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313454b991d80fd5%3A0x53cefc99d6b0bf6f!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBDw7RuZyBOZ2jhu4cgxJDDtG5nIMOB!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s', this)">
+                            <h5 class="b-name">Cơ sở Chính - Hà Nội</h5>
+                            <p class="b-addr"><i class="bi bi-geo-alt-fill me-1"></i>Tòa nhà Polyco, Phố Trịnh Văn Bô, Q. Nam Từ Liêm, TP. Hà Nội</p>
+                            <p class="b-phone mb-0">
+                                <i class="bi bi-telephone-fill me-1"></i>
+                                <a href="tel:02462627797">0246 262 7797</a> - 
+                                <a href="tel:02435552008">0243 555 2008</a>
+                            </p>
+                        </div>
+
+                        <div class="branch-item" onclick="changeMap('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3721.432655073155!2d105.9525283154041!3d21.13516598950893!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31350b0000000001%3A0x1234567890abcdef!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBDw7RuZyBOZ2jhu4cgxJDDtG5nIMOBIC0gQ8ahIHPhu58gQuG6r2MgTmluaA!5e0!3m2!1svi!2s!4v1700000000001!5m2!1svi!2s', this)">
+                            <h5 class="b-name">Cơ sở 2 - Bắc Ninh</h5>
+                            <p class="b-addr"><i class="bi bi-geo-alt-fill me-1"></i>Làng Đại học Cổ Mễ, Phường Vũ Ninh, TP. Bắc Ninh</p>
+                            <p class="b-phone mb-0">
+                                <i class="bi bi-telephone-fill me-1"></i>
+                                <a href="tel:02223812345">0222 381 2345</a>
+                            </p>
+                        </div>
+
+                        <div class="branch-item" onclick="changeMap('https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.863855881452!2d105.7445984154023!3d21.03813279283533!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313454b991d80fd5%3A0x53cefc99d6b0bf6f!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBDw7RuZyBOZ2jhu4cgxJDDtG5nIMOB!5e0!3m2!1svi!2s!4v1700000000002!5m2!1svi!2s', this)">
+                            <h5 class="b-name">Cơ sở Thực hành Nhà hàng - Khách sạn</h5>
+                            <p class="b-addr"><i class="bi bi-geo-alt-fill me-1"></i>Khu Thực hành Tập đoàn Polyco, KCN Từ Liêm, Hà Nội</p>
+                            <p class="b-phone mb-0">
+                                <i class="bi bi-telephone-fill me-1"></i>
+                                <a href="tel:0964329485">0964 329 485</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-7">
+                    <div class="map-container">
+                        <iframe id="branchMapIframe" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.863855881452!2d105.7445984154023!3d21.03813279283533!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x313454b991d80fd5%3A0x53cefc99d6b0bf6f!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBDw7RuZyBOZ2jhu4cgxJDDtG5nIMOB!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+    
+    <footer id="lien-he">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <a class="navbar-brand text-white mb-3 d-flex align-items-center" href="#" style="font-size: 1.5rem; gap: 10px;">
+                        {% if global_setting and global_setting.logo %}
+                            <img src="{{ global_setting.logo.url }}" alt="Logo" style="height: 45px; width: auto; object-fit: contain; border-radius: 6px;">
+                        {% else %}
+                            <i class="bi bi-tsunami"></i>
+                        {% endif %}
+                        <span class="text-uppercase">{{ global_setting.restaurant_name|default:"Trường Đại học Công nghệ Đông Á" }}</span>
+                    </a>
+                    <p>Hệ thống quản lý đặt bàn và bán hàng tự động chuyên nghiệp. Mang trải nghiệm hoàn hảo đến cho khách hàng.</p>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="footer-title">Hỗ Trợ Khách Hàng</h5>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i> Chính sách thành viên</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i> Câu hỏi thường gặp</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i> Tuyển dụng nhân sự</a></li>
+                        <li><a href="#"><i class="bi bi-chevron-right me-1"></i> Quy định chung của hệ thống</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-12">
+                    <h5 class="footer-title">Liên Hệ Đặt Bàn</h5>
+                    <div class="fs-2 fw-bold text-white mb-3"><i class="bi bi-telephone-fill text-warning"></i> {{ global_setting.phone_number|default:"0964 329 485" }}</div>
+                    <p><i class="bi bi-geo-alt-fill me-2"></i> {{ global_setting.address|default:"Tòa nhà Polyco, Trịnh Văn Bô, Nam Từ Liêm, Hà Nội" }}</p>
+                    <p><i class="bi bi-envelope-fill me-2"></i> hoangtothanh3724@gmail.com</p>
+                    <div class="d-flex gap-3 mt-4">
+                        <a href="https://www.facebook.com/shopcuahoangtothanh/" target="_blank" class="fs-4"><i class="bi bi-facebook"></i></a>
+                        <a href="https://qldt.eaut.edu.vn/congthongtin/Index.aspx" target="_blank" class="fs-4"><i class="bi bi-instagram"></i></a>
+                        <a href="https://www.tiktok.com/@ht.thak_04" target="_blank" class="fs-4"><i class="bi bi-tiktok"></i></a>                    </div>
+                </div>
+            </div>
+            <div class="footer-disclaimer mt-5">
+            <div class="container">
+                <p class="mb-0 text-warning fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i> LƯU Ý: Đây là website Demo phục vụ mục đích học tập đồ án, KHÔNG đại diện cho {{ global_setting.restaurant_name|default:"Trường Đại học Công nghệ Đông Á" }} hay bất kỳ thương hiệu thực tế nào.</p>
+            </div>
+            </div>
+            <div class="border-top border-secondary mt-5 pt-4 text-center text-muted">
+                <p class="mb-0">© 2026 {{ global_setting.restaurant_name|default:"Trường Đại học Công nghệ Đông Á" }} - Hoàng Tô Thành. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 text-center" style="border-radius: 20px;">
+                <div class="modal-body p-5">
+                    <div style="font-size: 5rem; color: #22c55e;"><i class="bi bi-check-circle-fill"></i></div>
+                    <h3 class="fw-bold mt-3 mb-2 text-dark">Đặt bàn thành công!</h3>
+                    <p class="text-muted mb-4">Cảm ơn <b id="successName"></b> đã lựa chọn chúng tôi. Lễ tân của hệ thống sẽ gọi điện xác nhận trong vòng 5 phút tới.</p>
+                    <button type="button" class="btn btn-outline-dark rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade modal-full-menu" id="fullMenuModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title fw-bold text-white m-0"><i class="bi bi-book-half me-2 text-warning"></i> MENU 200+ MÓN ẨM THỰC</h3>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0 d-flex flex-column flex-md-row h-100">
+                    
+                    <div class="menu-sidebar col-md-3">
+                        <div class="list-group list-group-flush p-3" id="list-tab" role="tablist">
+                            <a class="list-group-item list-group-item-action active" data-bs-toggle="list" href="#menu-khaivi">Khai vị</a>
+                            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#menu-hs-nuong">Hải sản nướng tại quầy</a>
+                            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#menu-hs-nong">Hải sản trên quầy nóng</a>
+                            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#menu-quocte">Ẩm thực quốc tế</a>
+                            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#menu-bamien">Ẩm thực ba miền</a>
+                            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#menu-lau">Quầy lẩu</a>
+                            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#menu-sot">Sốt chấm</a>
+                            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#menu-trangmieng">Tráng miệng</a>
+                            <a class="list-group-item list-group-item-action" data-bs-toggle="list" href="#menu-douong">Đồ uống & Dịch vụ</a>
+                        </div>
+                    </div>
+
+                    <div class="full-menu-content col-md-9">
+                        <div class="tab-content" id="nav-tabContent">
+                            
+                            <div class="tab-pane fade show active" id="menu-khaivi">
+                                <h3 class="fm-category-title"><i class="bi bi-egg-fried text-warning me-2"></i> Khai vị</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Các món Salad</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Gỏi cuốn tôm</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Gỏi cuốn tôm thịt</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Gỏi cuốn tôm xoài</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Gỏi cuốn tai heo</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad ngó sen tôm thịt</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad đu đủ tai heo</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad ham</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad cải thảo nho khô</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad hoa quả / thập cẩm</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad bắp cải gà xé</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad rau dấp cá</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad Ceasar</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad củ đậu</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Salad cá ngừ</div></div></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Các món ăn kèm khác</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Xoài lắc ớt</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Gừng chua</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cà chua bi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Dưa chuột</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Kim chi Hàn Quốc</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Xà lách xoăn Đà Lạt</div></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="menu-hs-nuong">
+                                <h3 class="fm-category-title"><i class="bi bi-fire text-danger me-2"></i> Hải sản nướng tại quầy</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Hàu nướng mỡ hành</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ốc mít hấp mắm gừng</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò chén nướng mỡ hành</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò méo nướng mỡ hành</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Hà gai / Sò điệp nướng mỡ hành</div><span class="fm-note">Theo mùa</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ốc hương cháy tỏi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò tim nướng mỡ hành</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Tôm nướng mọi</div></div></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Hàu bỏ lò nướng phô mai</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ốc nhồi nướng tiêu xanh</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò sần đỏ nướng mỡ hành</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ốc gai hấp / nướng</div><span class="fm-note">Theo mùa</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ghẹ cháy tỏi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò dương nướng mỡ hành</div><span class="fm-note">Theo mùa và vùng</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Bàn mai nướng mỡ hành</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò sữa nướng</div></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="menu-hs-nong">
+                                <h3 class="fm-category-title"><i class="bi bi-droplet-half text-info me-2"></i> Hải sản trên quầy nóng</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ốc hương hấp sả</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Bề bề (tôm tít) hấp / rang muối</div><span class="fm-note">Theo mùa</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ghẹ bơi hấp</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò lụa hai cùi hấp kiểu Thái</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ghẹ cháy tỏi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Hàu hấp</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò lông hấp thái</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò sữa hấp</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò huyết sốt me</div></div></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Tôm càng sen nướng phomai</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Cua Cà Mau hấp</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Tôm càng sen hấp</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Ốc len xào dừa</div><span class="fm-note">Miền Trung & Nam</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Mực ống hấp trái thơm</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Nghêu sò hấp thái</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Cua Cà Mau sốt me</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name">Sò huyết hấp</div></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="menu-quocte">
+                                <h3 class="fm-category-title"><i class="bi bi-globe-americas text-primary me-2"></i> Ẩm thực quốc tế</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Sushi & Sashimi (Nhật Bản)</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cá hồi sashimi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cá trích Nhật ép trứng</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Sushi bơ / tôm / cá hồi / cá trích</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Sushi trứng tôm / hoa anh đào</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Sushi dưa leo trứng cua</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cơm cuộn cá hồi / tôm / xoài</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cơm cuộn trứng / dưa chuột</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cơm cuộn thập cẩm</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cơm nắm củ cải Nhật</div></div></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Ẩm thực Âu - Mỹ</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bò beefsteak</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Sườn que sốt BBQ</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Dẻ sườn bò Mỹ sốt bulgogi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Xúc xích kiểu Mỹ / Hotdog cocktail</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Mỳ spaghetti sốt thịt bằm</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Pizza thập cẩm</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Tỏi bỏ lò nướng</div></div></div>
+                                        
+                                        <h5 class="fw-bold text-primary mt-4 mb-3">Ẩm thực Châu Á khác</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Tôm sốt kiểu Thái / Mực sốt thái</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Xôi xoài Bangkok</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Há cảo tôm / xíu mại</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bánh bao kim sa / sữa dừa</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cá mú hấp xì dầu</div></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="menu-bamien">
+                                <h3 class="fm-category-title"><i class="bi bi-map text-success me-2"></i> Ẩm thực ba miền</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Món ăn truyền thống</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Phở bò / Phở cuốn Hà Nội</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bún ốc Hà Thành</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Chả cá Lăng Hà Thành</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bánh cuốn Thanh Trì</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bánh tráng cuốn thịt heo</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bánh xèo / Bánh khọt miền Tây</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Nem cua bể Hải Phòng</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Nem chua rán Hà Nội</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Thịt xiên nướng</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cánh gà chiên mắm / tẩm bột chiên</div></div></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Súp, Cháo & Cơm</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cơm chiên thập cẩm</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cháo tôm & cá hồi</div></div></div>
+                                        
+                                        <h5 class="fw-bold text-primary mt-4 mb-3">Các món ăn vặt khác</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Da cá hồi chiên giòn</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cá viên chiên / Phồng tôm chiên</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bánh chuối / Bánh bao chiên</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Khoai lang chiên</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Khoai tây lắc phô mai / Bim bim</div></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="menu-lau">
+                                <h3 class="fm-category-title"><i class="bi bi-cup-hot text-danger me-2"></i> Quầy Lẩu (Hotpot)</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Các món nhúng lẩu</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Thịt ba chỉ bò Mỹ cắt lát</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Sò lụa đỏ / Sò hai cùi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Ngao trắng tươi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Mực ống tươi / Tôm tươi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Đầu cá hồi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Há cảo hương vị các loại</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Đậu hũ phô mai / Đậu phụ</div></div></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Rau & Nấm nhúng lẩu</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Rau muống, cần nước, mồng tơi</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Cải thảo, cải ngọt, cải cúc</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Ngô Mỹ, đậu bắp, cà tím</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Nấm sò, kim châm, nấm hải sản</div></div></div>
+                                        
+                                        <h5 class="fw-bold text-danger mt-4 mb-3">Nước lẩu đặc biệt</h5>
+                                        <div class="fm-item border-danger"><i class="bi bi-fire text-danger fm-icon"></i><div><div class="fm-name mb-0">Lẩu Thái Tom Yum</div><span class="fm-note mt-1">Chua cay đậm đà</span></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="menu-sot">
+                                <h3 class="fm-category-title"><i class="bi bi-cup-hot-fill text-warning me-2"></i> 14 Loại Sốt Chấm Thần Thánh</h3>
+                                <div class="row">
+                                    <div class="col-md-4 col-6">
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Sốt ớt Hàn Quốc</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Sốt xì dầu thái</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Nước mắm chua ngọt</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Gia vị muối tiêu</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Sốt mayonnaise</div></div>
+                                    </div>
+                                    <div class="col-md-4 col-6">
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Tương cà Cholimex</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Sốt mắm me</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Sốt ớt xanh hải sản</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Xì dầu Nhật</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Nước mắm chấm ốc</div></div>
+                                    </div>
+                                    <div class="col-md-4 col-12">
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Mù tạt wasabi</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Tương ớt Chinsu</div></div>
+                                        <div class="fm-item"><i class="bi bi-caret-right-fill fm-icon text-muted"></i><div class="fm-name mb-0">Sốt ớt đỏ hải sản</div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="menu-trangmieng">
+                                <h3 class="fm-category-title"><i class="bi bi-icecream text-info me-2"></i> Tráng Miệng & Trái Cây</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Chè & Thạch rau câu</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Chè bà ba nước cốt dừa</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Chè khoai môn / khoai dẻo</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Chè đậu đỏ trần bì / đậu đen</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Chè khúc bạch / ngô / đậu xanh</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Thạch rau câu thập cẩm / dừa</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Sữa chua & nếp cẩm</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Caramel / Trà sữa trân châu</div></div></div>
+                                        
+                                        <h5 class="fw-bold text-primary mt-4 mb-3">Bánh ngọt</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bánh mochi Nhật Bản</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Bánh panna cotta Ý</div></div></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Trái cây theo mùa</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Dưa hấu / Ổi / Dứa chín</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Nhãn ngọt / Chôm chôm / Nho</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Mận / Quả roi / Xoài chín</div></div></div>
+                                        
+                                        <h5 class="fw-bold text-primary mt-4 mb-3">Kem tự chọn</h5>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Kem ly (Dừa, Vani, Dâu, Mochi, Dưa hấu, Chanh, Socola)</div></div></div>
+                                        <div class="fm-item"><i class="bi bi-check-circle-fill fm-icon"></i><div><div class="fm-name mb-0">Kem que các vị tự chọn</div></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="menu-douong">
+                                <h3 class="fm-category-title"><i class="bi bi-cup-straw text-info me-2"></i> Đồ Uống & Dịch Vụ</h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Soft Drinks & Nước Hoa Quả</h5>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Nước suối Aquafina</div><span class="fm-price">27.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Twister / Rockstar / Sting</div><span class="fm-price">35.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Pepsi / 7UP (Thường & Chanh)</div><span class="fm-price">35.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Nước ép (Dứa, Dưa hấu, Cam, Cà rốt, Ổi...)</div><span class="fm-price">45.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Nước chanh leo / Chanh tươi</div><span class="fm-price">45.000đ</span></div></div>
+
+                                        <h5 class="fw-bold text-primary mt-4 mb-3">Beer & Liquor</h5>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Bia Tiger Sleek / Crystal / Heineken</div><span class="fm-price">40.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 flex-column"><div class="d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Bia Tiger Platinum</div><span class="fm-price">40.000đ</span></div><span class="fm-note mt-1">Poseidon Premium: 45.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Rượu Soju Hàn Quốc</div><span class="fm-price">130.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Vodka Putinka / Kozak / Cá ngựa</div><span class="fm-price">300.000đ</span></div></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <h5 class="fw-bold text-primary mb-3">Wine (Vang Nhập Khẩu)</h5>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Vang đỏ/trắng 1887 Chile</div><span class="fm-price">380.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Vang đỏ/trắng Luis Felipe Chile</div><span class="fm-price">530.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Vang đỏ/trắng McGuigan Úc</div><span class="fm-price">560.000đ</span></div></div>
+                                        <div class="fm-item"><i class="bi bi-cup-fill fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Vang đỏ/trắng Chateau Les Pháp</div><span class="fm-price">630.000đ</span></div></div>
+
+                                        <h5 class="fw-bold text-danger mt-4 mb-3">Phí Dịch Vụ Mang Đồ Uống Khác</h5>
+                                        <div class="fm-item border-danger"><i class="bi bi-exclamation-circle-fill text-danger fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Nước ngọt / Nước suối</div><span class="fm-price">20.000đ/lon</span></div></div>
+                                        <div class="fm-item border-danger"><i class="bi bi-exclamation-circle-fill text-danger fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Bia lon</div><span class="fm-price">25.000đ/lon</span></div></div>
+                                        <div class="fm-item border-danger"><i class="bi bi-exclamation-circle-fill text-danger fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Rượu quê</div><span class="fm-price">150.000đ/lít</span></div></div>
+                                        <div class="fm-item border-danger"><i class="bi bi-exclamation-circle-fill text-danger fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Rượu vang / Vodka</div><span class="fm-price">200.000đ/chai</span></div></div>
+                                        <div class="fm-item border-danger"><i class="bi bi-exclamation-circle-fill text-danger fm-icon"></i><div class="w-100 d-flex justify-content-between align-items-center"><div class="fm-name mb-0">Rượu Whisky</div><span class="fm-price">500.000đ/chai</span></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        // 1. Hiệu ứng cuộn AOS
+        try {
+            AOS.init({ duration: 800, once: true, offset: 50 });
+        } catch (e) {
+            console.log("Không tải được AOS, bỏ qua hiệu ứng cuộn.");
+            document.querySelectorAll('[data-aos]').forEach(el => {
+                el.style.opacity = '1';
+                el.style.transform = 'none';
+            });
+        }
+        
+        // 2. Format tiền và tính toán Tạm tính
+        const formatMoney = (num) => new Intl.NumberFormat('vi-VN').format(num) + ' đ';
+
+        const adultInput = document.getElementById('adultCount');
+        const childInput = document.getElementById('childCount');
+        const dateInput = document.getElementById('bookDate');
+        const timeInput = document.getElementById('bookTime');
+        const estimateBox = document.getElementById('estimateBox');
+        const estimateAmount = document.getElementById('estimateAmount');
+
+        function calcEstimate() {
+            let adults = parseInt(adultInput.value) || 0;
+            let children = parseInt(childInput.value) || 0;
+            
+            if (adults > 0 || children > 0) {
+                let adultPrice = 598000;
+                
+                if (dateInput.value && timeInput.value) {
+                    let d = new Date(dateInput.value);
+                    let dayOfWeek = d.getDay(); 
+                    let hour = parseInt(timeInput.value.split(':')[0]);
+                    
+                    if (dayOfWeek >= 1 && dayOfWeek <= 5) { 
+                        if (hour < 16) { 
+                            adultPrice = 528000;
+                        }
+                    }
+                }
+                
+                let childPrice = 258000; 
+                let total = (adults * adultPrice) + (children * childPrice);
+                
+                estimateAmount.innerText = formatMoney(total);
+                estimateBox.style.display = 'block';
+            } else {
+                estimateBox.style.display = 'none';
+            }
+        }
+        
+        document.querySelectorAll('.pax-input, #bookDate, #bookTime').forEach(input => {
+            input.addEventListener('input', calcEstimate);
+            input.addEventListener('change', calcEstimate);
+        });
+
+        // 3. Navbar và Thanh Sticky
+        const navbar = document.querySelector('.navbar');
+        const mobileSticky = document.getElementById('mobileStickyBar');
+        
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                navbar.style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
+                navbar.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1)';
+            } else {
+                navbar.style.backgroundColor = 'transparent';
+                navbar.style.boxShadow = 'none';
+            }
+            
+            if (window.scrollY > 500) {
+                if(mobileSticky) mobileSticky.classList.add('show');
+            } else {
+                if(mobileSticky) mobileSticky.classList.remove('show');
+            }
+        });
+
+        // 4. Đổi bản đồ Iframe
+        function changeMap(url, element) {
+            document.getElementById('branchMapIframe').src = url;
+            // Xóa active ở các nút khác
+            document.querySelectorAll('.branch-item').forEach(el => el.classList.remove('active'));
+            // Thêm active vào nút vừa bấm
+            element.classList.add('active');
+        }
+
+        // 5. Submit Form Đặt Bàn (Gửi về Backend)
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            
+            const payload = {
+                name: document.getElementById('bookName').value,
+                phone: document.getElementById('bookPhone').value,
+                date: document.getElementById('bookDate').value,
+                time: document.getElementById('bookTime').value,
+                adults: document.getElementById('adultCount').value,
+                children: document.getElementById('childCount').value,
+                branch: document.getElementById('bookBranch').value,
+                note: document.getElementById('bookNote') ? document.getElementById('bookNote').value : ''
+            };
+
+            const btnSubmit = document.getElementById('btnSubmitBooking');
+            const btnText = document.getElementById('btnText');
+            const btnLoading = document.getElementById('btnLoading');
+            
+            btnText.innerText = "Đang xử lý...";
+            btnLoading.classList.remove('d-none');
+            btnSubmit.disabled = true;
+
+            fetch('/api/book-table/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]') ? document.querySelector('[name=csrfmiddlewaretoken]').value : ''
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnText.innerText = "Xác Nhận Đặt Bàn";
+                btnLoading.classList.add('d-none');
+                btnSubmit.disabled = false;
+
+                if(data.status === 'success') {
+                    document.getElementById('bookingForm').reset();
+                    estimateBox.style.display = 'none'; 
+                    document.getElementById('successName').innerText = payload.name;
+                    new bootstrap.Modal(document.getElementById('successModal')).show();
+                } else {
+                    alert("Có lỗi xảy ra: " + data.message);
+                }
+            })
+            .catch(error => {
+                alert("Lỗi kết nối đến máy chủ! Vui lòng thử lại.");
+                btnText.innerText = "Xác Nhận Đặt Bàn";
+                btnLoading.classList.add('d-none');
+                btnSubmit.disabled = false;
+            });
+        });
+
+        // 6. Hiệu ứng FOMO ảo (Góc trái màn hình)
+        const fomoNames = ["Nguyễn Hữu T.", "Trần Thị M.", "Lê Văn H.", "Phạm Thu T.", "Hoàng Ngọc D.", "Đinh Quang A."];
+        const fomoActions = ["vừa đặt bàn cho 4 người", "vừa đặt phòng VIP 10 người", "vừa đặt bàn cho 2 người", "vừa thanh toán xong"];
+        
+        function triggerFomo() {
+            const toast = document.getElementById('fomoToast');
+            if(!toast) return;
+
+            const nameEl = document.getElementById('fomoName');
+            const actionEl = document.getElementById('fomoAction');
+            const timeEl = document.getElementById('fomoTime');
+            
+            nameEl.innerText = "Khách hàng " + fomoNames[Math.floor(Math.random() * fomoNames.length)];
+            actionEl.innerText = fomoActions[Math.floor(Math.random() * fomoActions.length)];
+            timeEl.innerText = `Khoảng ${Math.floor(Math.random() * 10) + 1} phút trước`;
+            
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 4000);
+        }
+
+        setTimeout(triggerFomo, 5000); 
+        setInterval(triggerFomo, 15000);
+    </script>
+</body>
+</html>

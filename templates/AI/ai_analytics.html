@@ -1,0 +1,349 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}{{ page_title|default:"AI Hỗ trợ Ra Quyết Định" }} - Poseidon ERP{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-gradient-text {
+        background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 900;
+    }
+    
+    /* Chuyển các link thành giao diện nút bấm */
+    .filter-btn-group a.btn { border-color: var(--border-color); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-decoration: none;}
+    .filter-btn-group a.btn.active { background: #f5f3ff; color: #8b5cf6; border-color: #8b5cf6; pointer-events: none;}
+
+    .ai-kpi-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); position: relative; overflow: hidden; transition: var(--transition); height: 100%;}
+    .ai-kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.1); border-color: #ddd6fe;}
+    .ai-kpi-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;}
+    .ai-kpi-value { font-size: 1.8rem; font-weight: 900; color: var(--text-main); margin-bottom: 4px; line-height: 1;}
+    
+    .trend-up { color: #10b981; font-size: 0.85rem; font-weight: 700; background: #dcfce7; padding: 2px 8px; border-radius: 20px;}
+    .trend-down { color: #ef4444; font-size: 0.85rem; font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 20px;}
+
+    .chart-container { height: 250px; width: 100%; position: relative; }
+    
+    .ai-insight-box { background: #fff; border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden;}
+    .ai-insight-header { background: #f8fafc; padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;}
+    .ai-insight-body { padding: 20px; }
+    
+    .insight-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+    .insight-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+    
+    .ai-action-box { background: #f5f3ff; border: 1px dashed #c4b5fd; border-radius: 12px; padding: 15px; margin-top: 15px; }
+    .confidence-badge { background: #1e293b; color: #fff; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;}
+    
+    .btn-apply { background: #8b5cf6; color: white; font-weight: 700; border: none; padding: 8px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(139,92,246,0.3); transition: 0.2s;}
+    .btn-apply:hover { background: #7c3aed; transform: translateY(-1px); color: white;}
+    .btn-resolve { background: #f1f5f9; color: var(--text-muted); font-weight: 600; border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 8px; transition: 0.2s;}
+    .btn-resolve:hover { background: #e2e8f0; color: var(--text-main);}
+
+    .mutation-item { padding: 12px 0; border-bottom: 1px dashed var(--border-color); display: flex; align-items: flex-start; gap: 12px;}
+    .mutation-item:last-child { border-bottom: none; padding-bottom: 0;}
+    .warning-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 15px; border-left: 4px solid #f59e0b;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header fade-in-up d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="page-title"><i class="bi bi-robot text-primary me-2" style="color: #8b5cf6 !important;"></i> <span class="ai-gradient-text">{{ page_title|default:"AI Hỗ trợ Ra Quyết Định (DSS)" }}</span></h1>
+        <p class="page-subtitle">Hệ thống phân tích Pipeline: Data &rarr; Features &rarr; Scoring Model &rarr; Decisions</p>
+    </div>
+    
+    <div class="btn-group filter-btn-group shadow-sm">
+        <a href="?range=today" class="btn btn-outline-secondary {% if time_range == 'today' or not time_range %}active{% endif %}">Hôm nay</a>
+        <a href="?range=7d" class="btn btn-outline-secondary {% if time_range == '7d' %}active{% endif %}">7 ngày tới</a>
+        <a href="?range=30d" class="btn btn-outline-secondary {% if time_range == '30d' %}active{% endif %}">30 ngày tới</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4 fade-in-up delay-1">
+    <div class="col-md-3">
+        <div class="ai-kpi-card border-bottom border-4" style="border-bottom-color: #8b5cf6 !important;" data-bs-toggle="tooltip" title="Dựa trên trung bình tuần + hệ số mùa vụ x {% if time_range == '7d' %}7 ngày{% elif time_range == '30d' %}30 ngày{% else %}1 ngày{% endif %}">
+            <div class="ai-kpi-title">
+                <span>🤖 AI Forecast Pax</span>
+                <i class="bi bi-info-circle text-muted" style="font-size: 0.8rem;"></i>
+            </div>
+            <div class="ai-kpi-value">{{ features.pax_forecast|default:"0"|intcomma }} <span class="fs-5 text-muted">Pax</span></div>
+            <div class="mt-2 text-muted small ms-1">Học từ Lịch sử: {{ features.avg_pax_7d|floatformat:0 }} pax/ngày</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="ai-kpi-card border-bottom border-4" style="border-bottom-color: #3b82f6 !important;" data-bs-toggle="tooltip" title="Tỷ lệ hóa đơn có >= 4 khách">
+            <div class="ai-kpi-title">
+                <span>👥 Family Ratio</span>
+                <i class="bi bi-info-circle text-muted" style="font-size: 0.8rem;"></i>
+            </div>
+            <div class="ai-kpi-value">{{ features.family_ratio|default:"0"|floatformat:1 }} <span class="fs-5 text-muted">%</span></div>
+            <div class="mt-2 text-muted small ms-1">Tổng bill pattern base: {{ features.total_bills_today|default:"0" }}</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="ai-kpi-card border-bottom border-4" style="border-bottom-color: #ef4444 !important;">
+            <div class="ai-kpi-title">
+                <span><i class="bi bi-pie-chart-fill text-warning me-1"></i> Tăng trưởng Dessert</span>
+            </div>
+            <div class="ai-kpi-value {% if features.dessert_growth < 0 %}text-danger{% else %}text-success{% endif %}">
+                {{ features.dessert_growth|default:"0"|floatformat:1 }}%
+            </div>
+            <div class="mt-2">
+                {% if features.dessert_growth < 0 %}
+                    <span class="trend-down"><i class="bi bi-arrow-down-right"></i> Suy giảm</span>
+                {% else %}
+                    <span class="trend-up"><i class="bi bi-arrow-up-right"></i> Tăng trưởng</span>
+                {% endif %}
+                <span class="text-muted small ms-1">So với T.Bình tuần</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="ai-kpi-card border-bottom border-4" style="border-bottom-color: #f59e0b !important; background: #fffbeb;">
+            <div class="ai-kpi-title text-warning-custom">
+                <span style="color: #b45309;">🤖 AI Cảnh báo Tải Trọng</span>
+            </div>
+            <div class="ai-kpi-value text-warning-custom" style="color: #b45309;">{{ features.staff_count|default:"0" }} <span class="fs-5">Staff</span></div>
+            <div class="mt-2">
+                <span class="trend-down" style="background: #fef3c7; color: #b45309;"><i class="bi bi-exclamation-circle"></i> Workload</span> 
+                <span class="text-muted small ms-1" style="color: #b45309 !important;">
+                    {% if features.staff_count > 0 %}
+                        1 Phục vụ / {% widthratio features.pax_forecast features.staff_count 1 %} Khách
+                    {% else %}
+                        Chưa xếp ca!
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4 fade-in-up delay-2">
+    <div class="col-md-6">
+        <div class="card-saas p-4 h-100 bg-white border rounded-3 shadow-sm">
+            <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-graph-up text-primary me-2"></i> Xu hướng Doanh thu (Triệu VNĐ)</span>
+                <span class="badge bg-light text-dark border"><i class="bi bi-robot text-primary"></i> Lịch sử & Dự báo</span>
+            </h6>
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card-saas p-4 h-100 bg-white border rounded-3 shadow-sm">
+            <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-bar-chart-fill text-success me-2"></i> Dự báo Lưu lượng khách ({% if time_range == '7d' %}7 ngày tới{% elif time_range == '30d' %}30 ngày tới{% else %}Tối nay{% endif %})</span>
+                <span class="badge bg-light text-dark border"><i class="bi bi-robot text-primary"></i> Phân bổ theo giờ</span>
+            </h6>
+            <div class="chart-container">
+                <canvas id="trafficChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 fade-in-up delay-3">
+    
+    <div class="col-md-8">
+        <h5 class="fw-bold mb-3 ai-gradient-text"><i class="bi bi-cpu-fill me-2"></i> AI Đề Xuất Chiến Lược (Decision Support)</h5>
+        
+        {% for insight in insights %}
+        <div class="ai-insight-box border-start border-4" 
+             style="border-left-color: {% if insight.color == 'danger' %}#ef4444{% elif insight.color == 'warning' %}#f59e0b{% else %}#10b981{% endif %} !important;">
+            
+            <div class="ai-insight-header flex-wrap gap-2">
+                <h6 class="fw-bold m-0 text-dark">
+                    <i class="bi {{ insight.icon }} text-{{ insight.color }} me-1"></i> {{ insight.title }}
+                </h6>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-muted small d-none d-md-inline-block">
+                        <i class="bi bi-cpu"></i> <i>{{ insight.explain }}</i>
+                    </span>
+                    <span class="confidence-badge border border-success" style="background: #ecfdf5; color: #10b981;" data-bs-toggle="tooltip" title="Điểm tin cậy của thuật toán Scoring">
+                        <i class="bi bi-bullseye me-1"></i> AI Confidence: {{ insight.confidence|floatformat:1 }}%
+                    </span>
+                </div>
+            </div>
+            
+            <div class="ai-insight-body">
+                <div class="insight-row">
+                    <div class="insight-icon bg-{{ insight.color }} bg-opacity-10 text-{{ insight.color }}"><i class="bi {{ insight.icon }}"></i></div>
+                    <div>
+                        <span class="fw-bold text-dark d-block">Phân tích dữ liệu:</span>
+                        <span class="text-muted small">{{ insight.description }}</span>
+                    </div>
+                </div>
+                
+                <div class="insight-row">
+                    <div class="insight-icon bg-secondary bg-opacity-10 text-secondary"><i class="bi bi-diagram-3-fill"></i></div>
+                    <div>
+                        <span class="fw-bold text-dark d-block">Nguyên nhân lõi (Root Cause):</span>
+                        <span class="text-muted small">{{ insight.root_cause }}</span>
+                    </div>
+                </div>
+                
+                <div class="ai-action-box" {% if insight.color == 'warning' %}style="background: #fef3c7; border-color: #fde68a;"{% endif %}>
+                    <div class="mb-3">
+                        <span class="fw-bold text-dark"><i class="bi bi-lightbulb-fill text-warning me-1"></i> Quyết định đề xuất:</span>
+                        <p class="m-0 mt-1 small"><b>{{ insight.action }}</b></p>
+                    </div>
+                    
+                    <div class="bg-white p-2 rounded border mb-3 small d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-intersect text-danger me-1"></i> <b>Tác động dự kiến (Simulation):</b></span>
+                        <span class="fw-bold {% if insight.color == 'warning' %}text-primary{% else %}text-success{% endif %}">
+                            <i class="bi {% if insight.color == 'warning' %}bi-arrow-down-right{% else %}bi-arrow-up-right{% endif %}"></i> 
+                            {{ insight.simulation }} ({{ insight.impact_metric }})
+                        </span>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn-apply" {% if insight.color == 'warning' %}style="background: #f59e0b; box-shadow: 0 4px 10px rgba(245,158,11,0.3);"{% endif %} onclick="alert('Đã áp dụng tự động trên hệ thống ERP!')">
+                            <i class="bi {% if insight.color == 'warning' %}bi-send-fill{% else %}bi-check2-all{% endif %} me-1"></i> Thực thi / Áp dụng
+                        </button>
+                        <button class="btn-resolve" onclick="this.closest('.ai-insight-box').style.display='none'"><i class="bi bi-check-lg me-1"></i> Đánh dấu đã xử lý</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 bg-white border rounded-3 text-muted shadow-sm">
+            <i class="bi bi-shield-check fs-1 text-success opacity-75"></i>
+            <p class="mt-3 mb-0 fw-bold">Hệ thống đang hoạt động trong ngưỡng tối ưu.</p>
+            <p class="small">AI chưa phát hiện rủi ro hay bất thường nào cần xử lý ngay.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="col-md-4">
+        
+        <div class="card-saas p-4 mb-4 bg-white border rounded-3 shadow-sm">
+            <h6 class="fw-bold mb-3 border-bottom pb-2 d-flex justify-content-between">
+                <span><i class="bi bi-bar-chart-steps text-success me-2"></i> Báo cáo Đột biến Menu</span>
+                <span class="badge bg-light text-muted border" data-bs-toggle="tooltip" title="Đã chuẩn hóa (Normalize) theo tỷ trọng giỏ hàng 3 ngày qua">AI Detect</span>
+            </h6>
+            
+            {% for item in mutations %}
+            <div class="mutation-item">
+                <div class="mutation-icon" style="background: {{ item.bg_color }}; color: {{ item.text_color }}; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                    <i class="bi {{ item.icon }}"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold m-0" style="font-size: 0.9rem;">{{ item.ten_mon }}</h6>
+                    <span class="text-muted" style="font-size: 0.75rem;">{{ item.mo_ta|safe }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted small py-3">Chưa phát hiện biến động tỷ trọng gọi món đáng kể.</div>
+            {% endfor %}
+        </div>
+
+        <div class="card-saas p-4 mb-4 bg-white border rounded-3 shadow-sm">
+            <h6 class="fw-bold mb-3 border-bottom pb-2">
+                <i class="bi bi-list-check text-primary me-2"></i> Quyết định chờ duyệt
+            </h6>
+            <ul class="list-unstyled m-0">
+                {% for dec in decisions %}
+                <li class="mb-3 border-bottom pb-2">
+                    <span class="badge {% if dec.type == 'warning' %}bg-danger{% elif dec.type == 'risk' %}bg-warning text-dark{% else %}bg-success{% endif %} mb-1">
+                        {{ dec.type|upper }}
+                    </span>
+                    <p class="m-0 small fw-bold text-dark">{{ dec.title }}</p>
+                </li>
+                {% empty %}
+                <li class="text-muted small text-center py-3">Không có task chờ duyệt từ hệ thống AI.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        
+    </div>
+</div>
+
+{{ rev_labels|json_script:"rev-labels" }}
+{{ rev_actual|json_script:"rev-actual" }}
+{{ rev_forecast|json_script:"rev-forecast" }}
+{{ traffic_labels|json_script:"traffic-labels" }}
+{{ traffic_forecast|json_script:"traffic-forecast" }}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // Khởi tạo Chart Doanh thu
+        const canvasRev = document.getElementById('revenueChart');
+        if (canvasRev) {
+            try {
+                const rLabels = JSON.parse(document.getElementById('rev-labels').textContent);
+                const rActual = JSON.parse(document.getElementById('rev-actual').textContent);
+                const rForecast = JSON.parse(document.getElementById('rev-forecast').textContent);
+                
+                new Chart(canvasRev.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: rLabels,
+                        datasets: [{
+                            label: 'Thực tế (Triệu VNĐ)',
+                            data: rActual, 
+                            borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3, fill: true, tension: 0.4, spanGaps: true
+                        },
+                        {
+                            label: 'AI Dự báo',
+                            data: rForecast, 
+                            borderColor: '#8b5cf6', borderDash: [5, 5],
+                            borderWidth: 3, fill: false, tension: 0.4, spanGaps: true
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom', labels: {boxWidth: 12, font: {family: 'Inter', weight: 'bold'}} } },
+                        scales: { y: { beginAtZero: true, grid: { borderDash: [2, 2] } }, x: { grid: { display: false } } },
+                        interaction: { intersect: false, mode: 'index' }
+                    }
+                });
+            } catch(e) { console.error('Lỗi Data Revenue Chart:', e); }
+        }
+
+        // Khởi tạo Chart Lưu lượng tối nay
+        const canvasTraffic = document.getElementById('trafficChart');
+        if (canvasTraffic) {
+            try {
+                const tLabels = JSON.parse(document.getElementById('traffic-labels').textContent);
+                const tForecast = JSON.parse(document.getElementById('traffic-forecast').textContent);
+
+                new Chart(canvasTraffic.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: tLabels,
+                        datasets: [{
+                            label: 'Lượng khách dự kiến',
+                            data: tForecast,
+                            backgroundColor: function(context) {
+                                const val = context.dataset.data[context.dataIndex];
+                                return val >= 150 ? '#ef4444' : (val >= 100 ? '#f59e0b' : '#3b82f6'); 
+                            },
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true, grid: { borderDash: [2, 2] } }, x: { grid: { display: false } } }
+                    }
+                });
+            } catch (e) { console.error('Lỗi Data Traffic Chart:', e); }
+        }
+    });
+</script>
+{% endblock %}

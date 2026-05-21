@@ -1,0 +1,964 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>POS Bán Hàng - Poseidon</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        :root {
+            --primary: #ef4444;       
+            --primary-hover: #dc2626;
+            --border-color: #e2e8f0;
+            --text-dark: #0f172a;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f5f9; height: 100vh; overflow: hidden; margin: 0; touch-action: manipulation;}
+        
+        /* HEADER */
+        .pos-header { height: 60px; background: #ffffff; color: var(--primary); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.02); z-index: 10;}
+        
+        /* CHUYỂN TRANG NHANH KHÔNG HIỆU ỨNG TRƯỢT */
+        .view-slider { display: flex; width: 200vw; height: calc(100vh - 60px); }
+        body.show-order .view-slider { transform: translateX(-100vw); }
+
+        /* MÀN HÌNH SƠ ĐỒ BÀN */
+        .screen-tables { width: 100vw; height: 100%; overflow-y: auto; padding: 25px; background: #f1f5f9; }
+        .pos-dashboard-top { background: white; border-radius: 16px; padding: 15px 25px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--border-color);}
+        .realtime-clock { font-size: 1.8rem; font-weight: 900; color: var(--text-dark); line-height: 1;}
+        .realtime-date { font-size: 0.9rem; font-weight: 600; color: #64748b;}
+        
+        .zone-container { margin-bottom: 35px; }
+        .zone-header { display: flex; align-items: center; margin-bottom: 15px;}
+        .zone-title { font-size: 1.3rem; font-weight: 800; color: #334155; margin: 0;}
+        .zone-count { background: #cbd5e1; color: #334155; font-size: 0.8rem; font-weight: bold; padding: 3px 8px; border-radius: 20px; margin-left: 10px;}
+        .zone-line { flex-grow: 1; height: 2px; background: #cbd5e1; margin-left: 15px; opacity: 0.5;}
+        
+        .table-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 20px;}
+        .t-card { border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; overflow: hidden; display: flex; flex-direction: column; background: #fff; border: 2px solid transparent;}
+        .t-card:active { transform: scale(0.95); }
+        
+        .t-head { padding: 12px 10px 8px; font-weight: 900; text-align: center; font-size: 1.3rem; line-height: 1;}
+        .t-body { padding: 5px 10px 15px; text-align: center; display: flex; flex-direction: column; justify-content: flex-end; flex-grow: 1; min-height: 70px;}
+        .t-pax { color: #64748b; font-size: 0.85rem; font-weight: 600;}
+        .t-time { font-size: 0.8rem; font-weight: 700; margin-top: 5px; display: inline-block; padding: 2px 8px; border-radius: 12px;}
+        .t-amt { color: var(--primary); font-weight: 900; font-size: 1.1rem; margin-top: 5px;}
+        
+        /* MÀU SẮC TRẠNG THÁI BÀN */
+        .bg-trong { border-color: #e2e8f0; background: #fff;}
+        .bg-trong .t-head { color: #475569; }
+        .bg-trong .t-pax { color: #94a3b8;}
+
+        .bg-cho_phuc_vu { border-color: #8b5cf6; background: #f5f3ff;}
+        .bg-cho_phuc_vu .t-head { color: #6d28d9; }
+        .bg-cho_phuc_vu .t-pax { color: #8b5cf6; font-weight: 700;}
+        .bg-cho_phuc_vu .t-time { background: #ede9fe; color: #5b21b6;}
+        
+        .bg-dang_phuc_vu { border-color: var(--primary); background: #fffef2;}
+        .bg-dang_phuc_vu .t-head { color: var(--primary); }
+        .bg-dang_phuc_vu .t-time { background: #fee2e2; color: #b91c1c;}
+
+        /* Bỏ hiệu ứng nhấp nháy pulse, chuyển cảnh báo sang màu cam tĩnh */
+        .bg-dang_phuc_vu.warning-time { border-color: #ea580c; background: #fff7ed;}
+        .bg-dang_phuc_vu.warning-time .t-head { color: #ea580c; }
+        .bg-dang_phuc_vu.warning-time .t-time { background: #ffedd5; color: #c2410c;}
+
+        .bg-cho_thanh_toan { border-color: #f59e0b; background: #fffbeb;}
+        .bg-cho_thanh_toan .t-head { color: #d97706; }
+        .bg-cho_thanh_toan .t-time { background: #fef3c7; color: #b45309;}
+        
+        .bg-da_dat { border-color: #3b82f6; background: #eff6ff;}
+        .bg-da_dat .t-head { color: #1d4ed8; }
+        .bg-da_dat .t-pax { color: #3b82f6; font-weight: 700;}
+
+        /* MÀN HÌNH GỌI MÓN */
+        .screen-order { width: 100vw; height: 100%; display: flex; flex-direction: row; background: #fff;}
+        .col-menu { width: 68%; height: 100%; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; background: #f8fafc;}
+        .menu-top { padding: 15px; background: #fff; display: flex; gap: 15px; border-bottom: 1px solid var(--border-color);}
+        .cat-bar { display: flex; overflow-x: auto; padding: 12px 15px; border-bottom: 1px solid var(--border-color); background: #fff; white-space: nowrap;}
+        .cat-bar::-webkit-scrollbar { display: none; }
+        .cat-btn { padding: 8px 24px; border: 1px solid #cbd5e1; color: #475569; background: #f1f5f9; border-radius: 20px; margin-right: 10px; cursor: pointer; font-weight: bold;}
+        .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary);}
+        
+        .menu-grid { flex-grow: 1; overflow-y: auto; padding: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; align-content: flex-start;}
+        .m-card { border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; cursor: pointer; display: flex; flex-direction: column; overflow: hidden; min-height: 165px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); position: relative;}
+        .m-card:active { transform: scale(0.96); border-color: var(--primary);}
+        .m-img-wrapper { width: 100%; height: 95px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: #94a3b8; border-bottom: 1px solid #e2e8f0;}
+        .m-img { width: 100%; height: 100%; object-fit: cover;}
+        .m-info { padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: center; flex-grow: 1;}
+        .m-name { font-size: 0.85rem; font-weight: 700; color: var(--text-dark); line-height: 1.3; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+        .m-price { color: var(--primary); font-weight: 900; font-size: 1rem;}
+
+        .m-card.locked { opacity: 0.5; filter: grayscale(100%); pointer-events: none; border-color: #cbd5e1; }
+        .m-card.locked .m-img-wrapper { background: #e2e8f0; color: #94a3b8; }
+        .locked-badge { position: absolute; top: 8px; right: 8px; background: #dc2626; color: #fff; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; font-weight: 900; z-index: 10; letter-spacing: 0.5px;}
+
+        /* CỘT HÓA ĐƠN */
+        .col-bill { width: 32%; height: 100%; background: #fff; display: flex; flex-direction: column; border-left: 1px solid var(--border-color); box-shadow: -4px 0 15px rgba(0,0,0,0.02); z-index: 5;}
+        .bill-header { background: #fff; padding: 20px; border-bottom: 1px solid #e2e8f0; position: relative;}
+        .bill-info-badges { display: flex; gap: 10px; margin-top: 12px;}
+        .bill-badge { background: #f1f5f9; color: #334155; font-size: 0.75rem; font-weight: 800; padding: 6px 12px; border-radius: 8px; display: inline-flex; align-items: center; border: 1px solid #e2e8f0;}
+        .bill-badge i { margin-right: 6px; color: #64748b;}
+        .bill-badge.bg-primary { background: var(--primary) !important; color: white !important; border-color: var(--primary);}
+        .bill-badge.bg-primary i { color: white;}
+
+        .bill-items { flex-grow: 1; overflow-y: auto; padding: 0; background: #fff;}
+        .b-row { padding: 12px 15px; border-bottom: 1px solid #f1f5f9; display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;}
+        
+        .b-title-col { display: flex; flex-direction: column; gap: 2px;}
+        .b-name-group { display: flex; align-items: flex-start; gap: 6px;}
+        .b-name { font-weight: 700; color: var(--text-dark); font-size: 0.9rem; line-height: 1.3; margin: 0;}
+        .b-note-icon { color: #3b82f6; cursor: pointer; font-size: 0.9rem; padding: 2px;}
+        .b-unit { font-size: 0.75rem; color: #64748b; font-weight: 600;}
+        .b-note-text { font-size: 0.7rem; color: #d97706; background: #fef3c7; padding: 2px 6px; border-radius: 4px; display: inline-block; width: fit-content; margin-top: 2px; font-weight: 600;}
+        
+        .b-qty-box { display: flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 8px; height: 36px; background: #fff; overflow: hidden; width: 100px; justify-content: space-between;}
+        .b-btn { width: 30px; height: 100%; background: #f8fafc; border: none; color: var(--primary); font-weight: 900; font-size: 1.1rem; cursor: pointer;}
+        .b-btn:active { background: #e2e8f0; }
+        .b-qty { width: 40px; text-align: center; border: none; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; font-weight: 800; font-size: 1rem; background: transparent; color: var(--text-dark); -moz-appearance: textfield;}
+        .b-qty::-webkit-outer-spin-button, .b-qty::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .b-qty:focus { outline: none; background: #e0f2fe; color: #0369a1; }
+        
+        .b-total-col { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; min-width: 80px;}
+        .b-total { font-weight: 900; color: var(--primary); font-size: 0.95rem; text-align: right;}
+        .b-delete-icon { color: #ef4444; cursor: pointer; font-size: 1.1rem; padding: 4px 8px; border-radius: 6px; background: #fef2f2;}
+
+        .soft-warning { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 15px; margin: 15px 20px 5px; display: flex; align-items: flex-start; gap: 10px;}
+        .soft-warning i { color: #f59e0b; font-size: 1.2rem; line-height: 1;}
+        .soft-warning-text strong { color: #d97706; font-size: 0.85rem;}
+        .soft-warning-text p { margin: 0; font-size: 0.75rem; color: #92400e;}
+
+        .bill-summary-block { padding: 12px 20px; background: #f8fafc; border-top: 1px solid var(--border-color);}
+        .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.9rem;}
+        .summary-label { color: #64748b; font-weight: 600;}
+        .summary-value { font-weight: 800; color: var(--text-dark);}
+        .summary-discount { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 0.9rem; color: #10b981; font-weight: 700; }
+
+        .bill-footer { padding: 20px; border-top: 1px dashed #cbd5e1; background: #f8fafc; padding-bottom: calc(20px + env(safe-area-inset-bottom));}
+        .total-row { display: flex; justify-content: space-between; align-items: center; font-size: 1.5rem; font-weight: 900; color: var(--primary); margin-bottom: 15px;}
+        
+        .dropdown-menu { border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 8px;}
+        .dropdown-item { font-weight: 700; font-size: 0.9rem; border-radius: 6px; padding: 8px 12px; color: #334155;}
+        .dropdown-item:hover { background: #f1f5f9; color: var(--primary);}
+        .cursor-pointer { cursor: pointer; }
+        .quick-cash-btn { font-weight: 700; font-size: 0.9rem; }
+        .btn-check:checked + .btn-outline-danger { background-color: var(--primary); color: white; }
+        .btn-check:checked + .btn-outline-primary { background-color: #0d6efd; color: white; }
+    </style>
+</head>
+<body>
+    {% csrf_token %}
+    
+    <div class="pos-header">
+        <div class="fw-bold fs-5 d-flex align-items-center">
+            {% if global_setting and global_setting.logo %}
+                <img src="{{ global_setting.logo.url }}" alt="Logo" style="height: 30px; width: auto; margin-right: 10px; border-radius: 4px; object-fit: contain;">
+            {% else %}
+                <i class="bi bi-shop me-2"></i> 
+            {% endif %}
+            {{ global_setting.restaurant_name|default:"POSEIDON POS"|upper }}
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-outline-danger fw-bold" id="btnLeaveTable" style="border-radius: 20px; padding: 5px 15px; display: none;" onclick="backToTables()"><i class="bi bi-arrow-left"></i> Rời Bàn</button>
+            
+            <button class="btn btn-light border text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;" onclick="toggleFullScreen()" title="Toàn màn hình">
+                <i class="bi bi-arrows-fullscreen"></i>
+            </button>
+
+            <div class="dropdown">
+                <div class="d-flex align-items-center cursor-pointer" data-bs-toggle="dropdown">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-size: 1.2rem;">
+                        {{ request.user.username|first|upper }}
+                    </div>
+                    <div class="ms-2 d-none d-md-block text-start">
+                        <div class="fw-bold text-dark lh-1">{{ request.user.username }}</div>
+                        <small class="text-muted" style="font-size: 0.75rem;">
+                            {% if is_cashier %}Thu ngân/Quản lý{% else %}Phục vụ/Order{% endif %}
+                        </small>
+                    </div>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" style="border-radius: 12px; min-width: 200px;">
+                    {% if request.user.is_superuser %}
+                    <li><a class="dropdown-item py-2 fw-bold text-primary" href="{% url 'dashboard' %}"><i class="bi bi-speedometer2 me-2"></i>Về Quản trị</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    {% endif %}
+                    <li>
+                        <form action="{% url 'logout' %}" method="post" class="m-0 p-0">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item py-2 text-danger fw-bold border-0 bg-transparent w-100 text-start">
+                                <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <audio id="beepSound" src="data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq" preload="auto"></audio>
+
+    <div class="view-slider">
+        <div class="screen-tables">
+            <div class="pos-dashboard-top">
+                <div class="d-flex align-items-center gap-4">
+                    <div>
+                        <div class="realtime-clock" id="clockTime">00:00</div>
+                        <div class="realtime-date" id="clockDate">--/--/----</div>
+                    </div>
+                    <div style="border-left: 2px solid #e2e8f0; padding-left: 20px;" class="d-none d-md-block">
+                        <div class="text-muted fw-bold small">TRẠNG THÁI SƠ ĐỒ</div>
+                        <div class="mt-1">
+                            <span class="badge bg-white text-dark border px-2 py-1 me-1"><i class="bi bi-circle-fill" style="color:#cbd5e1"></i> Trống</span>
+                            <span class="badge bg-white text-primary border border-primary px-2 py-1 me-1"><i class="bi bi-calendar-check text-primary"></i> Đã đặt</span>
+                            <span class="badge bg-white border px-2 py-1 me-1" style="color: #6d28d9; border-color: #8b5cf6 !important;"><i class="bi bi-person-raised-hand"></i> Chờ phục vụ</span>
+                            <span class="badge bg-white text-danger border border-danger px-2 py-1 me-1"><i class="bi bi-circle-fill text-danger"></i> Đang dùng</span>
+                            <span class="badge bg-white text-warning border border-warning px-2 py-1"><i class="bi bi-circle-fill text-warning"></i> Chờ tính tiền</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button class="btn btn-primary py-2 px-4 fw-bold" style="border-radius: 10px;" onclick="loadTables()"><i class="bi bi-arrow-clockwise me-1"></i> Làm mới sơ đồ</button>
+                </div>
+            </div>
+            <div id="restaurantLayout">
+                <div class="text-center w-100 mt-5"><div class="spinner-border text-primary" role="status"></div></div>
+            </div>
+        </div>
+
+        <div class="screen-order">
+            <div class="col-menu">
+                <div class="menu-top">
+                    <button class="btn btn-outline-secondary fw-bold px-3" style="border-radius: 10px;" onclick="backToTables()"><i class="bi bi-arrow-left"></i> Quay lại</button>
+                    <div class="input-group" style="border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control fw-bold border-start-0 ps-0" id="searchMenu" placeholder="Tìm kiếm món ăn, đồ uống...">
+                    </div>
+                </div>
+                
+                <div class="cat-bar">
+                    <div class="cat-btn active" onclick="filterMenu('all', this)">Tất cả Menu</div>
+                    <div class="cat-btn" onclick="filterMenu('buffet', this)"><i class="bi bi-ticket-detailed me-1"></i> Vé Buffet</div>
+                    <div class="cat-btn" onclick="filterMenu('drink', this)"><i class="bi bi-cup-straw me-1"></i> Đồ Uống</div>
+                    <div class="cat-btn text-warning border-warning" onclick="filterMenu('service', this)"><i class="bi bi-receipt me-1"></i> Phụ Thu</div>
+                </div>
+                
+                <div class="menu-grid" id="menuItems">
+                    {% for m in goi_buffet %}
+                        <div class="m-card menu-data ticket-item" 
+                             data-type="buffet" 
+                             data-name="{{ m.ten_goi|lower }}" 
+                             data-start="{{ m.gio_bat_dau|time:'H:i'|default:'00:00' }}" 
+                             data-end="{{ m.gio_ket_thuc|time:'H:i'|default:'23:59' }}"
+                             onclick="updateItem('buffet', {{ m.id }}, 1)">
+                            
+                            <div class="locked-badge" style="display: none;"><i class="bi bi-lock-fill"></i> QUÁ GIỜ</div>
+                            <div class="m-img-wrapper" style="background: #fdf2f8; color: #be185d;">
+                                <i class="bi bi-ticket-perforated-fill fs-1"></i>
+                            </div>
+                            <div class="m-info">
+                                <div class="m-name">{{ m.ten_goi }}</div>
+                                <div class="m-price">{{ m.gia_ban|intcomma }}đ</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+
+                    {% for m in do_uong %}
+                        {% if 'FEE' in m.ma_sku %}
+                            <div class="m-card menu-data" data-type="service" data-name="{{ m.ten_mon|lower }}" onclick="updateItem('drink', {{ m.id }}, 1)">
+                                <div class="m-img-wrapper" style="background: #fff7ed; color: #ea580c; border-bottom: 1px solid #ffedd5;">
+                                    <i class="bi bi-exclamation-diamond-fill fs-1"></i>
+                                </div>
+                                <div class="m-info">
+                                    <div class="m-name" title="{{ m.ten_mon }}">{{ m.ten_mon }}</div>
+                                    <div class="m-price text-warning">{{ m.gia_ban|intcomma }}đ</div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="m-card menu-data" data-type="drink" data-name="{{ m.ten_mon|lower }}" onclick="updateItem('drink', {{ m.id }}, 1)">
+                                <div class="m-img-wrapper">
+                                    {% if m.hinh_anh %}
+                                        <img src="{{ m.hinh_anh.url }}" class="m-img" alt="{{ m.ten_mon }}">
+                                    {% else %}
+                                        <i class="bi bi-cup-straw fs-2"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="m-info">
+                                    <div class="m-name" title="{{ m.ten_mon }}">{{ m.ten_mon }}</div>
+                                    <div class="m-price">{{ m.gia_ban|intcomma }}đ</div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-bill">
+                <div class="bill-header">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h4 class="fw-bold text-dark m-0 fs-3" id="billTableName">Bàn --</h4>
+                            <div class="bill-info-badges">
+                                <span class="bill-badge bg-primary text-white"><span id="billCode">Mã: ---</span></span>
+                                <span class="bill-badge"><i class="bi bi-people-fill"></i> <span id="billPax">--</span></span>
+                                <span class="bill-badge"><i class="bi bi-clock-fill"></i> <span id="billTime">--:--</span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown">
+                            <button class="btn btn-light border py-1 px-2 fs-5 text-muted shadow-sm" data-bs-toggle="dropdown" style="border-radius: 8px;"><i class="bi bi-three-dots-vertical"></i></button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                {% if is_cashier %}
+                                <li><a class="dropdown-item py-2 text-danger fw-bold" href="javascript:void(0)" onclick="cancelOrder()"><i class="bi bi-trash3 me-2"></i> Hủy Hóa Đơn</a></li>
+                                {% else %}
+                                <li><a class="dropdown-item py-2 text-muted fw-bold" href="javascript:void(0)"><i class="bi bi-lock me-2"></i> Chỉ Thu Ngân được Hủy</a></li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="noBuffetWarning" class="soft-warning" style="display: none;">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div class="soft-warning-text">
+                        <strong>Chưa có Vé Buffet!</strong>
+                        <p>Vui lòng chọn vé trước khi thanh toán.</p>
+                    </div>
+                </div>
+
+                <div class="bill-items" id="billItems">
+                    <div class="text-center text-muted mt-5 pt-5"><i class="bi bi-cart2 fs-1 text-light"></i><br>Hóa đơn trống</div>
+                </div>
+
+                <div class="bill-summary-block">
+                    <div class="summary-row">
+                        <span class="summary-label">Tổng tiền hàng:</span>
+                        <span class="summary-value" id="subTotal">0</span>
+                    </div>
+                    
+                    <div class="summary-discount" id="discountRow" style="display: none; color: #f97316;">
+                        <span><i class="bi bi-star-fill me-1"></i> Chiết khấu VIP:</span>
+                        <span id="discountAmount">- 0</span>
+                    </div>
+                    
+                    <div class="summary-discount" id="posVoucherSummaryRow" style="display: none; color: #10b981;">
+                        <span><i class="bi bi-ticket-perforated-fill me-1"></i> Áp dụng Voucher:</span>
+                        <span id="posVoucherSummaryAmount">- 0</span>
+                    </div>
+                    
+                    <div class="summary-row">
+                        <span class="summary-label">Thuế VAT ({{ vat_rate }}%):</span>
+                        <span class="summary-value text-danger" id="vatAmount">0</span>
+                    </div>
+                </div>
+
+                <div class="bill-footer">
+                    <div class="total-row">
+                        <span class="text-dark">Phải Thu</span>
+                        <span id="billTotal">0</span>
+                    </div>
+                    
+                    <div class="row g-2 mt-1">
+                        {% if is_cashier %}
+                            <div class="col-6">
+                                <button class="btn btn-light border fw-bold w-100 py-2 text-muted rounded-3 shadow-sm" style="font-size: 0.95rem;" id="btnPrint" onclick="printProforma()">
+                                    <i class="bi bi-printer d-block fs-5 mb-1" id="printIcon"></i> IN TẠM TÍNH
+                                    <span class="spinner-border spinner-border-sm text-primary d-none" id="printLoader" role="status"></span>
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <button class="btn btn-danger w-100 py-2 rounded-3 shadow-sm fw-bold" style="font-size: 0.95rem; background: var(--primary);" onclick="openCheckoutModal()">
+                                    <i class="bi bi-credit-card d-block fs-5 mb-1"></i> THANH TOÁN
+                                </button>
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <button class="btn btn-warning w-100 py-2 rounded-3 shadow-sm fw-bold text-dark fs-5" id="btnRequestPay" onclick="requestPayment()">
+                                    <i class="bi bi-bell-fill me-2"></i> GỬI YÊU CẦU THANH TOÁN
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="noteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-light border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary">📝 Ghi chú món ăn</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2 fw-bold text-dark fs-5" id="noteItemName"></p>
+                    <input type="hidden" id="noteDetailId">
+                    <textarea class="form-control bg-light border-primary" id="itemNoteInput" rows="3" placeholder="VD: Ít đá, Không cay..."></textarea>
+                    <div class="mt-3 d-flex flex-wrap gap-2">
+                        <span class="badge bg-white text-dark border p-2 shadow-sm" style="cursor:pointer;" onclick="addQuickNote('Ít đá')">Ít đá</span>
+                        <span class="badge bg-white text-dark border p-2 shadow-sm" style="cursor:pointer;" onclick="addQuickNote('Nhiều đá')">Nhiều đá</span>
+                        <span class="badge bg-white text-dark border p-2 shadow-sm" style="cursor:pointer;" onclick="addQuickNote('Nước nguội')">Nước nguội</span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-primary w-100 fw-bold py-2" onclick="saveItemNote()">LƯU GHI CHÚ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if is_cashier %}
+    <div class="modal fade" id="checkoutModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header text-white" style="background: var(--primary);">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-display"></i> Thanh toán Hóa đơn: <span id="modalTableName"></span></h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <div class="col-md-5 bg-light p-4 border-end">
+                            <h6 class="fw-bold text-muted mb-3">THÔNG TIN HÓA ĐƠN</h6>
+                            <div class="p-3 bg-white rounded border mb-3 text-center">
+                                <div class="text-muted small">Mã HĐ</div>
+                                <div class="fw-bold fs-5 text-dark" id="modalBillCode">INV-***</div>
+                            </div>
+                            
+                            <label class="text-muted fw-bold mb-2"><i class="bi bi-telephone-inbound"></i> Khách Hàng VIP:</label>
+                            <div class="input-group mb-2">
+                                <input type="tel" class="form-control fw-bold text-primary" id="inputVipPhone" placeholder="Nhập SĐT..." onkeypress="if(event.key === 'Enter') applyVip()">
+                                <button class="btn btn-primary fw-bold" type="button" id="btnApplyVip" onclick="applyVip()">Tìm</button>
+                            </div>
+                            <div id="vipInfoBlock" class="mb-4" style="display: none;"></div>
+
+                            <label class="text-muted fw-bold mb-2"><i class="bi bi-ticket-perforated"></i> Mã Khuyến Mãi:</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control fw-bold text-success" id="inputVoucher" placeholder="Nhập mã voucher..." onkeypress="if(event.key === 'Enter') applyVoucher()">
+                                <button class="btn btn-success fw-bold" type="button" id="btnApplyVoucher" onclick="applyVoucher()">Áp dụng</button>
+                            </div>
+                            <div id="voucherInfoBlock" class="mb-3" style="display:none;"></div>
+                            <div id="voucher-ai-box" class="mb-3"></div>
+                        </div>
+
+                        <div class="col-md-7 p-4 d-flex flex-column">
+                            <div>
+                                <h6 class="fw-bold text-muted mb-3">CHỌN PHƯƠNG THỨC THANH TOÁN</h6>
+                                <div class="d-flex gap-3 mb-4">
+                                    <input type="radio" class="btn-check" name="payMethod" id="payCash" autocomplete="off" checked onchange="togglePayMethod('tien_mat')">
+                                    <label class="btn btn-outline-danger flex-grow-1 py-3 fw-bold rounded-3" for="payCash">
+                                        <i class="bi bi-cash-stack fs-3 d-block mb-1"></i> Tiền Mặt
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="payMethod" id="payQR" autocomplete="off" onchange="togglePayMethod('chuyen_khoan')">
+                                    <label class="btn btn-outline-primary flex-grow-1 py-3 fw-bold rounded-3" for="payQR">
+                                        <i class="bi bi-qr-code-scan fs-3 d-block mb-1"></i> QR Chuyển Khoản
+                                    </label>
+                                </div>
+                                
+                                <input type="hidden" id="method_hidden" value="tien_mat">
+
+                                <div id="cashBlock">
+                                    <label class="text-muted fw-bold mb-2">Số tiền khách đưa (Tiền mặt):</label>
+                                    <input type="text" class="form-control form-control-lg text-end fw-bold text-primary mb-3" id="inputCashGiven" value="0" style="font-size: 1.8rem; border-radius: 12px;">
+                                    
+                                    <div class="d-flex gap-2 justify-content-end mb-4" id="quickCashButtons"></div>
+                                    
+                                    <div class="p-3 bg-danger bg-opacity-10 rounded-3 border border-danger border-opacity-25 d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold text-danger">Tiền thối lại (Tiền thừa):</span>
+                                        <span class="fs-4 fw-bold text-danger" id="changeAmount">0</span>
+                                    </div>
+                                </div>
+
+                                <div id="qrCodeCheckoutBlock" class="text-center" style="display: none;">
+                                    <div class="bg-light p-3 d-inline-block rounded-4 border shadow-sm" id="qrCodeWrapper">
+                                        <img id="qrCodeCheckoutImg" src="" style="width: 220px; height: 220px; object-fit: contain;" alt="Mã QR">
+                                    </div>
+                                    <p class="mt-3 mb-0 fw-bold text-primary">Quét mã bằng App Ngân hàng</p>
+                                    <p class="small text-muted">Số tiền và nội dung sẽ tự động được điền</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-auto pt-4 border-top text-end mt-4">
+                                <span class="fs-5 fw-bold text-dark me-3">TỔNG KHÁCH CẦN TRẢ:</span>
+                                <span class="fs-1 fw-bold text-danger lh-1" id="modalTotalAmount">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer p-3 border-top-0 bg-light rounded-bottom-3">
+                    <button type="button" class="btn btn-danger w-100 fw-bold py-3 fs-5 shadow-sm" id="btnConfirmCheckout" style="border-radius: 12px;" onclick="processCheckout()">XÁC NHẬN THANH TOÁN & IN BILL</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formatMoney = (num) => new Intl.NumberFormat('vi-VN').format(num);
+        
+        let currentTableId = null; let currentOrderId = null; let currentTotal = 0;
+        let currentOrderItems = []; let hasBuffetTicket = false; let baseOrderItems = null; let billTimerInterval = null; 
+        
+        const noteModalObj = new bootstrap.Modal(document.getElementById('noteModal'));
+        const cashInput = document.getElementById('inputCashGiven');
+        
+        {% if is_cashier %}
+            const checkoutModalObj = new bootstrap.Modal(document.getElementById('checkoutModal'));
+        {% endif %}
+
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000, timerProgressBar: true });
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(err => {}); } 
+            else { if (document.exitFullscreen) document.exitFullscreen(); }
+        }
+
+        function checkTicketAvailability() {
+            const now = new Date(); const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            document.querySelectorAll('.ticket-item').forEach(card => {
+                const startStr = card.dataset.start; const endStr = card.dataset.end;
+                if (!startStr || !endStr) return;
+                const [sh, sm] = startStr.split(':').map(Number); const [eh, em] = endStr.split(':').map(Number);
+                const startMin = sh * 60 + sm; const endMin = eh * 60 + em;
+                let isAvailable = (startMin <= endMin) ? (currentMinutes >= startMin && currentMinutes <= endMin) : (currentMinutes >= startMin || currentMinutes <= endMin);
+
+                const badge = card.querySelector('.locked-badge');
+                if (isAvailable) {
+                    card.classList.remove('locked'); if(badge) badge.style.display = 'none';
+                } else {
+                    card.classList.add('locked'); if(badge) badge.style.display = 'block';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTables(); updateRealtimeClock(); checkTicketAvailability(); 
+            setInterval(() => { updateRealtimeClock(); checkTicketAvailability(); }, 1000);
+        });
+
+        function updateRealtimeClock() {
+            const now = new Date();
+            document.getElementById('clockTime').innerText = now.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            document.getElementById('clockDate').innerText = now.toLocaleDateString('vi-VN', {weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit'});
+        }
+
+        function playBeep() {
+            const beep = document.getElementById('beepSound');
+            if (beep) { beep.currentTime = 0; beep.play().catch(e => {}); }
+        }
+
+        function loadTables() {
+            document.getElementById('restaurantLayout').innerHTML = '<div class="text-center w-100 mt-5"><div class="spinner-border text-primary" role="status"></div></div>';
+            fetch('/pos/api/tables/?t=' + new Date().getTime()).then(res => res.json()).then(data => {
+                if(data.status !== 'success') return;
+                let layoutHtml = '';
+                data.data.forEach(zone => {
+                    let tableHtml = '';
+                    zone.ban_list.forEach(ban => {
+                        let colorClass = 'bg-trong'; let timeHtml = '';
+                        if (ban.trang_thai === 'dang_phuc_vu') {
+                            colorClass = 'bg-dang_phuc_vu'; timeHtml = `<div class="t-time"><i class="bi bi-clock-history"></i> ${ban.thoi_gian_ngoi} phút</div>`;
+                        } else if (ban.trang_thai === 'cho_phuc_vu') {
+                            colorClass = 'bg-cho_phuc_vu'; timeHtml = `<div class="t-time"><i class="bi bi-person-raised-hand"></i> ${ban.thoi_gian_ngoi} phút</div>`;
+                        } else if (ban.trang_thai === 'cho_thanh_toan') {
+                            colorClass = 'bg-cho_thanh_toan'; timeHtml = `<div class="t-time"><i class="bi bi-clock-history"></i> ${ban.thoi_gian_ngoi} phút</div>`;
+                        } else if (ban.trang_thai === 'da_dat') {
+                            colorClass = 'bg-da_dat'; timeHtml = `<div class="t-time" style="background: #dbeafe; color: #1d4ed8;"><i class="bi bi-calendar-check"></i> Đã đặt</div>`;
+                        }
+                        let amountHtml = ban.tong_tien > 0 ? `<div class="t-amt">${formatMoney(ban.tong_tien)}</div>` : '';
+                        tableHtml += `
+                        <div class="t-card ${colorClass}" onclick="selectTable(${ban.id}, '${ban.ten_ban}')">
+                            <div class="t-head">${ban.ten_ban}</div>
+                            <div class="t-body"><div class="t-pax"><i class="bi bi-people-fill"></i> ${ban.so_ghe} ghế</div>${timeHtml}${amountHtml}</div>
+                        </div>`;
+                    });
+                    layoutHtml += `
+                    <div class="zone-container">
+                        <div class="zone-header"><h2 class="zone-title">${zone.ten_khu_vuc}</h2><span class="zone-count text-muted ms-2">(${zone.ban_list.length})</span><div class="zone-line"></div></div>
+                        <div class="table-grid">${tableHtml}</div>
+                    </div>`;
+                });
+                document.getElementById('restaurantLayout').innerHTML = layoutHtml;
+            });
+        }
+
+        function selectTable(id, name) {
+            currentTableId = id; baseOrderItems = null; 
+            document.getElementById('billTableName').innerText = (name.toLowerCase().includes('bàn') ? '' : 'Bàn ') + name;
+            document.body.classList.add('show-order'); document.getElementById('btnLeaveTable').style.display = 'inline-flex'; 
+            loadOrder(); 
+        }
+
+        function backToTables() {
+            if (currentOrderId && baseOrderItems !== null) {
+                let itemsToPrint = []; let itemsToCancel = []; let isBoSung = baseOrderItems.length > 0;
+                baseOrderItems.forEach(baseItem => {
+                    let currentItem = currentOrderItems.find(c => c.id === baseItem.id);
+                    let currentQty = currentItem ? currentItem.so_luong : 0;
+                    if (currentQty < baseItem.so_luong) itemsToCancel.push({ ten_mon: baseItem.ten_mon, qty_cancel: baseItem.so_luong - currentQty });
+                });
+                currentOrderItems.forEach(currentItem => {
+                    let baseItem = baseOrderItems.find(b => b.id === currentItem.id);
+                    let baseQty = baseItem ? baseItem.so_luong : 0;
+                    if (currentItem.so_luong > baseQty) {
+                        let printItem = Object.assign({}, currentItem); printItem.so_luong = currentItem.so_luong - baseQty; itemsToPrint.push(printItem);
+                    }
+                });
+                if (itemsToPrint.length > 0) {
+                    let dsVeBuffet = itemsToPrint.filter(i => i.ten_mon.toLowerCase().includes('vé') || i.ten_mon.toLowerCase().includes('buffet'));
+                    let dsDoUong = itemsToPrint.filter(i => !i.ten_mon.toLowerCase().includes('vé') && !i.ten_mon.toLowerCase().includes('buffet'));
+                    printSplitTickets(dsDoUong, dsVeBuffet, isBoSung);
+                }
+                if (itemsToCancel.length > 0) printBatchCancelTicket(itemsToCancel);
+                if (itemsToPrint.length > 0 || itemsToCancel.length > 0) Toast.fire({ icon: 'success', title: 'Đã in lệnh báo Bếp/Bar!' });
+            }
+            document.body.classList.remove('show-order'); document.getElementById('btnLeaveTable').style.display = 'none'; 
+            currentTableId = null; baseOrderItems = null;
+            if (billTimerInterval) clearInterval(billTimerInterval);
+            loadTables(); 
+        }
+
+        function updateTimerDisplay(startTime, gioVaoStr, badgeEl) {
+            const now = new Date(); const diffMs = Math.floor((now - startTime) / 1000);
+            if (diffMs < 0) { badgeEl.innerHTML = `${gioVaoStr} (00:00)`; return; }
+            const hours = Math.floor(diffMs / 3600); const mins = Math.floor((diffMs % 3600) / 60); const secs = diffMs % 60;
+            let timerStr = hours > 0 ? `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}` : `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            badgeEl.innerHTML = `${gioVaoStr} <span class="badge bg-danger ms-1" style="font-family: monospace; font-size: 0.8rem;">${timerStr}</span>`;
+        }
+
+        function loadOrder() {
+            if(!currentTableId) return;
+            fetch(`/pos/api/order/${currentTableId}/`).then(res => res.json()).then(data => {
+                const billBody = document.getElementById('billItems');
+                if (data.status === 'empty') {
+                    currentOrderId = null; currentTotal = 0; document.getElementById('billPax').innerText = "-- Khách";
+                    document.getElementById('billTime').innerText = "--:--"; document.getElementById('billCode').innerText = "Mã: ---";
+                    document.getElementById('subTotal').innerText = '0'; document.getElementById('vatAmount').innerText = '0';
+                    document.getElementById('billTotal').innerText = '0'; 
+                    
+                    // Ẩn cả 2 dòng tiền nếu trống
+                    if(document.getElementById('discountRow')) document.getElementById('discountRow').style.display = 'none';
+                    if(document.getElementById('posVoucherSummaryRow')) document.getElementById('posVoucherSummaryRow').style.display = 'none';
+                    
+                    billBody.innerHTML = '<div class="text-center text-muted mt-5 pt-5"><i class="bi bi-cart2 fs-1 text-light"></i><br>Hóa đơn trống.</div>';
+                    document.getElementById('noBuffetWarning').style.display = 'none';
+                    if (billTimerInterval) clearInterval(billTimerInterval);
+                } else {
+                    currentOrderItems = (data.items || []).sort((a, b) => a.id - b.id);
+                    hasBuffetTicket = false; let totalBuffetPax = 0; 
+                    if (baseOrderItems === null) baseOrderItems = JSON.parse(JSON.stringify(currentOrderItems));
+                    currentOrderId = data.hoa_don_id; currentTotal = data.tong_tien;
+                    document.getElementById('billCode').innerText = "Mã: " + data.ma_hoa_don;
+                    
+                    if (data.thoi_gian_vao) {
+                        if (billTimerInterval) clearInterval(billTimerInterval);
+                        const timeBadge = document.getElementById('billTime'); const startTime = new Date(data.timestamp_vao);
+                        updateTimerDisplay(startTime, data.thoi_gian_vao, timeBadge);
+                        billTimerInterval = setInterval(() => { updateTimerDisplay(startTime, data.thoi_gian_vao, timeBadge); }, 1000);
+                    } else {
+                        document.getElementById('billTime').innerText = new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+                    }
+                    
+                    // Xử lý Giao diện Voucher
+                    if(data.ma_voucher){
+                        document.getElementById('voucherInfoBlock').style.display = 'block';
+                        document.getElementById('voucherInfoBlock').innerHTML = `
+                            <div class="alert alert-success py-2 px-3 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-bold"><i class="bi bi-ticket-perforated"></i> Voucher: ${data.ma_voucher}</div>
+                                    <div class="small mt-1">Giảm: ${formatMoney(data.tien_giam_voucher)}đ</div>
+                                </div>
+                                <button class="btn btn-sm btn-danger fw-bold" onclick="removeVoucher()"><i class="bi bi-x-circle"></i> Hủy</button>
+                            </div>`;
+                    } else { document.getElementById('voucherInfoBlock').style.display = 'none'; }
+
+                    // Cập nhật Số tiền
+                    document.getElementById('subTotal').innerText = formatMoney(data.tong_tien_hang);
+                    document.getElementById('vatAmount').innerText = formatMoney(data.vat_phu_thu);
+                    document.getElementById('billTotal').innerText = formatMoney(data.tong_tien); 
+
+                    // BÓC TÁCH VIP / VOUCHER (Đã xử lý an toàn)
+                    let totalDiscount = parseFloat(data.chiet_khau || 0);
+                    let voucherDiscount = parseFloat(data.tien_giam_voucher || 0);
+                    let vipDiscount = totalDiscount - voucherDiscount;
+
+                    const rowVip = document.getElementById('discountRow');
+                    const amtVip = document.getElementById('discountAmount');
+                    if (rowVip && amtVip) {
+                        if (vipDiscount > 0) {
+                            rowVip.style.display = 'flex'; amtVip.innerText = '- ' + formatMoney(vipDiscount) + 'đ';
+                        } else { rowVip.style.display = 'none'; }
+                    }
+
+                    const rowVoucher = document.getElementById('posVoucherSummaryRow');
+                    const amtVoucher = document.getElementById('posVoucherSummaryAmount');
+                    if (rowVoucher && amtVoucher) {
+                        if (voucherDiscount > 0) {
+                            rowVoucher.style.display = 'flex'; amtVoucher.innerText = '- ' + formatMoney(voucherDiscount) + 'đ';
+                        } else { rowVoucher.style.display = 'none'; }
+                    }
+
+                    // VẼ MÓN ĂN VÀO DANH SÁCH
+                    if (currentOrderItems.length === 0) {
+                        billBody.innerHTML = '<div class="text-center mt-5 pt-5"><i class="bi bi-person-raised-hand fs-1" style="color: #8b5cf6;"></i><br><span style="color: #8b5cf6;" class="fw-bold">Khách đang chờ...</span></div>';
+                        document.getElementById('billPax').innerText = "-- Khách"; document.getElementById('noBuffetWarning').style.display = 'none';
+                        return;
+                    }
+
+                    let isLocked = (data.trang_thai_ban === 'cho_thanh_toan'); let html = '';
+                    if (isLocked) {
+                        html += `<div class="alert alert-warning m-3 py-2 d-flex justify-content-between align-items-center border-warning" style="font-size: 0.85rem;"><span class="fw-bold"><i class="bi bi-lock-fill"></i> Bàn đã báo Thanh Toán!</span>
+                            {% if is_cashier %}<button class="btn btn-sm btn-danger fw-bold" onclick="unlockTable()"><i class="bi bi-unlock-fill"></i> Mở Khóa</button>{% endif %}</div>`;
+                    }
+
+                    currentOrderItems.forEach(item => {
+                        let isBuffetItem = item.ten_mon.toLowerCase().includes('vé') || item.ten_mon.toLowerCase().includes('buffet');
+                        if (isBuffetItem) { hasBuffetTicket = true; totalBuffetPax += item.so_luong; }                        
+                        let safeName = item.ten_mon.replace(/'/g, "\\'").replace(/"/g, "&quot;"); let safeNote = (item.ghi_chu || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                        let noteHtml = item.ghi_chu ? `<span class="b-note-text">${item.ghi_chu}</span>` : '';
+                        let qtyBoxHtml = isLocked ? `<span class="fw-bold fs-6 px-3 bg-light rounded border text-muted">${item.so_luong}</span>` : 
+                            `<div class="b-qty-box"><button class="b-btn text-primary" onclick="decreaseItem(${item.id}, ${isBuffetItem})">-</button><input type="number" class="b-qty" value="${item.so_luong}" onfocus="this.select();" onchange="manualUpdateQty(${item.id}, this.value, ${item.so_luong})"><button class="b-btn text-primary" onclick="updateItem('update_only', ${item.id}, 1)">+</button></div>`;
+
+                        html += `<div class="b-row"><div class="b-title-col flex-grow-1"><div class="b-name-group"><h6 class="b-name">${item.ten_mon}</h6>
+                            ${!isLocked ? `<i class="bi bi-pencil-square b-note-icon" onclick="openNoteModal(${item.id}, '${safeName}', '${safeNote}')"></i>` : ''}</div><span class="b-unit">${formatMoney(item.don_gia)}</span>${noteHtml}</div>
+                            <div class="b-qty-col px-2">${qtyBoxHtml}</div><div class="b-total-col"><span class="b-total">${formatMoney(item.thanh_tien)}</span>
+                            ${!isLocked ? `<i class="bi bi-trash3-fill b-delete-icon" onclick="deleteItem(${item.id}, ${item.so_luong}, ${isBuffetItem})"></i>` : ''}</div></div>`;
+                    });
+                    billBody.innerHTML = html;
+                    document.getElementById('billPax').innerText = totalBuffetPax > 0 ? `${totalBuffetPax} Khách` : `-- Khách`;
+                    document.getElementById('noBuffetWarning').style.display = !hasBuffetTicket ? 'flex' : 'none';
+                }
+            });
+        }
+
+        window.manualUpdateQty = function(ct_id, newVal, oldVal) {
+            let num = parseInt(newVal); if (isNaN(num) || num < 1) num = 1; let diff = num - oldVal; if (diff === 0) return; 
+            fetch('/pos/api/add-item/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ ban_id: currentTableId, item_type: 'update_only', item_id: ct_id, qty_change: diff })
+            }).then(res => res.json()).then(data => { if(data.status === 'success') loadOrder(); else Toast.fire({ icon: 'error', title: data.message }); });
+        }
+
+        window.decreaseItem = function(ct_id, isBuffet) {
+            fetch('/pos/api/add-item/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ ban_id: currentTableId, item_type: 'update_only', item_id: ct_id, qty_change: -1 })
+            }).then(res => res.json()).then(data => { if(data.status === 'success') loadOrder(); else Toast.fire({ icon: 'error', title: data.message }); });
+        }
+
+        window.deleteItem = function(ct_id, so_luong, isBuffet) {
+            if(confirm("Xác nhận bỏ món này khỏi bàn?")) {
+                fetch('/pos/api/add-item/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ ban_id: currentTableId, item_type: 'update_only', item_id: ct_id, qty_change: -so_luong })
+                }).then(res => res.json()).then(data => { if(data.status === 'success') loadOrder(); else Toast.fire({ icon: 'error', title: data.message }); });
+            }
+        }
+
+        window.openNoteModal = function(ct_id, name, currentNote) {
+            document.getElementById('noteDetailId').value = ct_id; document.getElementById('noteItemName').innerText = name;
+            document.getElementById('itemNoteInput').value = currentNote; noteModalObj.show();
+        }
+
+        window.addQuickNote = function(text) {
+            const input = document.getElementById('itemNoteInput'); if(input.value) input.value += ', ' + text; else input.value = text;
+        }
+
+        window.saveItemNote = function() {
+            const ct_id = document.getElementById('noteDetailId').value; const note = document.getElementById('itemNoteInput').value;
+            fetch('/pos/api/update-note/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ ct_id: ct_id, ghi_chu: note })
+            }).then(res => res.json()).then(data => { if(data.status === 'success') { noteModalObj.hide(); loadOrder(); } else Toast.fire({ icon: 'error', title: data.message }); });
+        }
+
+        function updateItem(type, itemId, change) {
+            if(!currentTableId) return;
+            if(type === 'buffet') {
+                const card = document.querySelector(`.m-card[data-type="buffet"][onclick*="${itemId}"]`);
+                if(card && card.classList.contains('locked')) return Toast.fire({ icon: 'error', title: 'Vé này đã hết giờ mở bán!' });
+            }
+            playBeep();
+            fetch('/pos/api/add-item/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ ban_id: currentTableId, item_type: type, item_id: itemId, qty_change: change })
+            }).then(res => res.json()).then(data => { if(data.status === 'success') loadOrder(); else Toast.fire({ icon: 'error', title: data.message }); });
+        }
+
+        function filterMenu(type, btn) {
+            document.querySelectorAll('.cat-btn').forEach(el => el.classList.remove('active')); if(btn) btn.classList.add('active');
+            const query = document.getElementById('searchMenu').value.toLowerCase();
+            document.querySelectorAll('.menu-data').forEach(el => {
+                const matchType = (type === 'all' || el.dataset.type === type); const matchSearch = el.dataset.name.includes(query);
+                el.style.display = (matchType && matchSearch) ? 'flex' : 'none';
+            });
+        }
+        document.getElementById('searchMenu').addEventListener('input', () => { filterMenu('all', document.querySelector('.cat-btn.active')); });
+
+        function unlockTable() {
+            if(!currentOrderId) return;
+            if(confirm("Mở khóa bàn này để tiếp tục gọi món?")) {
+                fetch('/pos/api/unlock-table/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ hoa_don_id: currentOrderId })
+                }).then(res => res.json()).then(data => { if(data.status === 'success') { loadTables(); loadOrder(); } else alert("Lỗi mở khóa: " + data.message); });
+            }
+        }
+
+        window.requestPayment = function() {
+            if (!currentOrderId) return alert("Hóa đơn trống!");
+            if (!hasBuffetTicket) return Swal.fire({ icon: 'error', title: 'Chưa có Vé Buffet!', text: 'Phải chọn đủ vé Buffet cho khách.', confirmButtonColor: '#ef4444' });
+            Swal.fire({ title: 'Báo Thu Ngân Thanh Toán?', text: "Khóa thao tác gọi món của bàn này.", icon: 'question', showCancelButton: true, confirmButtonColor: '#f59e0b', cancelButtonColor: '#64748b', confirmButtonText: 'Gửi Yêu Cầu', cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('/pos/api/mark-printing/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ hoa_don_id: currentOrderId })
+                    }).then(res => res.json()).then(data => { if (data.status === 'success') { Toast.fire({ icon: 'success', title: 'Đã gửi yêu cầu!' }); loadTables(); backToTables(); } else Toast.fire({ icon: 'error', title: 'Lỗi: ' + data.message }); });
+                }
+            })
+        }
+
+        {% if is_cashier %}
+        window.processCheckout = function() {
+            const methodStr = document.getElementById('method_hidden').value; const isCash = (methodStr === 'tien_mat');
+            if (!hasBuffetTicket) {
+                checkoutModalObj.hide(); return Swal.fire({ icon: 'error', title: 'Thanh toán bị chặn!', text: 'Chưa có Vé Buffet.', confirmButtonColor: '#ef4444' });
+            }
+            if (isCash && (parseInt(cashInput.value.replace(/\D/g, '')) || 0) < currentTotal) return Toast.fire({ icon: 'error', title: 'Khách đưa chưa đủ tiền!' });
+            const btnConfirm = document.getElementById('btnConfirmCheckout'); btnConfirm.innerText = "Đang xử lý..."; btnConfirm.disabled = true;
+            fetch('/pos/api/checkout/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ hoa_don_id: currentOrderId, phuong_thuc: methodStr, so_tien_thu: currentTotal })
+            }).then(res => res.json()).then(data => { if(data.status === 'success') { Toast.fire({ icon: 'success', title: 'Thanh toán thành công!' }); checkoutModalObj.hide(); backToTables(); } else Toast.fire({ icon: 'error', title: data.message });
+            }).finally(() => { btnConfirm.innerText = "XÁC NHẬN THANH TOÁN & IN BILL"; btnConfirm.disabled = false; });
+        }
+
+        window.printProforma = function() {
+            if (!currentOrderId) return alert("Hóa đơn trống!");
+            const printIcon = document.getElementById('printIcon'); const printLoader = document.getElementById('printLoader'); const btnPrint = document.getElementById('btnPrint');
+            printIcon.classList.add('d-none'); printLoader.classList.remove('d-none'); btnPrint.disabled = true;
+            fetch('/pos/api/mark-printing/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ hoa_don_id: currentOrderId })
+            }).then(res => res.json()).then(data => {
+                if (data.status === 'success') { window.open(`/pos/print-bill/${currentOrderId}/`, '_blank', 'width=400,height=600,top=100,left=100'); loadTables(); backToTables(); } else Toast.fire({ icon: 'error', title: 'Lỗi in: ' + data.message });
+            }).finally(() => { printIcon.classList.remove('d-none'); printLoader.classList.add('d-none'); btnPrint.disabled = false; });
+        }
+
+        window.cancelOrder = function() {
+            if(!currentOrderId) return Swal.fire({ icon: 'info', title: 'Thông báo', text: 'Bàn chưa có hóa đơn!'});
+            Swal.fire({ title: 'Hủy Hóa Đơn?', text: 'Món ăn sẽ bị xóa và bàn về trạng thái Trống!', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#64748b', confirmButtonText: 'Hủy', cancelButtonText: 'Không'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Đang hủy...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                    fetch('/pos/api/checkout/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ hoa_don_id: currentOrderId, action: 'cancel' }) })
+                    .then(res => res.json()).then(data => {
+                        if(data.status === 'success') { Swal.close(); Toast.fire({ icon: 'success', title: 'Đã hủy!' }); document.body.classList.remove('show-order'); document.getElementById('btnLeaveTable').style.display = 'none'; currentTableId = null; currentOrderId = null; baseOrderItems = null; if (billTimerInterval) clearInterval(billTimerInterval); loadTables(); } else Swal.fire('Lỗi', data.message, 'error');
+                    });
+                }
+            });
+        }
+
+        window.openCheckoutModal = function() {
+            if (!currentOrderId) return alert("Bàn đang trống!");
+            if (!hasBuffetTicket) return Swal.fire({ icon: 'error', title: 'Chưa có Vé Buffet', text: 'Vui lòng thêm vé trước khi thanh toán.', confirmButtonColor: '#ef4444' });
+            document.getElementById('inputVipPhone').value = ''; document.getElementById('vipInfoBlock').style.display = 'none'; document.getElementById('btnApplyVip').disabled = false;
+            document.getElementById('modalTableName').innerText = document.getElementById('billTableName').innerText.replace('Bàn ', ''); document.getElementById('modalBillCode').innerText = document.getElementById('billCode').innerText.replace('Mã: ', ''); document.getElementById('modalTotalAmount').innerText = formatMoney(currentTotal) + 'đ';
+            document.getElementById('payCash').checked = true; togglePayMethod('tien_mat'); renderQuickCashButtons(currentTotal); cashInput.value = formatMoney(currentTotal).replace(/\D/g, ''); calcChange(); checkoutModalObj.show();
+        }
+
+        window.togglePayMethod = function(methodStr) {
+            document.getElementById('method_hidden').value = methodStr; const isCash = (methodStr === 'tien_mat');
+            document.getElementById('cashBlock').style.display = isCash ? 'block' : 'none'; document.getElementById('qrCodeCheckoutBlock').style.display = isCash ? 'none' : 'block'; 
+            if(!isCash) {
+                let bankId = "{{ setting.bank_id|default:'' }}".trim(); let accountNo = "{{ setting.bank_account_no|default:'' }}".trim(); let accountName = "{{ setting.bank_account_name|default:'' }}".trim(); let billCodeStr = document.getElementById('billCode').innerText.replace('Mã: ', '').trim();
+                if (bankId && accountNo) { let qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${currentTotal}&addInfo=${encodeURIComponent("Thanh toan bill " + billCodeStr)}&accountName=${encodeURIComponent(accountName)}`; document.getElementById('qrCodeCheckoutImg').src = qrUrl;
+                } else document.getElementById('qrCodeWrapper').innerHTML = '<p class="text-danger fw-bold m-0 p-3">Chưa cấu hình T.Khoản NH!</p>';
+            }
+        }
+
+        window.applyVip = function() {
+            const phone = document.getElementById('inputVipPhone').value.trim(); if(!phone) return Toast.fire({ icon: 'warning', title: 'Vui lòng nhập SĐT!' });
+            const btn = document.getElementById('btnApplyVip'); btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>'; btn.disabled = true;
+            fetch('/pos/api/apply-vip/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ hoa_don_id: currentOrderId, phone: phone })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    document.getElementById('vipInfoBlock').style.display = 'block'; document.getElementById('vipInfoBlock').innerHTML = `<div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: #e0f2fe; border: 1px solid #bae6fd;"><div><div class="fw-bold text-dark fs-5"><i class="bi bi-person-badge text-primary me-2"></i> ${data.ho_ten}</div><div class="text-muted mt-1">Hạng thẻ: <span class="badge bg-warning text-dark border fw-bold px-2 py-1">${data.hang_the}</span></div></div><div class="text-end"><i class="bi bi-check-circle-fill text-success fs-1"></i></div></div>`; Toast.fire({ icon: 'success', title: data.message });
+                    if (data.voucher_goi_y && data.voucher_goi_y.length > 0) {
+                        let voucherHtml = `<div class="mt-3"><div class="fw-bold text-success mb-2"><i class="bi bi-stars me-1"></i>AI đề xuất Voucher</div>`;
+                        data.voucher_goi_y.forEach(v => { voucherHtml += `<div class="alert alert-success py-2 px-3 mb-2 d-flex justify-content-between align-items-center"><div><b>${v.ma_code}</b><div class="small text-muted">Giảm: ${v.muc_giam}</div></div><button class="btn btn-sm btn-outline-success" onclick="document.getElementById('inputVoucher').value='${v.ma_code}'; applyVoucher();">Chọn</button></div>`; }); voucherHtml += `</div>`; document.getElementById('voucher-ai-box').innerHTML = voucherHtml;
+                    } else document.getElementById('voucher-ai-box').innerHTML = '';
+                    currentTotal = data.tong_tien; document.getElementById('modalTotalAmount').innerText = formatMoney(currentTotal) + 'đ';
+                    if (document.getElementById('method_hidden').value === 'tien_mat') { renderQuickCashButtons(currentTotal); setCashExact(); } else togglePayMethod('chuyen_khoan'); loadOrder();
+                } else Toast.fire({ icon: 'error', title: data.message });
+            }).finally(() => { btn.innerHTML = 'Tìm'; btn.disabled = false; });
+        }
+
+        window.applyVoucher = function() {
+            const code = document.getElementById('inputVoucher').value.trim(); if(!code) return Toast.fire({ icon: 'warning', title: 'Nhập mã voucher!' });
+            fetch('/pos/api/apply-voucher/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken }, body: JSON.stringify({ hoa_don_id: currentOrderId, ma_code: code })
+            }).then(res => res.json()).then(data => {
+                if(data.status === 'success') {
+                    Toast.fire({ icon: 'success', title: data.message }); currentTotal = data.tong_tien; document.getElementById('modalTotalAmount').innerText = formatMoney(currentTotal) + 'đ';
+                    document.getElementById('voucherInfoBlock').style.display = 'block'; document.getElementById('voucherInfoBlock').innerHTML = `<div class="alert alert-success mb-0"><b>${data.ma_voucher}</b><br>Giảm: ${formatMoney(data.giam_gia)}đ</div>`; loadOrder();
+                } else Toast.fire({ icon: 'error', title: data.message });
+            });
+        }
+
+        window.removeVoucher = function() {
+            if(!currentOrderId) return;
+            
+            // Hiện hiệu ứng tải
+            document.getElementById('voucherInfoBlock').innerHTML = '<div class="text-center text-muted"><span class="spinner-border spinner-border-sm"></span> Đang gỡ mã...</div>';
+            
+            fetch('/pos/api/remove-voucher/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify({ hoa_don_id: currentOrderId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    Toast.fire({ icon: 'success', title: data.message });
+                    
+                    // Xóa mã ở ô nhập và reload dữ liệu
+                    document.getElementById('inputVoucher').value = '';
+                    document.getElementById('voucherInfoBlock').style.display = 'none';
+                    currentTotal = data.tong_tien;
+                    document.getElementById('modalTotalAmount').innerText = formatMoney(currentTotal) + 'đ';
+                    
+                    if (document.getElementById('method_hidden').value === 'tien_mat') {
+                        renderQuickCashButtons(currentTotal); 
+                        setCashExact(); 
+                    }
+                    loadOrder();
+                } else {
+                    Toast.fire({ icon: 'error', title: data.message });
+                    loadOrder(); // Load lại để hiển thị lại voucher nếu lỗi
+                }
+            });
+        }
+
+        window.setCashExact = function() { cashInput.value = formatMoney(currentTotal).replace(/\D/g, ''); calcChange(); }
+        window.setCashFixed = function(amount) { cashInput.value = formatMoney(amount).replace(/\D/g, ''); calcChange(); }
+        function renderQuickCashButtons(total) {
+            let html = `<button class="quick-cash-btn btn btn-outline-secondary px-3 fw-bold" onclick="setCashExact()">Vừa đủ</button>`;
+            if (total <= 0) { document.getElementById('quickCashButtons').innerHTML = html; return; }
+            let rounded50k = Math.ceil(total / 50000) * 50000; let rounded100k = Math.ceil(total / 100000) * 100000; let rounded500k = Math.ceil(total / 500000) * 500000;
+            let buttons = new Set([rounded50k, rounded100k, rounded500k, rounded500k + 500000].filter(x => x > total));
+            Array.from(buttons).sort((a,b)=>a-b).slice(0, 3).forEach(amt => { let label = amt >= 1000000 ? (amt/1000000) + ' Tr' : (amt/1000) + 'k'; html += `<button class="quick-cash-btn btn btn-outline-primary px-3 fw-bold" onclick="setCashFixed(${amt})">${label}</button>`; });
+            document.getElementById('quickCashButtons').innerHTML = html;
+        }
+        cashInput.addEventListener('input', function() { let val = this.value.replace(/\D/g, ''); this.value = val ? formatMoney(parseInt(val)).replace(/\D/g, '') : ''; calcChange(); });
+        function calcChange() {
+            let given = parseInt(cashInput.value.replace(/\D/g, '')) || 0; let change = given - currentTotal; const changeEl = document.getElementById('changeAmount');
+            if (change < 0) { changeEl.innerText = "Thiếu tiền!"; changeEl.className = "fs-4 fw-bold text-danger"; } else { changeEl.innerText = formatMoney(change) + 'đ'; changeEl.className = "fs-4 fw-bold text-success"; }
+        }
+        {% endif %}
+
+        // PRINT TEMPLATES (Compressed)
+        function openPrintWindow(url) {
+            let printWindow = window.open(url, '_blank', 'width=450,height=700,top=50,left=50');
+            if(!printWindow) return Toast.fire({ icon: 'warning', title: 'Vui lòng cấp quyền Pop-up để mở lệnh in!' });
+        }
+
+        // 1. Khi bấm in phiếu cho Bar (CHÚ Ý CÁI ĐUÔI ?type=bar)
+        function printSplitTickets(doUong, veBuffet, isBoSung) {
+            openPrintWindow('/pos/print-bill/' + currentOrderId + '/?type=bar');
+        }
+
+        // 2. Khi in phiếu Tạm tính cho Khách (Không có đuôi)
+        function printProforma() {
+            openPrintWindow('/pos/print-bill/' + currentOrderId + '/');
+        }
+    </script>
+</body>
+</html>

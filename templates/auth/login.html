@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Poseidon Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            /* Hình nền nhà hàng hải sản */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            overflow: hidden;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .login-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 35px 20px;
+            text-align: center;
+            position: relative;
+        }
+        .login-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        }
+        .form-control:focus {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 0.25rem rgba(139, 92, 246, 0.25);
+        }
+        .btn-login {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-login:hover {
+            background: linear-gradient(45deg, #2563eb, #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+        .forgot-link {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .forgot-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="login-header">
+            <h2 class="fw-bold m-0"><i class="bi bi-tsunami text-info"></i> POSEIDON</h2>
+            <p class="text-white-50 m-0 mt-2" style="font-size: 0.9rem; letter-spacing: 1px;">AI COMMAND CENTER</p>
+        </div>
+        
+        <div class="card-body p-4 p-md-5">
+            <h5 class="text-center mb-4 text-dark fw-bold">Đăng Nhập Hệ Thống</h5>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-danger py-2 px-3 small fw-bold" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label text-secondary fw-bold small">Tài khoản (Username)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person-fill"></i></span>
+                        <input type="text" name="username" class="form-control border-start-0 ps-0 bg-light" placeholder="Nhập tài khoản" required autofocus>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-label text-secondary fw-bold small m-0">Mật khẩu (Password)</label>
+                        
+                        <a href="{% url 'reset_password' %}" class="forgot-link small fw-bold">Quên mật khẩu?</a>
+                        
+                    </div>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" name="password" class="form-control border-start-0 ps-0 bg-light" placeholder="••••••••" required>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
+                        <label class="form-check-label text-secondary small fw-medium" for="rememberMe">
+                            Ghi nhớ phiên đăng nhập
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-login text-white w-100 fw-bold py-2 mb-4 fs-6 rounded-3">
+                    ĐĂNG NHẬP <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+
+                <div class="text-center pt-3 border-top">
+                    <p class="text-muted m-0" style="font-size: 0.7rem;">
+                        <i class="bi bi-shield-fill-check text-success me-1"></i> 
+                        Bảo vệ bởi Anti Brute-Force. IP của bạn đang được lưu vết.
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

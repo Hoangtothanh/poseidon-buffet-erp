@@ -1,0 +1,163 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>In Phiếu - {{ hd.ma_hoa_don }}</title>
+    <style>
+        @page { margin: 0; }
+        body { margin: 0; padding: 10px; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #000; background: #f1f5f9; }
+        .ticket-container { width: 72mm; margin: 0 auto; }
+        .ticket-block { background: #fff; padding: 10px; box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-bottom: 0; }
+        
+        .text-center { text-align: center; } 
+        .text-right { text-align: right; }
+        .fw-bold { font-weight: bold; }
+        .res-name { font-size: 14px; font-weight: bold; text-transform: uppercase; }
+        
+        .divider { border-top: 1px dashed #000; margin: 8px 0; }
+        .cut-line { border-top: 2px dashed #000; text-align: center; font-size: 10px; font-weight: bold; margin: 15px 0; padding-top: 5px; }
+        
+        .item-table { width: 100%; border-collapse: collapse; margin: 5px 0; }
+        .item-table th { border-bottom: 1px dashed #000; padding: 3px 0; text-align: left; }
+        .item-table td { padding: 4px 0; vertical-align: top; }
+        .qty { text-align: center; width: 30px; font-weight: bold; font-size: 14px; }
+        .price { text-align: right; width: 65px; }
+        
+        .totals-table { width: 100%; margin-top: 5px; }
+        .grand-total { font-size: 14px; font-weight: bold; border-top: 1px solid #000; padding-top: 5px; }
+        
+        .btn-print { display: block; width: 72mm; margin: 15px auto; padding: 10px; background: #ef4444; color: #fff; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; }
+        @media print { .no-print { display: none; } body { padding: 0; background: #fff; } .ticket-block { box-shadow: none; padding: 10px 2px; } }
+    </style>
+</head>
+<body>
+    <button class="btn-print no-print" onclick="window.print()">🖨️ BẤM VÀO ĐÂY ĐỂ IN</button>
+
+    <div class="ticket-container">
+        
+        {% if is_bar_ticket %}
+        <div class="ticket-block">
+            <div class="text-center">
+                <div class="res-name">{{ setting.restaurant_name|default:"POSEIDON" }}</div>
+                <div style="font-weight: bold; margin: 5px 0; border: 1px solid #000; padding: 2px;">PHIẾU CHẾ BIẾN (QUẦY BAR)</div>
+            </div>
+            <div style="font-size: 11px;">
+                Mã: <b>{{ hd.ma_hoa_don }}</b> | Bàn: <b>{{ hd.ban_an.ten_ban|default:"--" }}</b><br>
+                Giờ: {{ now|date:"H:i:s" }}
+            </div>
+            <div class="divider"></div>
+            <table class="item-table">
+                <thead><tr><th>MÓN ĐỒ UỐNG</th><th class="qty">SL</th></tr></thead>
+                <tbody>
+                    {% for item in items %}
+                        {% if "vé" not in item.ten_mon_luu_tru|lower and "phụ thu" not in item.ten_mon_luu_tru|lower and "phí" not in item.ten_mon_luu_tru|lower %}
+                        <tr>
+                            <td><b>{{ item.ten_mon_luu_tru }}</b>{% if item.ghi_chu %}<div style="font-size: 10px; font-style: italic;">* {{ item.ghi_chu }}</div>{% endif %}</td>
+                            <td class="qty">{{ item.so_luong }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="divider"></div>
+        </div>
+
+        <div class="cut-line">- - - XÉ GỬI QUẦY BAR - - -</div>
+
+        <div class="ticket-block">
+            <div class="text-center">
+                <div style="font-weight: bold; margin: 5px 0; border: 1px solid #000; padding: 2px;">PHIẾU KIỂM SOÁT (THU NGÂN)</div>
+            </div>
+            <div style="font-size: 11px;">
+                Mã: <b>{{ hd.ma_hoa_don }}</b> | Bàn: <b>{{ hd.ban_an.ten_ban|default:"--" }}</b>
+            </div>
+            <div class="divider"></div>
+            <table class="item-table">
+                <thead><tr><th>LOẠI VÉ / PHÍ</th><th class="qty">SL</th></tr></thead>
+                <tbody>
+                    {% for item in items %}
+                        {% if "vé" in item.ten_mon_luu_tru|lower or "phụ thu" in item.ten_mon_luu_tru|lower or "phí" in item.ten_mon_luu_tru|lower %}
+                        <tr>
+                            <td><b>{{ item.ten_mon_luu_tru }}</b></td>
+                            <td class="qty">{{ item.so_luong }}</td>
+                        </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="divider"></div>
+        </div>
+
+        {% else %}
+        <div class="ticket-block">
+            <div class="text-center">
+                <div class="res-name">{{ setting.restaurant_name|default:"POSEIDON" }}</div>
+                <div style="font-size: 10px;">{{ setting.address|default:"Đ/c: Đại học Công nghệ Đông Á" }}</div>
+                <div style="font-weight: bold; font-size: 14px; margin: 10px 0;">PHIẾU TẠM TÍNH</div>
+            </div>
+
+            <div style="font-size: 11px; line-height: 1.4;">
+                Mã HĐ: <b>{{ hd.ma_hoa_don }}</b> | Bàn: <b>{{ hd.ban_an.ten_ban|default:"--" }}</b><br>
+                Giờ vào: {{ hd.thoi_gian_vao|date:"H:i d/m/Y" }}<br>
+                {% if hd.khach_hang %}
+                Khách: <b>{{ hd.khach_hang.ho_ten }}</b> | Thẻ: <b>{{ hd.khach_hang.hang_the|upper }}</b>
+                {% endif %}
+            </div>
+
+            <div class="divider"></div>
+            <table class="item-table">
+                <thead><tr><th>MÓN</th><th class="qty">SL</th><th class="price">T.TIỀN</th></tr></thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.ten_mon_luu_tru }}{% if item.ghi_chu %}<div style="font-size: 10px; font-style: italic;">- {{ item.ghi_chu }}</div>{% endif %}</td>
+                        <td class="qty">{{ item.so_luong }}</td>
+                        <td class="price">
+                            <span class="format-money">{{ item.thanh_tien|floatformat:0 }}</span>₫
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="divider"></div>
+            <table class="totals-table">
+                <tr><td>Cộng tiền hàng:</td><td class="text-right"><span class="format-money">{{ hd.tong_tien_hang|floatformat:0 }}</span>₫</td></tr>
+                {% if tien_giam_vip > 0 %}
+                <tr><td>Chiết khấu VIP:</td><td class="text-right">- <span class="format-money">{{ tien_giam_vip|floatformat:0 }}</span>₫</td></tr>
+                {% endif %}
+                {% if tien_giam_voucher > 0 %}
+                <tr><td>Voucher ({{ hd.ma_voucher }}):</td><td class="text-right">- <span class="format-money">{{ tien_giam_voucher|floatformat:0 }}</span>₫</td></tr>
+                {% endif %}
+                <tr><td>VAT & Phụ thu:</td><td class="text-right"><span class="format-money">{{ hd.vat_phu_thu|floatformat:0 }}</span>₫</td></tr>
+                <tr class="grand-total"><td>KHÁCH CẦN TRẢ:</td><td class="text-right"><span class="format-money">{{ hd.khach_can_tra|floatformat:0 }}</span>₫</td></tr>
+            </table>
+
+            <div class="divider"></div>
+            <div class="text-center" style="font-size: 10px;">Cảm ơn quý khách và hẹn gặp lại!</div>
+        </div>
+        {% endif %}
+
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            document.querySelectorAll('.format-money').forEach(function(el) {
+
+                let raw = el.innerText
+                    .replace(/\./g, '')
+                    .replace(/,/g, '')
+                    .trim();
+
+                let number = parseFloat(raw);
+
+                if (!isNaN(number)) {
+                    el.innerText = number.toLocaleString('vi-VN');
+                }
+            });
+
+        });
+</script>
+</body>
+</html>
