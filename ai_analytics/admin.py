@@ -27,7 +27,18 @@ class AIPhanTichThucDonAdmin(admin.ModelAdmin):
 # 4. AI Dự đoán lưu lượng khách
 @admin.register(AIDuDoanLuuLuong)
 class AIDuDoanLuuLuongAdmin(admin.ModelAdmin):
-    list_display = ('ngay_du_doan', 'ca_lam_viec', 'ai_du_doan_khach', 'ty_le_lap_day', 'trang_thai')
-    list_filter = ('trang_thai', 'ca_lam_viec', 'ngay_du_doan')
-    list_editable = ('trang_thai',)
+    list_display = (
+        'ngay_du_doan',       # STT2 - Ngày dự đoán (tương lai)
+        'ca_lam_viec',        # STT3 - Ca làm việc
+        'khach_thuc_te',      # STT4 - Khách thực tế (update sau)
+        'ai_du_doan_khach',   # STT5 - AI dự đoán
+        'ty_le_lap_day',      # STT6 - Tỷ lệ lấp đầy (%)
+        'trang_thai',         # STT7 - Phân loại cảnh báo
+        'doanh_thu_ky_vong',  # STT8 - Doanh thu kỳ vọng
+        'is_holiday',         # Yếu tố ngoại cảnh
+    )
+    list_filter = ('trang_thai', 'ca_lam_viec', 'is_holiday', 'ngay_du_doan')
+    list_editable = ('trang_thai', 'khach_thuc_te')
+    search_fields = ('ten_su_kien', 'loi_khuyen_van_hanh')
+    readonly_fields = ('loi_khuyen_van_hanh',)
     date_hierarchy = 'ngay_du_doan'

@@ -1,14 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from core.decorators import check_quyen
 from django.utils.dateparse import parse_date
 from django.utils import timezone
 from .models import Voucher, KhachHang
 import csv
 from django.http import HttpResponse
+from django.db import transaction
 
 # ==========================================
 # PHÂN HỆ 1: QUẢN LÝ KHÁCH HÀNG
 # ==========================================
+@login_required(login_url='login')
+@check_quyen('system_all')
 def customers_view(request):
     # Lấy toàn bộ danh sách khách hàng từ DB, sắp xếp người mới nhất lên đầu
     khach_hang_list = KhachHang.objects.all().order_by('-ngay_tao')
@@ -31,13 +36,15 @@ def customers_view(request):
     }
     return render(request, 'customers/customers.html', context)
 
+@login_required(login_url='login')
+@check_quyen('system_all')
 def save_customer(request):
     """ Xử lý Thêm mới hoặc Cập nhật Khách Hàng """
     if request.method == 'POST':
         kh_id = request.POST.get('kh_id')
-        ho_ten = request.POST.get('ho_ten').strip()
-        so_dien_thoai = request.POST.get('so_dien_thoai').strip()
-        email = request.POST.get('email').strip()
+        ho_ten = request.POST.get('ho_ten', '').strip()
+        so_dien_thoai = request.POST.get('so_dien_thoai', '').strip()
+        email = request.POST.get('email', '').strip()
         ngay_sinh = request.POST.get('ngay_sinh')
         is_active = request.POST.get('is_active') == 'on'
 
@@ -74,6 +81,8 @@ def save_customer(request):
             
     return redirect('customers')
 
+@login_required(login_url='login')
+@check_quyen('system_all')
 def delete_customer(request, kh_id):
     """ Xử lý xóa Khách Hàng """
     if request.method == 'POST':
@@ -87,6 +96,8 @@ def delete_customer(request, kh_id):
 # ==========================================
 # PHÂN HỆ 2: QUẢN LÝ KHUYẾN MÃI (VOUCHER)
 # ==========================================
+@login_required(login_url='login')
+@check_quyen('system_all')
 def vouchers_view(request):
     vouchers = Voucher.objects.all().order_by('-ngay_tao')
     
@@ -95,12 +106,14 @@ def vouchers_view(request):
     }
     return render(request, 'customers/vouchers.html', context)
 
+@login_required(login_url='login')
+@check_quyen('system_all')
 def save_voucher(request):
     """ Xử lý Thêm mới hoặc Cập nhật Voucher """
     if request.method == 'POST':
         voucher_id = request.POST.get('voucher_id')
-        ma_code = request.POST.get('ma_code').strip().upper()
-        muc_giam = request.POST.get('muc_giam').strip()
+        ma_code = request.POST.get('ma_code', '').strip().upper()
+        muc_giam = request.POST.get('muc_giam', '').strip()
         dieu_kien_toi_thieu = request.POST.get('dieu_kien_toi_thieu', 0)
         ngay_het_han = request.POST.get('ngay_het_han')
         trang_thai = request.POST.get('trang_thai') == 'on' 
@@ -144,6 +157,8 @@ def save_voucher(request):
             
     return redirect('vouchers')
 
+@login_required(login_url='login')
+@check_quyen('system_all')
 def delete_voucher(request, voucher_id):
     """ Xử lý xóa Voucher """
     if request.method == 'POST':
@@ -154,6 +169,8 @@ def delete_voucher(request, voucher_id):
         
     return redirect('vouchers')
 
+@login_required(login_url='login')
+@check_quyen('system_all')
 def export_customers(request):
     """ Hàm kết xuất danh sách Khách hàng ra file CSV (Mở bằng Excel) """
     response = HttpResponse(content_type='text/csv')
@@ -175,46 +192,83 @@ def export_customers(request):
         
     return response
 
-def ai_goi_y_voucher(khach_hang, tong_tien=0):
-    from django.utils import timezone
-    # Nếu file models ở thư mục khác, sếp nhớ import Voucher vào nhé
-    # from customers.models import Voucher 
+@login_required(login_url='login')
+@check_quyen('system_all')
+def import_customers(request):
+    if request.method == 'POST' and request.FILES.get('file_csv'):
+        file = request.FILES['file_csv']
+        try:
+            decoded_file = file.read().decode('utf-8').splitlines()
+            reader = csv.reader(decoded_file)
+            next(reader, None) 
+            count = 0
+            with transaction.atomic():
+                for row in reader:
+                    if len(row) >= 2:
+                        KhachHang.objects.update_or_create(
+                            so_dien_thoai=row[1].strip(),
+                            defaults={'ho_ten': row[0].strip(), 'diem_tich_luy': 0}
+                        )
+                        count += 1
+            messages.success(request, f"Đã Import thành công {count} khách hàng!")
+        except Exception as e:
+            messages.error(request, f"Lỗi Import: {str(e)}")
+    return redirect('customers')
 
+
+def ai_goi_y_voucher(khach_hang, tong_tien=0):
+    """
+    AI Gợi ý voucher dựa trên giá trị hóa đơn và hạng thẻ khách hàng.
+    Logic: Gợi ý tất cả voucher còn hiệu lực mà khách ĐỦ điều kiện áp dụng.
+    Ưu tiên voucher phù hợp hạng thẻ hơn (sắp xếp theo mức giảm cao nhất).
+    Trả về tối đa 3 gợi ý.
+    """
+    from django.db.models import Q
+    from decimal import Decimal
+
+    today = timezone.now().date()
+    tong_tien_dec = Decimal(str(tong_tien))
+    hang_the = (getattr(khach_hang, 'hang_the', '') or '').lower()
+
+    # Lấy toàn bộ voucher đang hoạt động và còn hạn
     vouchers = Voucher.objects.filter(
         trang_thai=True,
-        ngay_het_han__gte=timezone.now().date()
+        ngay_het_han__gte=today
     )
 
     goi_y = []
-    added_ids = set()
-
-    # Lấy hạng thẻ an toàn (đề phòng khach_hang.hang_the bị rỗng)
-    hang_the = getattr(khach_hang, 'hang_the', '') or ''
-    hang_the_lower = hang_the.lower()
-
     for v in vouchers:
-        ma = v.ma_code.upper()
-        add_voucher = False
+        dieu_kien = Decimal(str(v.dieu_kien_toi_thieu or 0))
 
-        # VIP (Kim cương)
-        if hang_the_lower == 'kim cương' and 'VIP' in ma:
-            add_voucher = True
+        # ✅ Điều kiện 1: Tổng hóa đơn đủ điều kiện tối thiểu của voucher
+        du_dieu_kien_tien = (tong_tien_dec >= dieu_kien)
 
-        # Hạng vàng
-        elif hang_the_lower == 'vàng' and 'GOLD' in ma:
-            add_voucher = True
+        # ✅ Điều kiện 2 (tuỳ chọn): Gợi ý thêm voucher gần đủ điều kiện
+        # (thiếu tối đa 20% nữa là đủ → upsell khéo léo)
+        gan_du_dieu_kien = (dieu_kien > 0 and tong_tien_dec >= dieu_kien * Decimal('0.8'))
 
-        # Khách mới (Dưới 50 điểm)
-        elif khach_hang.diem_tich_luy < 50 and 'WELCOME' in ma:
-            add_voucher = True
+        if du_dieu_kien_tien or (gan_du_dieu_kien and dieu_kien > 0):
+            # Thêm thuộc tính phụ để sort
+            v._score = 0
+            ma_upper = v.ma_code.upper()
 
-        # Hóa đơn lớn (Từ 2 triệu trở lên)
-        if tong_tien >= 2000000 and 'BIG' in ma:
-            add_voucher = True
+            # Ưu tiên voucher phù hợp hạng thẻ
+            if hang_the in ['kim cương', 'kim cuong'] and any(k in ma_upper for k in ['VIP', 'DIAMOND', 'KIM']):
+                v._score += 10
+            elif hang_the == 'vàng' and any(k in ma_upper for k in ['GOLD', 'VANG', 'VIP']):
+                v._score += 8
+            elif hang_the == 'bạc' and any(k in ma_upper for k in ['SILVER', 'BAC']):
+                v._score += 6
 
-        # NÚT THẮT ĐƯỢC MỞ Ở ĐÂY: Trả về trực tiếp Object (v) thay vì dict
-        if add_voucher and v.id not in added_ids:
+            # Ưu tiên voucher đủ điều kiện (không phải chỉ gần đủ)
+            if du_dieu_kien_tien:
+                v._score += 5
+
+            # Gắn cờ "gần đủ" để UI có thể hiển thị thông báo khuyến khích
+            v._gan_du = not du_dieu_kien_tien and gan_du_dieu_kien
             goi_y.append(v)
-            added_ids.add(v.id)
 
-    return goi_y
+    # Sắp xếp: score cao nhất → nhiều nhất, rồi theo điều kiện tối thiểu thấp nhất
+    goi_y.sort(key=lambda x: (-x._score, x.dieu_kien_toi_thieu or 0))
+
+    return goi_y[:3]  # Tối đa 3 gợi ý

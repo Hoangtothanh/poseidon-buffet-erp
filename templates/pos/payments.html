@@ -8,79 +8,369 @@
     /* ==========================================
        CSS CHUẨN ĐỒNG BỘ SAAS
        ========================================== */
-    .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;}
-    .page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
-    .page-subtitle { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0 0 8px 0; }
-    
-    .breadcrumb-saas { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0; display: flex; align-items: center; }
-    .breadcrumb-saas a { color: var(--accent); text-decoration: none; transition: 0.2s; }
-    .breadcrumb-saas a:hover { color: #0b5ed7; text-decoration: underline; }
-    
+    .page-header {
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin: 0 0 8px 0;
+    }
+
+    .breadcrumb-saas {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .breadcrumb-saas a {
+        color: var(--accent);
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .breadcrumb-saas a:hover {
+        color: #0b5ed7;
+        text-decoration: underline;
+    }
+
     /* Toolbar & Filters */
-    .toolbar-saas { background: var(--bg-card); padding: 16px; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-    .filter-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-grow: 1;}
-    
-    .search-box { position: relative; min-width: 280px; }
-    .search-box i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
-    .search-box input { padding-left: 42px; border-radius: 10px; border: 1px solid var(--border-color); height: 40px; width: 100%; background: #f8fafc; transition: var(--transition); font-size: 0.9rem;}
-    .search-box input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; }
-    
-    .filter-select { border-radius: 10px; border: 1px solid var(--border-color); height: 40px; padding: 0 36px 0 16px; color: var(--text-main); font-size: 0.9rem; font-weight: 500; background-color: #f8fafc; cursor: pointer; transition: var(--transition); appearance: none;}
-    select.filter-select { padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 10px; }
-    .filter-select:focus { border-color: var(--primary); background-color: #fff; outline: none; }
+    .toolbar-saas {
+        background: var(--bg-card);
+        padding: 16px;
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+    }
+
+    .filter-group {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        flex-grow: 1;
+    }
+
+    .search-box {
+        position: relative;
+        min-width: 280px;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .search-box input {
+        padding-left: 42px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        height: 40px;
+        width: 100%;
+        background: #f8fafc;
+        transition: var(--transition);
+        font-size: 0.9rem;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+        outline: none;
+    }
+
+    .filter-select,
+    .filter-input {
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        height: 40px;
+        padding: 0 16px;
+        color: var(--text-main);
+        font-size: 0.9rem;
+        font-weight: 500;
+        background-color: #f8fafc;
+        cursor: pointer;
+        transition: var(--transition);
+        appearance: none;
+    }
+
+    select.filter-select {
+        padding-right: 36px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 10px 10px;
+    }
+
+    .filter-select:focus,
+    .filter-input:focus {
+        border-color: var(--primary);
+        background-color: #fff;
+        outline: none;
+    }
 
     /* KPI Cards */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px; }
-    .kpi-card { background: var(--bg-card); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; transition: var(--transition); height: 100%; position: relative; overflow: hidden;}
-    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
-    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); border-radius: 4px 0 0 4px;}
-    .kpi-card.c-primary::before { background: var(--primary); }
-    .kpi-card.c-warning::before { background: #f59e0b; }
-    .kpi-card.c-success::before { background: #10b981; }
-    
-    .kpi-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.2; }
-    
-    .icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;}
-    .icon-primary { background: #fee2e2; color: var(--primary); }
-    .icon-success { background: #dcfce7; color: #10b981; }
-    .icon-warning { background: #fef3c7; color: #f59e0b; }
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .kpi-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: var(--transition);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    }
+
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--accent);
+        border-radius: 4px 0 0 4px;
+    }
+
+    .kpi-card.c-primary::before {
+        background: var(--primary);
+    }
+
+    .kpi-card.c-warning::before {
+        background: #f59e0b;
+    }
+
+    .kpi-card.c-success::before {
+        background: #10b981;
+    }
+
+    .kpi-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .kpi-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .icon-primary {
+        background: #fee2e2;
+        color: var(--primary);
+    }
+
+    .icon-success {
+        background: #dcfce7;
+        color: #10b981;
+    }
+
+    .icon-warning {
+        background: #fef3c7;
+        color: #f59e0b;
+    }
 
     /* Table Styles */
-    .table-container { background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); overflow: hidden; }
-    .table-saas { width: 100%; border-collapse: collapse; min-width: 1000px;}
-    .table-saas th { background: #f8fafc; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; padding: 16px 20px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-    .table-saas td { padding: 16px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
-    .table-saas tr:last-child td { border-bottom: none; }
-    .table-saas tr:hover { background-color: #f8fafc; }
+    .table-container {
+        background: var(--bg-card);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
 
-    .inv-code { font-weight: 800; color: var(--primary); font-size: 1rem; }
-    .table-name { font-weight: 700; color: var(--text-main); font-size: 1rem;}
-    .amount-text { font-size: 1.1rem; font-weight: 800; color: var(--text-main); }
+    .table-saas {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+    }
+
+    .table-saas th {
+        background: #f8fafc;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+
+    .table-saas td {
+        padding: 16px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .table-saas tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-saas tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .inv-code {
+        font-weight: 800;
+        color: var(--primary);
+        font-size: 1rem;
+    }
+
+    .table-name {
+        font-weight: 700;
+        color: var(--text-main);
+        font-size: 1rem;
+    }
+
+    .amount-text {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--text-main);
+    }
 
     /* Status Badges */
-    .status-badge { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; }
-    .st-dang_phuc_vu { background: #e0f2fe; color: #0369a1; }
-    .st-da_thanh_toan { background: #dcfce7; color: #166534; }
-    .st-da_huy { background: #f1f5f9; color: #64748b; text-decoration: line-through;}
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .st-dang_phuc_vu {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .st-cho_thanh_toan {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .st-da_thanh_toan {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .st-da_huy {
+        background: #f1f5f9;
+        color: #64748b;
+        text-decoration: line-through;
+    }
 
     /* Nút thao tác trên Bảng */
-    .btn-pos { display: inline-block; background: var(--primary); color: #fff; padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: none; text-decoration: none; transition: 0.2s; box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2);}
-    .btn-pos:hover { background: var(--primary-hover); transform: translateY(-1px); color: #fff;}
-    .btn-view { display: inline-block; background: #f8fafc; border: 1px solid var(--border-color); color: var(--text-main); padding: 8px 16px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; transition: 0.2s;}
-    .btn-view:hover { background: #e2e8f0; }
+    .btn-pos {
+        display: inline-block;
+        background: var(--primary);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        border: none;
+        text-decoration: none;
+        transition: 0.2s;
+        box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2);
+    }
+
+    .btn-pos:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    .btn-view {
+        display: inline-block;
+        background: #f8fafc;
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: 0.2s;
+    }
+
+    .btn-view:hover {
+        background: #e2e8f0;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 
 {% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show border-0 shadow-sm" role="alert" style="border-radius: 12px; font-weight: 500;">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    {% endfor %}
+{% for message in messages %}
+<div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show border-0 shadow-sm"
+    role="alert" style="border-radius: 12px; font-weight: 500;">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
 {% endif %}
 
 <div class="page-header fade-in-up">
@@ -88,11 +378,11 @@
         <h1 class="page-title">Danh sách Hóa Đơn (Bills)</h1>
         <p class="page-subtitle">Quản lý hóa đơn bán hàng, tra cứu chi tiết và in lại phiếu</p>
         <div class="breadcrumb-saas">
-            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span>Hóa đơn</span>
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span class="text-muted">Danh sách hóa đơn</span>
+            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+            <span>Quản lý Hóa đơn</span>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+            <span class="text-muted">Hóa đơn thanh toán</span>
         </div>
     </div>
 </div>
@@ -101,21 +391,24 @@
     <div class="kpi-card c-warning" style="background-color: #fffbf1; border-color: #fde68a;">
         <div>
             <div class="kpi-title text-warning">Yêu Cầu Thanh Toán</div>
-            <div class="kpi-value text-warning">0 <span class="fs-6 fw-bold">Bàn</span></div>
+            <div class="kpi-value text-warning">{{ pending_bills_count|default:"0" }} <span
+                    class="fs-6 fw-bold">Bàn</span></div>
         </div>
         <div class="icon-box icon-warning"><i class="bi bi-bell-fill"></i></div>
     </div>
     <div class="kpi-card c-info">
         <div>
             <div class="kpi-title">Đang Phục Vụ (Open Bills)</div>
-            <div class="kpi-value text-info">{{ open_bills_count|default:"0" }} <span class="fs-6 fw-bold">Bàn</span></div>
+            <div class="kpi-value text-info">{{ open_bills_count|default:"0" }} <span class="fs-6 fw-bold">Bàn</span>
+            </div>
         </div>
         <div class="icon-box icon-info"><i class="bi bi-grid-1x2"></i></div>
     </div>
     <div class="kpi-card c-success">
         <div>
             <div class="kpi-title">Đã Thanh Toán Hôm Nay</div>
-            <div class="kpi-value text-success">{{ paid_bills_count|default:"0" }} <span class="fs-6 fw-bold">Hóa đơn</span></div>
+            <div class="kpi-value text-success">{{ paid_bills_count|default:"0" }} <span class="fs-6 fw-bold">Hóa
+                    đơn</span></div>
         </div>
         <div class="icon-box icon-success"><i class="bi bi-check-circle-fill"></i></div>
     </div>
@@ -127,15 +420,13 @@
             <i class="bi bi-search"></i>
             <input type="text" id="searchInput" placeholder="Tìm theo Mã HĐ, Bàn, Tên nhân viên...">
         </div>
-        
-        <select class="filter-select" id="dateFilter">
-            <option value="today">Hôm nay</option>
-            <option value="all">Mọi thời gian</option>
-        </select>
+
+        <input type="date" class="filter-input" id="dateFilter">
 
         <select class="filter-select" id="statusFilter">
             <option value="all">Tất cả trạng thái</option>
             <option value="dang_phuc_vu">Đang phục vụ</option>
+            <option value="cho_thanh_toan">Chờ thanh toán</option>
             <option value="da_thanh_toan">Đã thanh toán</option>
             <option value="da_huy">Đã hủy</option>
         </select>
@@ -158,14 +449,13 @@
             </thead>
             <tbody>
                 {% for hd in danh_sach_hoa_don %}
-                <tr class="bill-row" 
-                    data-code="{{ hd.ma_hoa_don|lower }}" 
+                <tr class="bill-row" data-code="{{ hd.ma_hoa_don|lower }}"
                     data-table="{% if hd.ban_an %}{{ hd.ban_an.ten_ban|lower }}{% endif %}"
-                    data-status="{{ hd.trang_thai }}"
-                    data-date="{{ hd.thoi_gian_vao|date:'Y-m-d' }}"
+                    data-status="{{ hd.trang_thai }}" data-date="{{ hd.thoi_gian_vao|date:'Y-m-d' }}"
                     data-staff="{{ hd.nhan_vien.username|lower|default:'' }}">
-                    
-                    <td class="inv-code {% if hd.trang_thai == 'da_thanh_toan' %}text-success{% elif hd.trang_thai == 'da_huy' %}text-muted{% endif %}">
+
+                    <td
+                        class="inv-code {% if hd.trang_thai == 'da_thanh_toan' %}text-success{% elif hd.trang_thai == 'da_huy' %}text-muted{% endif %}">
                         {{ hd.ma_hoa_don }}
                     </td>
                     <td>
@@ -178,26 +468,30 @@
                     </td>
                     <td><i class="bi bi-clock text-muted me-1"></i> {{ hd.thoi_gian_vao|date:"H:i (d/m)" }}</td>
                     <td>{{ hd.nhan_vien.username|default:"Admin" }}</td>
-                    
-                    <td class="amount-text {% if hd.trang_thai == 'dang_phuc_vu' %}text-danger{% elif hd.trang_thai == 'da_thanh_toan' %}text-success{% endif %}">
+
+                    <td
+                        class="amount-text {% if hd.trang_thai == 'dang_phuc_vu' %}text-danger{% elif hd.trang_thai == 'da_thanh_toan' %}text-success{% endif %}">
                         <span class="format-money">{{ hd.khach_can_tra|floatformat:0 }}</span> ₫
                     </td>
-                    
+
                     <td>
                         <span class="status-badge st-{{ hd.trang_thai }}">
                             {% if hd.trang_thai == 'dang_phuc_vu' %}<i class="bi bi-play-circle-fill"></i> Đang phục vụ
+                            {% elif hd.trang_thai == 'cho_thanh_toan' %}<i class="bi bi-bell-fill"></i> Chờ thanh toán
                             {% elif hd.trang_thai == 'da_thanh_toan' %}<i class="bi bi-check-lg"></i> Đã thanh toán
                             {% elif hd.trang_thai == 'da_huy' %}<i class="bi bi-x-circle"></i> Đã hủy
                             {% endif %}
                         </span>
                     </td>
-                    
+
                     <td class="text-end d-flex justify-content-end gap-2">
-                        {% if hd.trang_thai == 'dang_phuc_vu' %}
-                            <button class="btn-view" onclick="printTempBill('{{ hd.id }}')"><i class="bi bi-printer me-1"></i> In Tạm</button>
-                            <a href="{% url 'pos' %}" class="btn-pos">Tới máy POS <i class="bi bi-display"></i></a>
+                        {% if hd.trang_thai == 'dang_phuc_vu' or hd.trang_thai == 'cho_thanh_toan' %}
+                        <button class="btn-view" onclick="printTempBill('{{ hd.id|stringformat:'d' }}')"><i
+                                class="bi bi-printer me-1"></i> In Tạm</button>
+                        <a href="{% url 'pos' %}" class="btn-pos">Tới máy POS <i class="bi bi-display"></i></a>
                         {% else %}
-                            <button class="btn-view" onclick="viewInvoiceDetail('{{ hd.id }}')"><i class="bi bi-eye me-1"></i> Xem chi tiết</button>
+                        <button class="btn-view" onclick="viewInvoiceDetail('{{ hd.id|stringformat:'d' }}')"><i
+                                class="bi bi-eye me-1"></i> Xem chi tiết</button>
                         {% endif %}
                     </td>
                 </tr>
@@ -220,7 +514,7 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            
+
             <div class="modal-body" style="background: #fff; padding: 24px;">
                 <div class="text-center mb-4 pb-3 border-bottom dashed">
                     <h3 class="fw-bold text-primary mb-1" id="detailMaHD">INV-00000</h3>
@@ -238,7 +532,7 @@
                             </tr>
                         </thead>
                         <tbody id="detailItemsBody" style="font-size: 0.95rem; font-weight: 500;">
-                            </tbody>
+                        </tbody>
                     </table>
                 </div>
 
@@ -261,10 +555,11 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="modal-footer" style="background: #f8fafc; border-top: none;">
                 <button type="button" class="btn btn-light fw-bold px-4 border" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-primary fw-bold px-4" id="btnPrintReissue"><i class="bi bi-printer me-1"></i> In Lại Bill</button>
+                <button type="button" class="btn btn-primary fw-bold px-4" id="btnPrintReissue"><i
+                        class="bi bi-printer me-1"></i> In Lại Bill</button>
             </div>
         </div>
     </div>
@@ -293,8 +588,8 @@
     // GỌI API LẤY CHI TIẾT HÓA ĐƠN (XEM CHI TIẾT)
     function viewInvoiceDetail(billId) {
         const url = "{% url 'ajax_invoice_detail' 999999 %}".replace('999999', billId);
-        
-        fetch(url) 
+
+        fetch(url)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
@@ -324,7 +619,7 @@
 
                     // Gắn sự kiện cho nút In lại
                     const printBtn = document.getElementById('btnPrintReissue');
-                    printBtn.onclick = function() {
+                    printBtn.onclick = function () {
                         const printUrl = "{% url 'print_bill' 999999 %}".replace('999999', billId);
                         window.open(printUrl, '_blank', 'width=400,height=600,top=100,left=100');
                     };
@@ -341,11 +636,16 @@
     }
 
     // CHỨC NĂNG LỌC VÀ TÌM KIẾM MỞ RỘNG ĐA LUỒNG
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const searchInput = document.getElementById('searchInput');
         const statusFilter = document.getElementById('statusFilter');
         const dateFilter = document.getElementById('dateFilter'); // Bộ lọc thời gian mới
         const rows = document.querySelectorAll('.bill-row');
+
+        // Set mặc định ngày hôm nay cho ô filter (dùng local date để tránh lỗi timezone lúc nửa đêm)
+        const d = new Date();
+        const localDateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        dateFilter.value = localDateStr;
 
         function filterTable() {
             const query = searchInput.value.toLowerCase();
@@ -358,15 +658,15 @@
                 const rowStatus = row.dataset.status;
                 const rowDate = row.dataset.date;
                 const staff = row.dataset.staff; // Lấy tên nhân viên
-                
+
                 // Mở rộng tìm kiếm: Mã HĐ + Tên Bàn + Tên Nhân Viên
                 const matchSearch = code.includes(query) || table.includes(query) || staff.includes(query);
-                
+
                 // Lọc trạng thái
                 const matchStatus = (status === 'all' || rowStatus === status);
-                
+
                 // Lọc thời gian
-                const matchDate = (dateVal === 'all' || (dateVal === 'today' && rowDate === todayStr));
+                const matchDate = (dateVal === '' || rowDate === dateVal);
 
                 // Hiển thị nếu khớp tất cả các điều kiện
                 row.style.display = (matchSearch && matchStatus && matchDate) ? '' : 'none';
@@ -377,20 +677,9 @@
         searchInput.addEventListener('input', filterTable);
         statusFilter.addEventListener('change', filterTable);
         dateFilter.addEventListener('change', filterTable);
-        
+
         // Chạy lần đầu tiên để lọc ngay chế độ "Hôm nay"
         filterTable();
-    // ==========================================
-    // FORMAT TIỀN TỆ VIỆT NAM (DẤU CHẤM)
-    // ==========================================
-    document.querySelectorAll('.format-money').forEach(function(el) {
-        let rawValue = el.innerText.trim().replace(/,/g, '');
-        let numberValue = parseFloat(rawValue);
-
-        if (!isNaN(numberValue)) {
-            el.innerText = numberValue.toLocaleString('vi-VN');
-        }
-    }); 
     });
 </script>
 {% endblock %}

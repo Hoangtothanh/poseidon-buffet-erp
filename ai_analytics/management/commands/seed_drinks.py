@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand
-from menu.models import DanhMuc, DoUongDichVu # Sửa chữ 'menu' thành tên app của bạn nếu cần
+from menu.models import ThucDon
 
 class Command(BaseCommand):
     help = 'Tự động tạo danh mục và menu Đồ uống & Phụ thu'

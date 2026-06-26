@@ -43,8 +43,8 @@
             <div class="shift-title s-morning"><i class="bi bi-brightness-alt-high"></i> Sáng</div>
             {% for ca in shifts.morning %}
                 <div class="dept-title">{{ ca.get_bo_phan_display }}</div>
-                {% for ct in ca.chi_tiet_ca.all %}
-                    <span class="staff-badge">{{ ct.nhan_vien.ho_ten }}</span>
+                {% for nv in ca.nhan_vien.all %}
+                    <span class="staff-badge">{{ nv.ho_ten }}</span>
                 {% empty %}
                     <span class="text-muted" style="font-size:0.7rem;">Chưa xếp</span>
                 {% endfor %}
@@ -55,8 +55,8 @@
             <div class="shift-title s-evening"><i class="bi bi-moon-stars"></i> Tối</div>
             {% for ca in shifts.evening %}
                 <div class="dept-title">{{ ca.get_bo_phan_display }}</div>
-                {% for ct in ca.chi_tiet_ca.all %}
-                    <span class="staff-badge">{{ ct.nhan_vien.ho_ten }}</span>
+                {% for nv in ca.nhan_vien.all %}
+                    <span class="staff-badge">{{ nv.ho_ten }}</span>
                 {% empty %}
                     <span class="text-muted" style="font-size:0.7rem;">Chưa xếp</span>
                 {% endfor %}

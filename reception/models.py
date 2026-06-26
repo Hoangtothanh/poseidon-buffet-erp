@@ -1,11 +1,10 @@
 # reception/models.py
 from django.db import models
-from django.utils import timezone
 from customers.models import KhachHang
 
 class KhuVuc(models.Model):
-    ten_khu_vuc = models.CharField(max_length=100, verbose_name="Khu vực (Tầng 1/VIP)")
-    trang_thai = models.BooleanField(default=True, verbose_name="Đang hoạt động")
+    ten_khu_vuc = models.CharField(max_length=100, verbose_name="Tên Khu Vực")
+    mo_ta = models.TextField(blank=True, null=True, verbose_name="Mô tả")
 
     def __str__(self):
         return self.ten_khu_vuc
@@ -15,15 +14,16 @@ class BanAn(models.Model):
         ('trong', 'Bàn Trống'),
         ('dang_an', 'Đang Phục Vụ'),
         ('da_dat', 'Đã Đặt Trước'),
-        ('cho_thanh_toan', 'Chờ Thanh Toán')
+        ('cho_thanh_toan', 'Chờ Thanh Toán'),
+        ('da_xoa', 'Đã Xóa (Ẩn)'),
     ]
     ten_ban = models.CharField(max_length=50, verbose_name="Tên/Số bàn")
     so_ghe = models.IntegerField(default=4, verbose_name="Số ghế")
-    khu_vuc = models.ForeignKey(KhuVuc, on_delete=models.CASCADE, related_name='danh_sach_ban')
+    khu_vuc = models.ForeignKey(KhuVuc, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Khu vực")
     trang_thai = models.CharField(max_length=20, choices=TRANG_THAI_CHOICES, default='trong')
 
     def __str__(self):
-        return f"{self.ten_ban} ({self.khu_vuc.ten_khu_vuc})"
+        return f"{self.ten_ban} ({self.khu_vuc.ten_khu_vuc if self.khu_vuc else 'Chung'})"
 
 class PhieuDatBan(models.Model):
     STATUS_CHOICES = [
@@ -43,23 +43,3 @@ class PhieuDatBan(models.Model):
 
     def __str__(self):
         return f"Booking: {self.khach_hang.ho_ten} - {self.thoi_gian_den.strftime('%H:%M %d/%m')}"
-
-class PhienSuDungBan(models.Model):
-    STATUS_CHOICES = [
-        ('dang_phuc_vu', 'Đang phục vụ'),
-        ('da_thanh_toan', 'Đã thanh toán'),
-        ('huy', 'Đã hủy (Khách bỏ về)'),
-    ]
-    ban = models.ForeignKey(BanAn, on_delete=models.CASCADE, related_name='cac_phien')
-    khach_hang = models.ForeignKey(KhachHang, on_delete=models.SET_NULL, null=True, blank=True)
-    phieu_dat = models.OneToOneField(PhieuDatBan, on_delete=models.SET_NULL, null=True, blank=True)
-    
-    thoi_gian_vao = models.DateTimeField(default=timezone.now, verbose_name="Giờ Check-in")
-    thoi_gian_ra = models.DateTimeField(null=True, blank=True, verbose_name="Giờ Check-out")
-    
-    so_khach_thuc_te = models.IntegerField(default=1)
-    trang_thai = models.CharField(max_length=20, choices=STATUS_CHOICES, default='dang_phuc_vu')
-    ghi_chu = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return f"Session #{self.id} - {self.ban.ten_ban} ({self.trang_thai})"

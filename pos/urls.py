@@ -18,6 +18,7 @@ urlpatterns = [
 
     # THÊM DÒNG NÀY CHO TÍNH NĂNG VIP
     path('pos/api/apply-vip/', views.api_apply_vip, name='api_apply_vip'),
+    path('pos/api/remove-vip/', views.api_remove_vip, name='api_remove_vip'),
     path('pos/api/apply-voucher/', views.api_apply_voucher, name='api_apply_voucher'),
 
     # 3. APIs dùng cho các màn hình khác

@@ -132,27 +132,27 @@
 {% block content %}
 
 <div id="printable-area">
-    <div class="page-header no-print fade-in-up">
+    <div class="page-header no-print">
         <div>
             <h1 class="page-title">Báo Cáo Tiêu Thụ Buffet</h1>
             <p class="page-subtitle">Phân tích lượng thực phẩm xuất quầy Line, tỷ lệ hao hụt và hiệu suất thực đơn</p>
             <div class="breadcrumb-saas">
                 <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span>Báo cáo</span>
+                <span>Báo cáo & Thống kê</span>
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span class="text-muted">Tiêu thụ món</span>
+                <span class="text-muted">Tiêu thụ nguyên liệu</span>
             </div>
         </div>
         <div class="d-flex gap-2">
             <button class="btn-outline-custom" onclick="window.print()"><i class="bi bi-printer text-primary me-2"></i> In báo cáo</button>
-            <a href="{% url 'report_consumption' %}?export=excel&start_date={{ start_date }}&end_date={{ end_date }}" class="btn-outline-custom">
+            <a href="{% url 'export_consumption' %}?start_date={{ start_date }}&end_date={{ end_date }}" class="btn-outline-custom">
                 <i class="bi bi-file-earmark-excel text-success me-2"></i> Xuất Excel
             </a>
         </div>
     </div>
 
-    <form method="GET" action="{% url 'report_consumption' %}" class="toolbar-saas no-print fade-in-up delay-1" id="filterForm">
+    <form method="GET" action="{% url 'report_consumption' %}" class="toolbar-saas no-print" id="filterForm">
         <div class="filter-group">
             <div class="search-box">
                 <i class="bi bi-search"></i>
@@ -167,11 +167,10 @@
                 <option value="last_month">Tháng trước</option>
             </select>
 
-            <input type="date" class="filter-input text-muted" name="start_date" id="startDate" value="{{ start_date }}" required>
+            <input type="date" class="filter-input text-muted" name="start_date" id="startDate" value="{{ start_date }}" required onchange="this.form.submit()">
             <span class="text-muted fw-bold">-</span>
-            <input type="date" class="filter-input text-muted" name="end_date" id="endDate" value="{{ end_date }}" required>
+            <input type="date" class="filter-input text-muted" name="end_date" id="endDate" value="{{ end_date }}" required onchange="this.form.submit()">
         </div>
-        <button type="submit" class="btn-create px-4"><i class="bi bi-filter"></i> Lọc Dữ Liệu</button>
     </form>
 
     <div class="print-only" style="margin-bottom: 20px;">
@@ -198,7 +197,7 @@
         </div>
     </div>
 
-    <div class="kpi-grid fade-in-up delay-2">
+    <div class="kpi-grid">
         <div class="kpi-card c-primary">
             <div>
                 <div class="kpi-title">Tổng Tiêu Thụ (Lượt ra món)</div>
@@ -233,7 +232,7 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-4 no-print fade-in-up delay-3">
+    <div class="row g-4 mb-4 no-print">
         <div class="col-lg-8">
             <div class="chart-container">
                 <div class="section-title"><i class="bi bi-bar-chart-steps text-primary"></i> Top 10 Món Ăn Tiêu Thụ Nhiều Nhất</div>
@@ -252,7 +251,7 @@
         </div>
     </div>
 
-    <div class="table-container fade-in-up delay-4">
+    <div class="table-container">
         <div class="p-3 border-bottom bg-white no-print">
             <h4 class="m-0 fw-bold fs-6 text-dark text-uppercase"><i class="bi bi-table me-2 text-primary"></i> Chi tiết tiêu thụ & hao hụt món ăn</h4>
         </div>
@@ -353,6 +352,7 @@
             startInput.value = formatDate(firstDay);
             endInput.value = formatDate(lastDay);
         }
+        document.getElementById('filterForm').submit();
     }
 
     // Gắn ngày in hiện tại vào header

@@ -14,40 +14,22 @@ class NhanVien(models.Model):
     email = models.EmailField(null=True, blank=True)
     dia_chi = models.CharField(max_length=500, null=True, blank=True)
     chuc_vu = models.CharField(max_length=100)
+    anh_dai_dien = models.ImageField(upload_to='avatars/', blank=True, null=True)
     
     def __str__(self):
         return f"{self.ma_nv} - {self.ho_ten}"
 
 class CaLamViec(models.Model):
-    SHIFT_CHOICES = [('morning', 'Ca Sáng'), ('evening', 'Ca Tối'), ('full', 'Full-time')]
+    SHIFT_CHOICES = [('morning', 'Ca Sáng'), ('evening', 'Ca Tối'), ('full', 'Full-time'), ('nghi_phep', 'Xin nghỉ')]
     DEPT_CHOICES = [('kitchen', 'Bếp'), ('service', 'Phục vụ'), ('cashier', 'Thu ngân'), ('other', 'Khác')]
     
-    ngay_lam_viec = models.DateField(default=timezone.now, verbose_name="Ngày làm việc")
+    ngay_lam_viec = models.DateField(default=timezone.now, verbose_name="Ngày làm việc/Xin nghỉ")
     loai_ca = models.CharField(max_length=20, choices=SHIFT_CHOICES, default='morning')
     bo_phan = models.CharField(max_length=20, choices=DEPT_CHOICES, default='service')
     ghi_chu = models.CharField(max_length=255, blank=True, null=True)
+    nhan_vien = models.ManyToManyField('NhanVien', related_name='ca_lam_viec', blank=True)
 
     def __str__(self):
         return f"{self.get_loai_ca_display()} - {self.ngay_lam_viec}"
 
-class ChiTietCaLam(models.Model):
-    ca_lam_viec = models.ForeignKey(CaLamViec, on_delete=models.CASCADE, related_name='chi_tiet_ca')
-    nhan_vien = models.ForeignKey(NhanVien, on_delete=models.CASCADE)
-    
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['ca_lam_viec', 'nhan_vien'], name='unique_nhan_vien_ca_lam')
-        ]
-
-class NgayNghi(models.Model):
-    nhan_vien = models.ForeignKey(NhanVien, on_delete=models.CASCADE, related_name='ngay_nghi')
-    ngay_nghi = models.DateField(verbose_name="Ngày xin nghỉ")
-    ly_do = models.CharField(max_length=255, blank=True, null=True, verbose_name="Lý do nghỉ")
-    
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['nhan_vien', 'ngay_nghi'], name='unique_ngay_nghi_nhan_vien')
-        ]
-
-    def __str__(self):
-        return f"{self.nhan_vien.ho_ten} nghỉ ngày {self.ngay_nghi}"
+# Đã gộp ChiTietCaLam và NgayNghi vào model CaLamViec (Extreme Refactoring)

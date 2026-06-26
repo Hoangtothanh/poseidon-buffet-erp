@@ -100,7 +100,7 @@
         <div class="breadcrumb-saas">
             <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
             <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span>Khách & Bàn</span>
+            <span>Quản lý Tiếp tân</span>
             <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
             <span class="text-muted">Khu vực bàn</span>
         </div>
@@ -178,7 +178,7 @@
                         <button class="btn-action text-danger delete-btn" 
                             data-id="{{ item.obj.id }}" 
                             data-name="{{ item.obj.ten_khu_vuc }}"
-                            {% if item.tong_ban > 0 %}disabled title="Không thể xóa khu vực đang có bàn"{% endif %}>
+                            title="Xóa khu vực này">
                             <i class="bi bi-trash3"></i>
                         </button>
                     </td>

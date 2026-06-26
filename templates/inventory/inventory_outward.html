@@ -182,10 +182,10 @@
             <h1 class="page-title">Xuất Kho (Goods Issue)</h1>
             <p class="page-subtitle">Quản lý xuất nguyên liệu cho bếp, ghi nhận xuất hủy hoặc trả nhà cung cấp</p>
             <div class="breadcrumb-saas">
-                <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
-                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span>Kho nguyên liệu</span>
-                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+                <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a>
+                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+                <span>Quản lý Kho &amp; NL</span>
+                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
                 <span class="text-muted">Xuất kho</span>
             </div>
         </div>
@@ -227,9 +227,9 @@
         <div class="filter-group">
             <div class="search-box">
                 <i class="bi bi-search"></i>
-                <input type="text" placeholder="Mã phiếu xuất, Người nhận...">
+                <input type="text" id="searchInput" placeholder="Mã phiếu xuất, Người nhận, Ghi chú...">
             </div>
-            <input type="date" class="filter-input" title="Từ ngày">
+            <input type="date" id="dateFilter" class="filter-input" title="Chọn ngày">
         </div>
         <button class="btn-create" data-bs-toggle="modal" data-bs-target="#outwardModal">
             <i class="bi bi-box-arrow-up"></i> Tạo Phiếu Xuất
@@ -278,15 +278,15 @@
                     <tr>
                         <td><a href="#" class="po-code">{{ phieu.ma_phieu }}</a></td>
                         <td>
-                            <div class="fw-bold text-dark">{{ phieu.ngay_xuat|date:"d/m/Y" }}</div>
-                            <div class="text-muted no-print" style="font-size: 0.75rem;">{{ phieu.ngay_xuat|date:"H:i A" }}</div>
+                            <div class="fw-bold text-dark">{{ phieu.ngay_thuc_hien|date:"d/m/Y" }}</div>
+                            <div class="text-muted no-print" style="font-size: 0.75rem;">{{ phieu.ngay_thuc_hien|date:"H:i A" }}</div>
                         </td>
                         <td>
                             <span class="reason-badge">
-                                {{ phieu.ly_do_xuat|default:"Xuất cho Bếp" }}
+                                {{ phieu.ghi_chu|default:"Xuất cho Bếp" }}
                             </span>
                         </td>
-                        <td><span class="fw-bold text-dark">{{ phieu.nguoi_xuat.username|default:"Hệ thống" }}</span></td>
+                        <td><span class="fw-bold text-dark">{{ phieu.nguoi_thuc_hien.username|default:"Hệ thống" }}</span></td>
                         <td>
                             <span class="status-badge st-done">Đã xuất</span>
                             <div class="text-muted no-print mt-1" style="font-size: 0.75rem;">{{ phieu.ghi_chu }}</div>
@@ -299,7 +299,7 @@
                                         {% for ct in phieu.chi_tiet.all %}
                                         {
                                             "ten": "{{ ct.nguyen_lieu.ten_nguyen_lieu|escapejs }}",
-                                            "sl": "{{ ct.so_luong_xuat|floatformat:2 }} {{ ct.nguyen_lieu.don_vi_tinh }}",
+                                            "sl": "{{ ct.so_luong|floatformat:2 }} {{ ct.nguyen_lieu.don_vi_tinh }}",
                                             "ghi_chu": "{{ ct.ghi_chu|default:''|escapejs }}"
                                         }{% if not forloop.last %},{% endif %}
                                         {% endfor %}
@@ -307,7 +307,7 @@
                                 </script>
 
                                 <button type="button" class="btn-action text-primary" title="Xem chi tiết"
-                                    onclick="viewDetail('{{ phieu.id }}', '{{ phieu.ma_phieu }}', '{{ phieu.ngay_xuat|date:'d/m/Y H:i' }}', '{{ phieu.ly_do_xuat|default:''|escapejs }}', '{{ phieu.ghi_chu|default:''|escapejs }}')">
+                                    onclick="viewDetail('{{ phieu.id }}', '{{ phieu.ma_phieu }}', '{{ phieu.ngay_thuc_hien|date:'d/m/Y H:i' }}', '{{ phieu.ghi_chu|default:''|escapejs }}', '')">
                                     <i class="bi bi-eye"></i>
                                 </button>
 
@@ -405,7 +405,6 @@
             <div class="modal-footer d-flex justify-content-between">
                 <button type="button" class="btn btn-light fw-bold px-4 border" style="border-radius: 8px; height: 42px;" data-bs-dismiss="modal">Hủy bỏ</button>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-outline-custom text-warning border-warning"><i class="bi bi-hourglass-split"></i> Gửi Yêu Cầu Duyệt</button>
                     <button type="button" class="btn-create px-5" onclick="submitPhieuXuat(event)"><i class="bi bi-check2-all me-1"></i> Xuất Kho Trực Tiếp</button>
                 </div>
             </div>
@@ -497,7 +496,13 @@
     // 2. Tải dữ liệu Nguyên Liệu từ context Django
     const danhSachNL = [
         {% for nl in danh_sach_nl %}
-            { id: {{ nl.id }}, ten: "{{ nl.ten_nguyen_lieu|escapejs }}", dvt: "{{ nl.don_vi_tinh|escapejs }}", tonKho: {{ nl.ton_kho|stringformat:"f" }} },
+            { id: {{ nl.id }}, ten: "{{ nl.ten_nguyen_lieu|escapejs }}", dvt: "{{ nl.don_vi_tinh|escapejs }}", tonKho: {{ nl.ton_kho|stringformat:"f" }}, dm: "{% if nl.danh_muc %}{{ nl.danh_muc }}{% else %}none{% endif %}" },
+        {% endfor %}
+    ];
+
+    const danhSachDM = [
+        {% for dm in danh_sach_dm %}
+            { id: "{{ dm.id }}", ten: "{{ dm.ten_danh_muc|escapejs }}" },
         {% endfor %}
     ];
 
@@ -505,10 +510,20 @@
         if(document.getElementById('itemsBody')) addRow();
     });
 
-    function getOptionsHTML() {
+    function getDMOptionsHTML() {
+        let html = '<option value="">-- Danh mục --</option>';
+        danhSachDM.forEach(dm => {
+            html += `<option value="${dm.id}">${dm.ten}</option>`;
+        });
+        return html;
+    }
+
+    function getOptionsHTML(dmId = null) {
         let html = '<option value="">-- Chọn Nguyên liệu --</option>';
         danhSachNL.forEach(nl => {
-            html += `<option value="${nl.id}" data-dvt="${nl.dvt}" data-ton="${nl.tonKho}">${nl.ten}</option>`;
+            if (!dmId || nl.dm === dmId) {
+                html += `<option value="${nl.id}" data-dvt="${nl.dvt}" data-ton="${nl.tonKho}">${nl.ten}</option>`;
+            }
         });
         return html;
     }
@@ -522,9 +537,14 @@
         
         tr.innerHTML = `
             <td>
-                <select class="form-select select-nl" onchange="nlChanged(this)">
-                    ${getOptionsHTML()}
-                </select>
+                <div class="d-flex gap-2">
+                    <select class="form-select select-dm text-muted" onchange="dmChanged(this)" style="width: 40%; font-size: 0.85rem;">
+                        ${getDMOptionsHTML()}
+                    </select>
+                    <select class="form-select select-nl" onchange="nlChanged(this)" style="width: 60%">
+                        ${getOptionsHTML()}
+                    </select>
+                </div>
             </td>
             <td><input type="text" class="form-control text-center fw-bold bg-light input-ton" value="0" readonly></td>
             <td><input type="number" class="form-control text-center border-primary input-qty" value="1" min="0.1" step="0.1"></td>
@@ -533,6 +553,13 @@
             <td class="text-center pt-2"><button type="button" class="btn text-danger p-0" onclick="this.closest('tr').remove()"><i class="bi bi-x-circle-fill fs-5"></i></button></td>
         `;
         tbody.appendChild(tr);
+    }
+
+    function dmChanged(selectObj) {
+        const tr = selectObj.closest('tr');
+        const nlSelect = tr.querySelector('.select-nl');
+        nlSelect.innerHTML = getOptionsHTML(selectObj.value);
+        nlChanged(nlSelect);
     }
 
     function nlChanged(selectObj) {
@@ -678,5 +705,49 @@
             new bootstrap.Modal(document.getElementById('deleteOutwardModal')).show();
         });
     });
+
+    // 7. LỌC TÌM KIẾM THEO TỪ KHÓA & NGÀY
+    const searchInput = document.getElementById('searchInput');
+    const dateFilter = document.getElementById('dateFilter');
+
+    function filterTable() {
+        const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+        const filterDate = dateFilter ? dateFilter.value : ''; 
+
+        let formattedDate = "";
+        if (filterDate) {
+            const parts = filterDate.split('-');
+            if (parts.length === 3) {
+                formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`; // YYYY-MM-DD -> DD/MM/YYYY
+            }
+        }
+
+        const rows = document.querySelectorAll('.table-saas tbody tr');
+        rows.forEach(row => {
+            // Bỏ qua dòng trống
+            if (row.cells.length < 3) return;
+
+            const textContent = row.textContent.toLowerCase();
+            const dateCell = row.querySelector('td:nth-child(2)'); 
+            const dateText = dateCell ? dateCell.textContent.trim() : '';
+
+            let matchText = textContent.includes(searchText);
+            let matchDate = true;
+
+            if (formattedDate) {
+                matchDate = dateText.includes(formattedDate);
+            }
+
+            if (matchText && matchDate) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (dateFilter) dateFilter.addEventListener('change', filterTable);
+
 </script>
 {% endblock %}

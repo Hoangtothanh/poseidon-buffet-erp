@@ -113,10 +113,10 @@
         <h1 class="page-title">Nhà Cung Cấp (Suppliers)</h1>
         <p class="page-subtitle">Quản lý danh bạ đối tác cung ứng và theo dõi tình trạng công nợ</p>
         <div class="breadcrumb-saas">
-            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span>Kho nguyên liệu</span>
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+            <span>Quản lý Kho &amp; NL</span>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
             <span class="text-muted">Nhà cung cấp</span>
         </div>
     </div>
@@ -181,9 +181,11 @@
         </select>
     </div>
 
+    {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_edit %}
     <button class="btn-create" onclick="openAddModal()">
         <i class="bi bi-building-add"></i> Thêm Nhà Cung Cấp
     </button>
+    {% endif %}
 </div>
 
 <div class="table-container mb-5 fade-in-up delay-3">
@@ -238,6 +240,7 @@
                     </td>
                     <td class="text-end row-actions">
                         <div class="d-flex justify-content-end align-items-center gap-2">
+                            {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_edit %}
                             <button type="button" class="btn-pay" 
                                 onclick="openPayModal('{{ ncc.id }}', '{{ ncc.ten_ncc|escapejs }}', '{{ ncc.cong_no }}')" 
                                 {% if ncc.cong_no <= 0 %}disabled style="background: #cbd5e1; box-shadow: none;"{% endif %}>
@@ -247,10 +250,13 @@
                             <button type="button" class="btn-action text-primary" title="Sửa thông tin" onclick="openEditModal('{{ ncc.id }}', '{{ ncc.ten_ncc|escapejs }}', '{{ ncc.dia_chi|escapejs }}', '{{ ncc.nguoi_lien_he|escapejs }}', '{{ ncc.so_dien_thoai }}', '{% if ncc.trang_thai %}true{% else %}false{% endif %}')">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
+                            {% endif %}
                             
+                            {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_delete %}
                             <button type="button" class="btn-action text-danger delete-btn" title="Xóa đối tác" data-id="{{ ncc.id }}">
                                 <i class="bi bi-trash3"></i>
                             </button>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

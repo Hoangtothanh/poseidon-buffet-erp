@@ -133,16 +133,16 @@
 
 {% block content %}
 <div id="printable-area">
-    <div class="page-header no-print fade-in-up">
+    <div class="page-header no-print">
         <div>
             <h1 class="page-title">Báo Cáo Xuất Nhập Tồn</h1>
             <p class="page-subtitle">Phân tích dòng tiền lưu chuyển trong kho, giá trị tồn cuối kỳ và tỷ lệ hao hụt thực phẩm</p>
             <div class="breadcrumb-saas">
                 <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span>Báo cáo</span>
+                <span>Báo cáo & Thống kê</span>
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span class="text-muted">Báo cáo kho</span>
+                <span class="text-muted">Tồn kho</span>
             </div>
         </div>
         <div class="d-flex gap-2">
@@ -153,7 +153,7 @@
         </div>
     </div>
 
-    <form method="GET" action="{% url 'report_inventory' %}" class="toolbar-saas no-print fade-in-up delay-1" id="filterForm">
+    <form method="GET" action="{% url 'report_inventory' %}" class="toolbar-saas no-print" id="filterForm">
         <div class="filter-group">
             <div class="search-box">
                 <i class="bi bi-search"></i>
@@ -167,11 +167,10 @@
                 <option value="this_year">Năm nay</option>
             </select>
             
-            <input type="date" class="filter-input text-muted" name="start_date" id="startDate" value="{{ start_date }}" required>
+            <input type="date" class="filter-input text-muted" name="start_date" id="startDate" value="{{ start_date }}" required onchange="this.form.submit()">
             <span class="text-muted fw-bold">-</span>
-            <input type="date" class="filter-input text-muted" name="end_date" id="endDate" value="{{ end_date }}" required>
+            <input type="date" class="filter-input text-muted" name="end_date" id="endDate" value="{{ end_date }}" required onchange="this.form.submit()">
         </div>
-        <button type="submit" class="btn-create px-4"><i class="bi bi-filter"></i> Lọc Dữ Liệu</button>
     </form>
 
     <div class="print-only" style="margin-bottom: 20px;">
@@ -195,11 +194,11 @@
         </div>
     </div>
 
-    <div class="kpi-grid fade-in-up delay-2">
+    <div class="kpi-grid">
         <div class="kpi-card c-info">
             <div>
                 <div class="kpi-title">Tổng Giá Trị Nhập Kho</div>
-                <div class="kpi-value text-info">{{ tong_nhap|intcomma }} <span class="fs-6 fw-bold text-muted">₫</span></div>
+                <div class="kpi-value text-info"><span class="format-money">{{ tong_nhap }}</span> <span class="fs-6 fw-bold text-muted">đ</span></div>
             </div>
             <div class="kpi-trend text-muted"><i class="bi bi-box-arrow-in-right"></i> Tổng tiền nhập hàng mới</div>
             <i class="bi bi-truck position-absolute text-info opacity-25" style="font-size: 4rem; right: -10px; bottom: -10px;"></i>
@@ -207,7 +206,7 @@
         <div class="kpi-card c-success">
             <div>
                 <div class="kpi-title">Tổng Giá Trị Xuất (Tiêu thụ)</div>
-                <div class="kpi-value text-success">{{ tong_xuat|intcomma }} <span class="fs-6 fw-bold text-muted">₫</span></div>
+                <div class="kpi-value text-success"><span class="format-money">{{ tong_xuat }}</span> <span class="fs-6 fw-bold text-muted">đ</span></div>
             </div>
             <div class="kpi-trend text-muted"><i class="bi bi-box-arrow-up"></i> Xuất cho Bếp phục vụ Buffet</div>
             <i class="bi bi-fire position-absolute text-success opacity-25" style="font-size: 4rem; right: -10px; bottom: -10px;"></i>
@@ -215,7 +214,7 @@
         <div class="kpi-card c-primary">
             <div>
                 <div class="kpi-title">Giá Trị Hao Hụt (Hỏng/Hủy)</div>
-                <div class="kpi-value text-danger">{{ tong_huy|intcomma }} <span class="fs-6 fw-bold text-muted">₫</span></div>
+                <div class="kpi-value text-danger"><span class="format-money">{{ tong_huy }}</span> <span class="fs-6 fw-bold text-muted">đ</span></div>
             </div>
             <div class="kpi-trend text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> Ghi nhận từ phiếu xuất hủy</div>
             <i class="bi bi-trash3 position-absolute text-danger opacity-25" style="font-size: 4rem; right: -10px; bottom: -10px;"></i>
@@ -223,14 +222,14 @@
         <div class="kpi-card c-warning" style="background-color: #fffbf1; border-color: #fde68a;">
             <div>
                 <div class="kpi-title text-warning">Tồn Kho Cuối Kỳ</div>
-                <div class="kpi-value text-dark">{{ tong_ton|intcomma }} <span class="fs-6 fw-bold text-muted">₫</span></div>
+                <div class="kpi-value text-dark"><span class="format-money">{{ tong_ton }}</span> <span class="fs-6 fw-bold text-muted">đ</span></div>
             </div>
             <div class="kpi-trend text-muted"><i class="bi bi-boxes"></i> Giá trị vốn đang đọng tại kho</div>
             <i class="bi bi-safe position-absolute text-warning opacity-25" style="font-size: 4rem; right: -10px; bottom: -10px;"></i>
         </div>
     </div>
 
-    <div class="row g-4 mb-4 no-print fade-in-up delay-3">
+    <div class="row g-4 mb-4 no-print">
         <div class="col-lg-8">
             <div class="chart-container">
                 <div class="section-title"><i class="bi bi-bar-chart-fill text-primary"></i> Biến động Xuất / Nhập Kho (Theo Tuần)</div>
@@ -249,7 +248,7 @@
         </div>
     </div>
 
-    <div class="table-container fade-in-up delay-4">
+    <div class="table-container">
         <div class="p-3 border-bottom border-light bg-white no-print">
             <h4 class="m-0 fw-bold fs-6 text-dark text-uppercase"><i class="bi bi-table me-2 text-primary"></i> Bảng Kê Xuất Nhập Tồn Chi Tiết (VNĐ)</h4>
         </div>
@@ -271,11 +270,11 @@
                     <tr class="item-row">
                         <td><div class="item-name">{{ row.ten }}</div><span class="text-muted" style="font-size:0.75rem;">{{ row.dvt }}</span></td>
                         <td><span class="cat-badge" style="background: {{ row.bg }}; color: {{ row.color }};">{{ row.nhom }}</span></td>
-                        <td class="text-end amount-text">{{ row.ton_dau|intcomma }}</td>
-                        <td class="text-end amount-text text-primary">{{ row.nhap|intcomma }}</td>
-                        <td class="text-end amount-text text-success">{{ row.xuat_tieu_thu|intcomma }}</td>
-                        <td class="text-end amount-text text-danger">{{ row.xuat_huy|intcomma }}</td>
-                        <td class="text-end amount-highlight">{{ row.ton_cuoi|intcomma }}</td>
+                        <td class="text-end amount-text"><span class="format-money">{{ row.ton_dau }}</span> đ</td>
+                        <td class="text-end amount-text text-primary"><span class="format-money">{{ row.nhap }}</span> đ</td>
+                        <td class="text-end amount-text text-success"><span class="format-money">{{ row.xuat_tieu_thu }}</span> đ</td>
+                        <td class="text-end amount-text text-danger"><span class="format-money">{{ row.xuat_huy }}</span> đ</td>
+                        <td class="text-end amount-highlight"><span class="format-money">{{ row.ton_cuoi }}</span> đ</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="7" class="text-center py-4">Không có dữ liệu trong khoảng thời gian này.</td></tr>
@@ -342,6 +341,7 @@
             startInput.value = formatDate(firstDay);
             endInput.value = formatDate(today);
         }
+        document.getElementById('filterForm').submit();
     }
 
     // Lọc bảng cục bộ

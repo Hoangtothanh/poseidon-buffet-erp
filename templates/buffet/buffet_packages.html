@@ -95,11 +95,11 @@
 <div class="page-header fade-in-up">
     <h1 class="page-title">Quản lý Gói Buffet</h1>
     <div class="breadcrumb-saas">
-        <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
-        <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-        <span>Buffet</span>
-        <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-        <span class="text-muted">Gói Buffet</span>
+        <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a>
+        <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+        <span>Quản lý Thực đơn</span>
+        <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+        <span class="text-muted">Vé Buffet</span>
     </div>
 </div>
 
@@ -152,12 +152,12 @@
         <tbody id="buffetTableBody">
             {% for goi in danh_sach_goi %}
             <tr class="package-row" 
-                data-name="{{ goi.ten_goi|lower }}" 
+                data-name="{{ goi.ten_mon|lower }}" 
                 data-status="{% if goi.trang_thai %}active{% else %}inactive{% endif %}"
                 data-start="{% if goi.gio_bat_dau %}{{ goi.gio_bat_dau|time:'H:i' }}{% else %}cangay{% endif %}">
                 
                 <td>
-                    <div class="fw-bold text-dark fs-6">{{ goi.ten_goi }}</div>
+                    <div class="fw-bold text-dark fs-6">{{ goi.ten_mon }}</div>
                     <div class="text-muted" style="font-size: 0.8rem;">{{ goi.mo_ta|default:"Gói Buffet Tiêu Chuẩn" }}</div>
                 </td>
                 <td class="price-value">{{ goi.gia_ban|floatformat:"0"|intcomma }} ₫</td>
@@ -172,10 +172,16 @@
                                 Cả ngày
                             {% endif %}
                         </span>
-                        <div class="text-muted" style="font-size: 0.8rem; font-weight: 600;">
-                            <i class="bi bi-calendar3 me-1"></i> 
-                            <span class="format-days text-primary" data-days="{{ goi.ngay_ap_dung }}"></span>
-                        </div>
+                        <span class="badge-soft badge-time mt-1" style="font-size: 0.75rem; background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;">
+                            <i class="bi bi-calendar-week me-1"></i>
+                            {% if goi.ap_dung_t2 %}T2 {% endif %}
+                            {% if goi.ap_dung_t3 %}T3 {% endif %}
+                            {% if goi.ap_dung_t4 %}T4 {% endif %}
+                            {% if goi.ap_dung_t5 %}T5 {% endif %}
+                            {% if goi.ap_dung_t6 %}T6 {% endif %}
+                            {% if goi.ap_dung_t7 %}T7 {% endif %}
+                            {% if goi.ap_dung_cn %}CN{% endif %}
+                        </span>
                     </div>
                 </td>
 
@@ -189,18 +195,24 @@
                 <td class="text-center">
                     <button class="btn-action edit-btn" title="Chỉnh sửa" 
                         data-id="{{ goi.id }}" 
-                        data-name="{{ goi.ten_goi }}" 
+                        data-name="{{ goi.ten_mon }}" 
                         data-desc="{{ goi.mo_ta }}"
-                        data-price="{{ goi.gia_ban|floatformat:'0' }}" 
+                        data-price="{{ goi.gia_ban|floatformat:'0u' }}" 
                         data-time-start="{% if goi.gio_bat_dau %}{{ goi.gio_bat_dau|time:'H:i' }}{% endif %}"
                         data-time-end="{% if goi.gio_ket_thuc %}{{ goi.gio_ket_thuc|time:'H:i' }}{% endif %}"
-                        data-days="{{ goi.ngay_ap_dung }}"
+                        data-t2="{{ goi.ap_dung_t2 }}"
+                        data-t3="{{ goi.ap_dung_t3 }}"
+                        data-t4="{{ goi.ap_dung_t4 }}"
+                        data-t5="{{ goi.ap_dung_t5 }}"
+                        data-t6="{{ goi.ap_dung_t6 }}"
+                        data-t7="{{ goi.ap_dung_t7 }}"
+                        data-cn="{{ goi.ap_dung_cn }}"
                         data-status="{{ goi.trang_thai }}">
                         <i class="bi bi-pencil-square"></i>
                     </button>
                     <button class="btn-action delete-btn" title="Xóa" 
                         data-id="{{ goi.id }}" 
-                        data-name="{{ goi.ten_goi }}">
+                        data-name="{{ goi.ten_mon }}">
                         <i class="bi bi-trash text-danger"></i>
                     </button>
                 </td>
@@ -263,31 +275,38 @@
                             </div>
                         </div>
 
-                        <div class="col-12 mt-2">
-                            <label class="form-label">Ngày áp dụng trong tuần</label>
-                            <div class="d-flex w-100 gap-2">
-                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="2" id="day2" checked>
-                                <label class="day-label" for="day2">T2</label>
-
-                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="3" id="day3" checked>
-                                <label class="day-label" for="day3">T3</label>
-
-                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="4" id="day4" checked>
-                                <label class="day-label" for="day4">T4</label>
-
-                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="5" id="day5" checked>
-                                <label class="day-label" for="day5">T5</label>
-
-                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="6" id="day6" checked>
-                                <label class="day-label" for="day6">T6</label>
-
-                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="7" id="day7">
-                                <label class="day-label" for="day7">T7</label>
-
-                                <input type="checkbox" class="day-checkbox" name="ngay_ap_dung" value="8" id="day8">
-                                <label class="day-label" for="day8">CN</label>
+                        <div class="col-12 mt-3">
+                            <label class="form-label">Áp dụng các ngày</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <div>
+                                    <input type="checkbox" class="day-checkbox" id="apDungT2" name="ap_dung_t2" checked>
+                                    <label class="day-label" for="apDungT2">T2</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" class="day-checkbox" id="apDungT3" name="ap_dung_t3" checked>
+                                    <label class="day-label" for="apDungT3">T3</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" class="day-checkbox" id="apDungT4" name="ap_dung_t4" checked>
+                                    <label class="day-label" for="apDungT4">T4</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" class="day-checkbox" id="apDungT5" name="ap_dung_t5" checked>
+                                    <label class="day-label" for="apDungT5">T5</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" class="day-checkbox" id="apDungT6" name="ap_dung_t6" checked>
+                                    <label class="day-label" for="apDungT6">T6</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" class="day-checkbox" id="apDungT7" name="ap_dung_t7" checked>
+                                    <label class="day-label" for="apDungT7">T7</label>
+                                </div>
+                                <div>
+                                    <input type="checkbox" class="day-checkbox" id="apDungCN" name="ap_dung_cn" checked>
+                                    <label class="day-label" for="apDungCN">CN</label>
+                                </div>
                             </div>
-                            <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle"></i> Bỏ chọn T7, CN nếu đây là bảng giá chỉ áp dụng cho ngày thường.</small>
                         </div>
 
                         <div class="col-12 mt-4 pt-3 border-top border-light">
@@ -337,18 +356,6 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
 
-        // 1. TỰ ĐỘNG DỊCH CHUỖI "2,3,4" THÀNH "T2, T3, T4" TRONG BẢNG
-        document.querySelectorAll('.format-days').forEach(span => {
-            const rawDays = span.getAttribute('data-days');
-            if (rawDays && rawDays !== 'None') {
-                const formattedDays = rawDays.split(',').map(d => d.trim() === '8' ? 'CN' : 'T' + d.trim());
-                span.innerText = formattedDays.join(', ');
-            } else {
-                span.innerText = 'Chưa cấu hình ngày';
-                span.classList.replace('text-primary', 'text-danger');
-            }
-        });
-        
         // 2. CHỐNG BOOTSTRAP CHẶN CLICK VÀO FLATPICKR
         document.addEventListener('focusin', function(e) {
             if (e.target.closest(".flatpickr-calendar") !== null) {
@@ -386,9 +393,14 @@
             fpStart.clear();
             fpEnd.clear();
 
-            document.querySelectorAll('.day-checkbox').forEach(cb => {
-                cb.checked = ['2','3','4','5','6'].includes(cb.value);
-            });
+            document.getElementById('apDungT2').checked = true;
+            document.getElementById('apDungT3').checked = true;
+            document.getElementById('apDungT4').checked = true;
+            document.getElementById('apDungT5').checked = true;
+            document.getElementById('apDungT6').checked = true;
+            document.getElementById('apDungT7').checked = true;
+            document.getElementById('apDungCN').checked = true;
+
             document.getElementById('statusSwitch').checked = true;
 
             packageModal.show();
@@ -421,11 +433,13 @@
                     fpEnd.clear();
                 }
 
-                let daysStr = this.getAttribute('data-days') || "";
-                let daysArr = daysStr.split(",");
-                document.querySelectorAll('.day-checkbox').forEach(cb => {
-                    cb.checked = daysArr.includes(cb.value);
-                });
+                document.getElementById('apDungT2').checked = this.getAttribute('data-t2') === 'True';
+                document.getElementById('apDungT3').checked = this.getAttribute('data-t3') === 'True';
+                document.getElementById('apDungT4').checked = this.getAttribute('data-t4') === 'True';
+                document.getElementById('apDungT5').checked = this.getAttribute('data-t5') === 'True';
+                document.getElementById('apDungT6').checked = this.getAttribute('data-t6') === 'True';
+                document.getElementById('apDungT7').checked = this.getAttribute('data-t7') === 'True';
+                document.getElementById('apDungCN').checked = this.getAttribute('data-cn') === 'True';
 
                 document.getElementById('statusSwitch').checked = this.getAttribute('data-status') === 'True';
 

@@ -228,3 +228,308 @@ def settings_backup(request):
     
     SystemLog.objects.create(user=request.user, action="Tải xuống bản sao lưu toàn bộ Database", module="Backup", level="danger")
     return response
+
+# --- TẠO DỮ LIỆU MẪU HÔM NAY ---
+@login_required(login_url='login')
+@require_POST
+def settings_seed_data_today(request):
+    if not is_admin(request.user): return HttpResponseForbidden()
+    
+    from pos.models import HoaDon, ChiTietHoaDon
+    from reception.models import BanAn
+    from menu.models import ThucDon
+    from customers.models import KhachHang
+    from inventory.models import NguyenLieu, PhieuKho, ChiTietPhieuKho, NhaCungCap
+    import random
+    import datetime as dt
+    from datetime import timedelta
+    
+    ban_list    = list(BanAn.objects.exclude(trang_thai='da_xoa'))
+    buffet_list = list(ThucDon.objects.filter(loai_mon='goi_buffet', trang_thai=True))
+    drink_list  = list(ThucDon.objects.filter(loai_mon='do_uong', trang_thai=True))
+    kh_list     = list(KhachHang.objects.filter(is_active=True))
+    nl_list     = list(NguyenLieu.objects.all())
+    ncc_list    = list(NhaCungCap.objects.all())
+    
+    # ─────────────────────────────────────────────────────────────
+    # LẤY CÁC NGÀY TỪ FORM
+    # ─────────────────────────────────────────────────────────────
+    seed_dates_str = request.POST.get('seed_dates')
+    target_dates = []
+    if seed_dates_str:
+        for d_str in seed_dates_str.split(','):
+            if d_str.strip():
+                target_dates.append(dt.datetime.strptime(d_str.strip(), '%Y-%m-%d').date())
+    else:
+        target_dates = [timezone.now().date()]
+        
+    if not ban_list or not buffet_list:
+        messages.error(request, "Vui lòng tạo bàn và ít nhất 1 Gói Buffet trước khi sinh dữ liệu!")
+        return redirect('/settings/#v-backup')
+
+    if request.POST.get('reset_inventory') == 'on':
+        import random
+        for nl in nl_list:
+            nl.ton_kho = random.randint(10, 50)
+            nl.save()
+        messages.info(request, "Đã dọn dẹp rác tồn kho, tất cả nguyên liệu đã được đưa về mức 10-50.")
+
+    total_hd = 0
+    for d in target_dates:
+        total_hd += _generate_seed_for_single_date(request, d, ban_list, buffet_list, drink_list, kh_list, nl_list, ncc_list)
+
+    from core.models import SystemLog
+    SystemLog.objects.create(
+        user=request.user,
+        action=f"Khởi tạo {total_hd} hóa đơn mẫu cho {len(target_dates)} ngày",
+        module="Hệ thống", level="warning"
+    )
+    messages.success(request, f"✅ Đã tạo {total_hd} hóa đơn mẫu cho {len(target_dates)} ngày!")
+    return redirect('/settings/#v-backup')
+
+def _generate_seed_for_single_date(request, today, ban_list, buffet_list, drink_list, kh_list, nl_list, ncc_list):
+    from pos.models import HoaDon, ChiTietHoaDon
+    from inventory.models import PhieuKho, ChiTietPhieuKho
+    import random
+    import datetime as dt
+    from datetime import timedelta
+    from django.utils import timezone
+    
+    # Chuẩn bị danh sách đồ uống ưu tiên (Pepsi, Aqua)
+    drink_priority = [d for d in drink_list if 'pepsi' in d.ten_mon.lower() or 'aqua' in d.ten_mon.lower()]
+    
+    # Tạo sẵn 1 Phiếu xuất kho tự động cho đồ uống của ngày hôm nay
+    phieu_xuat_do_uong = None
+    if nl_list:
+        phieu_xuat_do_uong = PhieuKho.objects.create(
+            loai_phieu='xuat',
+            nguoi_thuc_hien=request.user,
+            ngay_thuc_hien=timezone.make_aware(dt.datetime.combine(today, dt.time(22, 30))),
+            da_thanh_toan=True,
+            ghi_chu=f"Tự động xuất đồ uống bán POS (Seed {today.strftime('%d/%m/%Y')})"
+        )
+
+    # ─────────────────────────────────────────────────────────────
+    # XÓA DỮ LIỆU CŨ CỦA NGÀY NÀY ĐỂ TRÁNH TRÙNG LẶP
+    # ─────────────────────────────────────────────────────────────
+    HoaDon.objects.filter(thoi_gian_vao__date=today).delete()
+    
+    # ─────────────────────────────────────────────────────────────
+    # CHỈ 2 PHƯƠNG THỨC KHỚP VỚI MÁY POS THỰC TẾ
+    #   70% Tiền mặt  |  30% Chuyển khoản QR
+    # ─────────────────────────────────────────────────────────────
+    PAYMENT_METHODS = ['tien_mat', 'chuyen_khoan']
+    PAYMENT_WEIGHTS = [0.70,       0.30]
+    
+    # Phân bổ giờ trong ngày (buffet trưa + tối). Giới hạn tối đa nhận khách là 20:30
+    HOUR_CHOICES = [11, 12, 13, 17, 18, 19, 20]
+    HOUR_WEIGHTS = [0.08, 0.22, 0.10, 0.05, 0.15, 0.25, 0.15]
+    
+    GROUP_CHOICES = [2, 4, 6, 8, 10]
+    GROUP_WEIGHTS = [0.30, 0.35, 0.20, 0.10, 0.05]
+    
+    rng = random.Random()  # Ngẫu nhiên thực sự mỗi lần bấm
+    
+    # Số lượng khách theo ngày cuối tuần hay ngày thường
+    is_weekend = today.weekday() >= 4  # Thứ 6, 7, CN
+    num_invoices = rng.randint(60, 80) if is_weekend else rng.randint(40, 55)
+    
+    # Tắt auto_now_add để set thời gian lịch sử trong ngày
+    HoaDon._meta.get_field('thoi_gian_vao').auto_now_add = False
+    ChiTietHoaDon._meta.get_field('thoi_gian_order').auto_now_add = False
+    
+    try:
+        setting = None
+        try:
+            from core.models import SystemSetting
+            setting = SystemSetting.objects.get(id=1)
+            vat_rate = float(setting.vat_tax or 0) / 100.0
+            sc_rate  = float(setting.service_charge or 0) / 100.0
+        except Exception:
+            vat_rate = 0.08
+            sc_rate  = 0.05
+        
+        for _ in range(num_invoices):
+            hour     = rng.choices(HOUR_CHOICES, weights=HOUR_WEIGHTS, k=1)[0]
+            
+            # Đảm bảo không nhận khách sau 20:30
+            if hour == 20:
+                minute = rng.randint(0, 30)
+            else:
+                minute = rng.randint(0, 59)
+                
+            so_khach = rng.choices(GROUP_CHOICES, weights=GROUP_WEIGHTS, k=1)[0]
+            
+            checkin_dt = timezone.make_aware(
+                dt.datetime(today.year, today.month, today.day,
+                            hour, minute, rng.randint(0, 59))
+            )
+            duration_min = rng.randint(90, 150)
+            checkout_dt  = checkin_dt + timedelta(minutes=duration_min)
+            
+            # Đảm bảo không có hóa đơn nào thanh toán sau 22:30 (Giờ đóng cửa)
+            closing_time = timezone.make_aware(dt.datetime(today.year, today.month, today.day, 22, 30, 0))
+            if checkout_dt > closing_time:
+                checkout_dt = closing_time
+                # Tính lại thời lượng để logic chuẩn xác
+                duration_min = int((checkout_dt - checkin_dt).total_seconds() / 60)
+                if duration_min < 45: # Nếu khách vào quá muộn thì dời giờ vào lên sớm hơn
+                    checkin_dt = closing_time - timedelta(minutes=rng.randint(60, 90))
+            
+            phuong_thuc = rng.choices(PAYMENT_METHODS, weights=PAYMENT_WEIGHTS, k=1)[0]
+            khach_hang  = rng.choice(kh_list) if (kh_list and rng.random() < 0.35) else None
+            
+            # Tiền buffet
+            buffet         = rng.choice(buffet_list)
+            tien_buffet    = int(buffet.gia_ban) * so_khach
+            tong_hang      = tien_buffet
+            
+            # Tạo hóa đơn (để model tự sinh ma_hoa_don qua save())
+            hd = HoaDon(
+                ban_an          = rng.choice(ban_list),
+                khach_hang      = khach_hang,
+                nhan_vien       = request.user,
+                thoi_gian_vao   = checkin_dt,
+                thoi_gian_ra    = checkout_dt,
+                so_khach        = so_khach,
+                tong_tien_hang  = 0,   # Cập nhật sau
+                chiet_khau      = 0,
+                vat_phu_thu     = 0,
+                khach_can_tra   = 0,
+                phuong_thuc_tt  = phuong_thuc,
+                so_tien_thu     = 0,
+                ngay_thanh_toan = checkout_dt,
+                trang_thai      = 'da_thanh_toan',
+                ghi_chu         = 'SEED_HISTORY',
+            )
+            hd.save()  # Gọi save() để model tự sinh ma_hoa_don = INV-XXXXX
+            
+            # Chi tiết: Vé buffet
+            ChiTietHoaDon.objects.create(
+                hoa_don         = hd,
+                thuc_don        = buffet,
+                ten_mon_luu_tru = buffet.ten_mon,
+                don_gia_luu_tru = buffet.gia_ban,
+                so_luong        = so_khach,
+                thanh_tien      = tien_buffet,
+                thoi_gian_order = checkin_dt,
+            )
+            
+            # Chi tiết: Đồ uống (70% khả năng gọi nước)
+            if drink_list and rng.random() < 0.70:
+                # 80% gọi nước phổ thông (pepsi, aqua), 20% gọi ngẫu nhiên
+                if drink_priority and rng.random() < 0.8:
+                    drink = rng.choice(drink_priority)
+                else:
+                    drink = rng.choice(drink_list)
+                    
+                sl_drink   = rng.randint(1, max(1, so_khach))
+                tien_drink = int(drink.gia_ban) * sl_drink
+                tong_hang  += tien_drink
+                ChiTietHoaDon.objects.create(
+                    hoa_don         = hd,
+                    thuc_don        = drink,
+                    ten_mon_luu_tru = drink.ten_mon,
+                    don_gia_luu_tru = drink.gia_ban,
+                    so_luong        = sl_drink,
+                    thanh_tien      = tien_drink,
+                    thoi_gian_order = checkin_dt + timedelta(minutes=rng.randint(5, 20)),
+                )
+                
+                # Trừ kho nguyên liệu đồ uống (Mock Auto-Inventory Deduction)
+                if phieu_xuat_do_uong:
+                    ten_mon_lower = drink.ten_mon.lower()
+                    for nl in nl_list:
+                        ten_nl = nl.ten_nguyen_lieu.lower()
+                        if len(ten_nl) > 3 and (ten_nl in ten_mon_lower or ten_mon_lower in ten_nl):
+                            ChiTietPhieuKho.objects.create(
+                                phieu=phieu_xuat_do_uong,
+                                nguyen_lieu=nl,
+                                so_luong=sl_drink,
+                                don_gia=nl.don_gia_trung_binh or 0,
+                                thanh_tien=sl_drink * (nl.don_gia_trung_binh or 0)
+                            )
+                            nl.ton_kho = float(nl.ton_kho) - sl_drink
+                            nl.save()
+                            break
+            
+            # Tính lại tổng tiền có VAT + SC
+            tien_sc       = tong_hang * sc_rate
+            tien_vat      = (tong_hang + tien_sc) * vat_rate
+            khach_can_tra = tong_hang + tien_sc + tien_vat
+            
+            hd.tong_tien_hang = tong_hang
+            hd.vat_phu_thu    = round(tien_vat + tien_sc)
+            hd.khach_can_tra  = round(khach_can_tra)
+            hd.so_tien_thu    = round(khach_can_tra)
+            hd.save()
+            
+            # Cộng điểm VIP nếu có khách hàng
+            if khach_hang:
+                diem_cong = int(khach_can_tra / 10000)
+                if diem_cong > 0:
+                    khach_hang.diem_tich_luy = (khach_hang.diem_tich_luy or 0) + diem_cong
+                    khach_hang.save()
+    
+    finally:
+        HoaDon._meta.get_field('thoi_gian_vao').auto_now_add = True
+        ChiTietHoaDon._meta.get_field('thoi_gian_order').auto_now_add = True
+    
+    # --- Phiếu Kho (nhập + xuất) ---
+    if nl_list and ncc_list:
+        # Nhập hàng với số lượng vừa phải để cân bằng với lượng xuất
+        for _ in range(rng.randint(1, 2)):
+            pn = PhieuKho.objects.create(
+                loai_phieu='nhap',
+                nha_cung_cap=rng.choice(ncc_list),
+                nguoi_thuc_hien=request.user,
+                ngay_thuc_hien=timezone.make_aware(dt.datetime.combine(today, dt.time(rng.randint(6, 8), 0))),
+                da_thanh_toan=True,
+                ghi_chu=f"Nhập kho tự động bổ sung (Seed {today.strftime('%d/%m/%Y')})"
+            )
+            tong_nhap = 0
+            # Nhập ngẫu nhiên 10-20 loại mặt hàng, số lượng 20-60
+            selected_nl = rng.sample(list(nl_list), min(len(nl_list), rng.randint(10, 20)))
+            for nl in selected_nl:
+                sl = rng.randint(20, 60)
+                dg = int(nl.don_gia_trung_binh or rng.randint(50000, 200000))
+                tt = sl * dg
+                ChiTietPhieuKho.objects.create(phieu=pn, nguyen_lieu=nl, so_luong=sl, don_gia=dg, thanh_tien=tt)
+                tong_nhap += tt
+                nl.ton_kho = float(nl.ton_kho) + sl
+                nl.save()
+            pn.tong_tien = tong_nhap
+            pn.save()
+        
+        # Thêm nhiều phiếu xuất kho cho bếp
+        for i in range(rng.randint(10, 15)):
+            px = PhieuKho.objects.create(
+                loai_phieu='xuat',
+                nguoi_thuc_hien=request.user,
+                ngay_thuc_hien=timezone.make_aware(dt.datetime.combine(today, dt.time(rng.randint(8, 20), rng.randint(0, 59)))),
+                ghi_chu=f"Xuất phục vụ bếp (Ca {i+1} - Seed {today.strftime('%d/%m/%Y')})"
+            )
+            for _ in range(rng.randint(10, 25)):
+                nl = rng.choice(nl_list)
+                sl = round(rng.uniform(1.0, 15.0), 2)
+                ChiTietPhieuKho.objects.create(phieu=px, nguyen_lieu=nl, so_luong=sl, don_gia=nl.don_gia_trung_binh or 0, thanh_tien=0)
+                nl.ton_kho = max(0, float(nl.ton_kho) - sl)
+                nl.save()
+
+        # Thêm 3-5 phiếu xuất hủy (hàng hỏng)
+        for i in range(rng.randint(3, 5)):
+            px_huy = PhieuKho.objects.create(
+                loai_phieu='xuat',
+                nguoi_thuc_hien=request.user,
+                ngay_thuc_hien=timezone.make_aware(dt.datetime.combine(today, dt.time(rng.randint(14, 22), rng.randint(0, 59)))),
+                ghi_chu=f"Xuất hủy nguyên liệu hỏng/hết hạn (Seed {today.strftime('%d/%m/%Y')})"
+            )
+            for _ in range(rng.randint(3, 8)):
+                nl = rng.choice(nl_list)
+                sl = round(rng.uniform(0.1, 3.0), 2)
+                ChiTietPhieuKho.objects.create(phieu=px_huy, nguyen_lieu=nl, so_luong=sl, don_gia=nl.don_gia_trung_binh or 0, thanh_tien=0)
+                nl.ton_kho = max(0, float(nl.ton_kho) - sl)
+                nl.save()
+    
+    return num_invoices
+

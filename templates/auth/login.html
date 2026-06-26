@@ -20,31 +20,6 @@
             justify-content: center;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .login-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            overflow: hidden;
-            width: 100%;
-            max-width: 420px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .login-header {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: white;
-            padding: 35px 20px;
-            text-align: center;
-            position: relative;
-        }
-        .login-header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-        }
         .form-control:focus {
             border-color: #8b5cf6;
             box-shadow: 0 0 0 0.25rem rgba(139, 92, 246, 0.25);
@@ -72,69 +47,249 @@
 </head>
 <body>
 
-    <div class="login-card">
-        <div class="login-header">
-            <h2 class="fw-bold m-0"><i class="bi bi-tsunami text-info"></i> POSEIDON</h2>
-            <p class="text-white-50 m-0 mt-2" style="font-size: 0.9rem; letter-spacing: 1px;">AI COMMAND CENTER</p>
-        </div>
-        
-        <div class="card-body p-4 p-md-5">
-            <h5 class="text-center mb-4 text-dark fw-bold">Đăng Nhập Hệ Thống</h5>
+    <div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+        <div class="row w-100 shadow-lg overflow-hidden" style="max-width: 900px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);">
             
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="alert alert-danger py-2 px-3 small fw-bold" role="alert">
-                        <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
+            <!-- Cột trái: Branding -->
+            <div class="col-md-5 d-none d-md-flex flex-column justify-content-center align-items-center text-white" style="background: linear-gradient(135deg, rgba(30,41,59,0.95) 0%, rgba(15,23,42,0.95) 100%); padding: 40px; position: relative;">
+                <h1 class="fw-bold mb-3" style="font-size: 2.5rem; letter-spacing: 2px;"><i class="bi bi-tsunami text-info"></i> POSEIDON</h1>
+                <p class="fs-6 text-center text-white-50" style="letter-spacing: 1px;">AI COMMAND CENTER</p>
+                <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+            </div>
+            
+            <!-- Cột phải: Form đăng nhập -->
+            <div class="col-md-7 p-4 p-md-5 d-flex flex-column justify-content-center" style="background: rgba(255, 255, 255, 0.95);">
+                <h4 class="text-dark fw-bold mb-4 text-center">Đăng Nhập Hệ Thống</h4>
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger py-2 px-3 small fw-bold" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
 
-            <form method="POST" action="{% url 'login' %}">
-                {% csrf_token %}
-                
-                <div class="mb-3">
-                    <label class="form-label text-secondary fw-bold small">Tài khoản (Username)</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person-fill"></i></span>
-                        <input type="text" name="username" class="form-control border-start-0 ps-0 bg-light" placeholder="Nhập tài khoản" required autofocus>
+                <form method="POST" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary fw-bold small">Tài khoản (Username)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person-fill"></i></span>
+                            <input type="text" name="username" class="form-control border-start-0 ps-0 bg-light" placeholder="Nhập tài khoản" required autofocus>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <label class="form-label text-secondary fw-bold small m-0">Mật khẩu (Password)</label>
-                        
-                        <a href="{% url 'reset_password' %}" class="forgot-link small fw-bold">Quên mật khẩu?</a>
-                        
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label text-secondary fw-bold small m-0">Mật khẩu (Password)</label>
+                            <a href="#" class="forgot-link small fw-bold" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Quên mật khẩu?</a>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock-fill"></i></span>
+                            <input type="password" name="password" class="form-control border-start-0 ps-0 bg-light" placeholder="••••••••" required>
+                        </div>
                     </div>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock-fill"></i></span>
-                        <input type="password" name="password" class="form-control border-start-0 ps-0 bg-light" placeholder="••••••••" required>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
+                            <label class="form-check-label text-secondary small fw-medium" for="rememberMe">
+                                Ghi nhớ phiên đăng nhập
+                            </label>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
-                        <label class="form-check-label text-secondary small fw-medium" for="rememberMe">
-                            Ghi nhớ phiên đăng nhập
-                        </label>
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn btn-login text-white w-100 fw-bold py-2 mb-4 fs-6 rounded-3">
-                    ĐĂNG NHẬP <i class="bi bi-arrow-right ms-1"></i>
-                </button>
+                    
+                    <button type="submit" class="btn btn-login text-white w-100 fw-bold py-2 mb-4 fs-6 rounded-3">
+                        ĐĂNG NHẬP <i class="bi bi-arrow-right ms-1"></i>
+                    </button>
 
-                <div class="text-center pt-3 border-top">
-                    <p class="text-muted m-0" style="font-size: 0.7rem;">
-                        <i class="bi bi-shield-fill-check text-success me-1"></i> 
-                        Bảo vệ bởi Anti Brute-Force. IP của bạn đang được lưu vết.
-                    </p>
-                </div>
-            </form>
+                    <div class="text-center pt-3 border-top">
+                        <p class="text-muted m-0" style="font-size: 0.7rem;">
+                            <i class="bi bi-shield-fill-check text-success me-1"></i> 
+                            Bảo vệ bởi Anti Brute-Force. IP của bạn đang được lưu vết.
+                        </p>
+                    </div>
+                </form>
+            </div>
+            
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- MODAL KHÔI PHỤC MẬT KHẨU (OTP 6 SỐ) -->
+    <!-- ========================================== -->
+    <div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 15px; overflow: hidden; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div class="modal-header bg-dark text-white border-0" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock-fill text-info me-2"></i>Khôi Phục Mật Khẩu</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="otpAlert" class="alert alert-danger d-none small fw-bold mb-3" role="alert"></div>
+                    <div id="otpSuccess" class="alert alert-success d-none small fw-bold mb-3" role="alert"></div>
+
+                    <!-- BƯỚC 1: NHẬP EMAIL -->
+                    <div id="step1_email">
+                        <p class="text-muted small mb-4 text-center">Nhập Email tài khoản, hệ thống sẽ gửi mã OTP gồm 6 chữ số.</p>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary fw-bold small">Email của bạn</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope-fill"></i></span>
+                                <input type="email" id="resetEmail" class="form-control border-start-0 ps-0 bg-light" placeholder="Ví dụ: nhanvien@poseidon.vn">
+                            </div>
+                        </div>
+                        <button type="button" id="btnSendOtp" onclick="sendOtp()" class="btn btn-primary w-100 fw-bold py-2 rounded-3" style="background: linear-gradient(45deg, #3b82f6, #8b5cf6); border: none;">
+                            <i class="bi bi-send-fill me-1"></i> GỬI MÃ OTP
+                        </button>
+                    </div>
+
+                    <!-- BƯỚC 2: NHẬP OTP -->
+                    <div id="step2_otp" class="d-none">
+                        <p class="text-muted small mb-2 text-center">Tài khoản cần khôi phục: <strong id="displayUsername" class="text-primary fs-6"></strong></p>
+                        <p class="text-muted small mb-4 text-center">Vui lòng kiểm tra email và nhập mã OTP 6 số (Có hiệu lực trong 5 phút).</p>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary fw-bold small">Mã OTP</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-key-fill"></i></span>
+                                <input type="text" id="resetOtp" class="form-control border-start-0 ps-0 bg-light text-center fs-5 fw-bold" placeholder="• • • • • •" maxlength="6">
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" onclick="showStep(1)" class="btn btn-secondary w-50 fw-bold py-2 rounded-3">QUAY LẠI</button>
+                            <button type="button" id="btnVerifyOtp" onclick="verifyOtp()" class="btn btn-success w-50 fw-bold py-2 rounded-3">XÁC NHẬN</button>
+                        </div>
+                    </div>
+
+                    <!-- BƯỚC 3: ĐẶT MẬT KHẨU MỚI -->
+                    <div id="step3_password" class="d-none">
+                        <p class="text-muted small mb-4 text-center">Nhập mật khẩu mới cho tài khoản của bạn.</p>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary fw-bold small">Mật khẩu mới</label>
+                            <input type="password" id="newPass1" class="form-control bg-light" placeholder="Ít nhất 6 ký tự">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label text-secondary fw-bold small">Xác nhận mật khẩu</label>
+                            <input type="password" id="newPass2" class="form-control bg-light" placeholder="Nhập lại mật khẩu">
+                        </div>
+                        <button type="button" id="btnResetPass" onclick="resetPassword()" class="btn btn-warning w-100 fw-bold py-2 rounded-3 text-dark">
+                            <i class="bi bi-check-circle-fill me-1"></i> ĐỔI MẬT KHẨU
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const alertBox = document.getElementById('otpAlert');
+        const successBox = document.getElementById('otpSuccess');
+
+        function showAlert(msg, isSuccess=false) {
+            if(isSuccess) {
+                successBox.innerHTML = msg;
+                successBox.classList.remove('d-none');
+                alertBox.classList.add('d-none');
+            } else {
+                alertBox.innerHTML = msg;
+                alertBox.classList.remove('d-none');
+                successBox.classList.add('d-none');
+            }
+        }
+
+        function hideAlerts() {
+            alertBox.classList.add('d-none');
+            successBox.classList.add('d-none');
+        }
+
+        function showStep(step) {
+            hideAlerts();
+            document.getElementById('step1_email').classList.add('d-none');
+            document.getElementById('step2_otp').classList.add('d-none');
+            document.getElementById('step3_password').classList.add('d-none');
+            
+            if(step===1) document.getElementById('step1_email').classList.remove('d-none');
+            if(step===2) document.getElementById('step2_otp').classList.remove('d-none');
+            if(step===3) document.getElementById('step3_password').classList.remove('d-none');
+        }
+
+        async function sendOtp() {
+            const email = document.getElementById('resetEmail').value.trim();
+            if(!email) return showAlert("Vui lòng nhập Email!");
+            
+            const btn = document.getElementById('btnSendOtp');
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ĐANG GỬI...';
+            btn.disabled = true;
+
+            try {
+                let res = await fetch("{% url 'api_send_otp' %}", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+                    body: JSON.stringify({email: email})
+                });
+                let data = await res.json();
+                if(res.ok && data.status === 'success') {
+                    showAlert("Đã gửi mã OTP! Vui lòng kiểm tra email.", true);
+                    document.getElementById('displayUsername').innerText = data.username || '...';
+                    showStep(2);
+                } else {
+                    showAlert(data.message || "Lỗi hệ thống!");
+                }
+            } catch(e) { showAlert("Lỗi kết nối mạng!"); }
+            
+            btn.innerHTML = '<i class="bi bi-send-fill me-1"></i> GỬI MẬT KHẨU';
+            btn.disabled = false;
+        }
+
+        async function verifyOtp() {
+            const email = document.getElementById('resetEmail').value.trim();
+            const otp = document.getElementById('resetOtp').value.trim();
+            if(!otp) return showAlert("Vui lòng nhập mã OTP!");
+
+            try {
+                let res = await fetch("{% url 'api_verify_otp' %}", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+                    body: JSON.stringify({email: email, otp: otp})
+                });
+                let data = await res.json();
+                if(res.ok && data.status === 'success') {
+                    showAlert("Xác thực thành công! Nhập mật khẩu mới.", true);
+                    showStep(3);
+                } else {
+                    showAlert(data.message || "Mã OTP không hợp lệ!");
+                }
+            } catch(e) { showAlert("Lỗi kết nối mạng!"); }
+        }
+
+        async function resetPassword() {
+            const email = document.getElementById('resetEmail').value.trim();
+            const pass1 = document.getElementById('newPass1').value;
+            const pass2 = document.getElementById('newPass2').value;
+            
+            if(pass1.length < 6) return showAlert("Mật khẩu phải từ 6 ký tự trở lên!");
+            if(pass1 !== pass2) return showAlert("Hai mật khẩu không khớp nhau!");
+
+            try {
+                let res = await fetch("{% url 'api_reset_password' %}", {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+                    body: JSON.stringify({email: email, new_password: pass1})
+                });
+                let data = await res.json();
+                if(res.ok && data.status === 'success') {
+                    alert("Đổi mật khẩu thành công! Mời bạn đăng nhập lại.");
+                    window.location.reload();
+                } else {
+                    showAlert(data.message || "Lỗi cập nhật mật khẩu!");
+                }
+            } catch(e) { showAlert("Lỗi kết nối mạng!"); }
+        }
+    </script>
 </body>
 </html>

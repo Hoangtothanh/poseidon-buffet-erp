@@ -145,10 +145,10 @@
         <h1 class="page-title">Nhập Kho (Goods Receipt)</h1>
         <p class="page-subtitle">Quản lý các lô hàng nhập từ nhà cung cấp, đối soát số lượng và công nợ</p>
         <div class="breadcrumb-saas">
-            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span>Kho nguyên liệu</span>
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
+            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+            <span>Quản lý Kho &amp; NL</span>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
             <span class="text-muted">Nhập kho</span>
         </div>
     </div>
@@ -190,13 +190,15 @@
     <div class="filter-group">
         <div class="search-box">
             <i class="bi bi-search"></i>
-            <input type="text" placeholder="Mã phiếu nhập, Tên NCC...">
+            <input type="text" id="searchInput" placeholder="Mã phiếu nhập, Tên NCC, Ghi chú...">
         </div>
-        <input type="date" class="filter-input" title="Từ ngày">
+        <input type="date" id="dateFilter" class="filter-input" title="Chọn ngày">
     </div>
+    {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_edit %}
     <button class="btn-create" data-bs-toggle="modal" data-bs-target="#inwardModal">
         <i class="bi bi-plus-lg"></i> Tạo Phiếu Nhập
     </button>
+    {% endif %}
 </div>
 
 <div id="printable-area">
@@ -243,8 +245,8 @@
                     <tr>
                         <td><a href="#" class="po-code">{{ phieu.ma_phieu }}</a></td>
                         <td>
-                            <div class="fw-bold text-dark">{{ phieu.ngay_nhap|date:"d/m/Y" }}</div>
-                            <div class="text-muted hide-on-print" style="font-size: 0.75rem;">{{ phieu.ngay_nhap|date:"H:i A" }}</div>
+                            <div class="fw-bold text-dark">{{ phieu.ngay_thuc_hien|date:"d/m/Y" }}</div>
+                            <div class="text-muted hide-on-print" style="font-size: 0.75rem;">{{ phieu.ngay_thuc_hien|date:"H:i A" }}</div>
                         </td>
                         <td>
                             <div class="fw-bold text-dark">{{ phieu.nha_cung_cap.ten_ncc|default:"Mua lẻ" }}</div>
@@ -252,11 +254,11 @@
                                 {{ phieu.ghi_chu|default:"Không có ghi chú" }}
                             </div>
                         </td>
-                        <td class="amount-text text-end">{{ phieu.tong_tien_nhap|intcomma }}</td>
+                        <td class="amount-text text-end">{{ phieu.tong_tien|intcomma }}</td>
                         <td>
                             <span class="status-badge st-done">Hoàn thành</span>
                         </td>
-                        <td><span class="badge bg-light text-dark border">{{ phieu.nguoi_nhap.username|default:"Hệ thống" }}</span></td>
+                        <td><span class="badge bg-light text-dark border">{{ phieu.nguoi_thuc_hien.username|default:"Hệ thống" }}</span></td>
                         
                         <td class="text-end row-actions hide-on-print">
                             <div class="d-flex justify-content-end gap-1">
@@ -274,13 +276,15 @@
                                 </script>
 
                                 <button type="button" class="btn-action text-primary" title="Xem chi tiết" 
-                                    onclick="viewDetail('{{ phieu.id }}', '{{ phieu.ma_phieu }}', '{{ phieu.ngay_nhap|date:'d/m/Y H:i' }}', '{{ phieu.nha_cung_cap.ten_ncc|default:'Mua lẻ'|escapejs }}', '{{ phieu.ghi_chu|default:''|escapejs }}', '{{ phieu.tong_tien_nhap|default:'0'|intcomma }}')">
+                                    onclick="viewDetail('{{ phieu.id }}', '{{ phieu.ma_phieu }}', '{{ phieu.ngay_thuc_hien|date:'d/m/Y H:i' }}', '{{ phieu.nha_cung_cap.ten_ncc|default:'Mua lẻ'|escapejs }}', '{{ phieu.ghi_chu|default:''|escapejs }}', '{{ phieu.tong_tien|default:'0'|intcomma }}')">
                                     <i class="bi bi-eye"></i>
                                 </button>
-
+                                
+                                {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_delete %}
                                 <button type="button" class="btn-action text-danger delete-btn" title="Hủy Phiếu" data-id="{{ phieu.id }}">
                                     <i class="bi bi-trash3"></i>
                                 </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -327,8 +331,8 @@
                     <div class="row g-3 mb-4 pb-3 border-bottom border-light">
                         <div class="col-md-4">
                             <label class="form-label">Nhà Cung Cấp <span class="text-danger">*</span></label>
-                            <select class="form-select fw-bold" name="ncc">
-                                <option value="">-- Mua Lẻ Ngoại Chợ --</option>
+                            <select class="form-select fw-bold" name="ncc" required>
+                                <option value="">-- Chọn Nhà Cung Cấp --</option>
                                 {% for ncc in danh_sach_ncc %}
                                     <option value="{{ ncc.id }}">{{ ncc.ten_ncc }}</option>
                                 {% endfor %}
@@ -481,19 +485,71 @@
     // 2. Tải sẵn dữ liệu Nguyên Liệu từ context
     const danhSachNL = [
         {% for nl in danh_sach_nl %}
-            { id: {{ nl.id }}, ten: "{{ nl.ten_nguyen_lieu|escapejs }}", dvt: "{{ nl.don_vi_tinh|escapejs }}", donGia: {{ nl.don_gia_trung_binh|stringformat:"f" }} },
+            { id: {{ nl.id }}, ten: "{{ nl.ten_nguyen_lieu|escapejs }}", dvt: "{{ nl.don_vi_tinh|escapejs }}", donGia: {{ nl.don_gia_trung_binh|stringformat:"f" }}, dm: "{% if nl.danh_muc %}{{ nl.danh_muc }}{% else %}none{% endif %}" },
         {% endfor %}
     ];
-    console.log("DATA NL =", danhSachNL)
+    
+    const danhSachDM = [
+        {% for dm in danh_sach_dm %}
+            { id: "{{ dm.id }}", ten: "{{ dm.ten_danh_muc|escapejs }}" },
+        {% endfor %}
+    ];
 
     document.addEventListener('DOMContentLoaded', () => {
-        if(document.getElementById('itemsBody')) addRow();
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoNlId = urlParams.get('auto_nl_id');
+        const autoSl = urlParams.get('auto_sl');
+        
+        // Xóa query string khỏi URL trên trình duyệt để khi F5 không bị mở lại modal
+        if (autoNlId) {
+            window.history.replaceState(null, null, window.location.pathname);
+        }
+
+        if (document.getElementById('itemsBody')) {
+            addRow();
+
+            if (autoNlId) {
+                setTimeout(() => {
+                    const inwardModal = new bootstrap.Modal(document.getElementById('inwardModal'));
+                    inwardModal.show();
+                    
+                    const tr = document.querySelector('#itemsBody .row-item');
+                    if (tr) {
+                        const itemData = danhSachNL.find(nl => nl.id == autoNlId);
+                        if (itemData) {
+                            const dmSelect = tr.querySelector('.select-dm');
+                            const nlSelect = tr.querySelector('.select-nl');
+                            
+                            dmSelect.value = itemData.dm;
+                            nlSelect.innerHTML = getOptionsHTML(itemData.dm);
+                            nlSelect.value = autoNlId;
+                            
+                            if (autoSl) {
+                                tr.querySelector('.input-qty').value = autoSl;
+                            }
+                            
+                            nlChanged(nlSelect);
+                        }
+                    }
+                }, 300);
+            }
+        }
     });
 
-    function getOptionsHTML() {
+    function getDMOptionsHTML() {
+        let html = '<option value="">-- Danh mục --</option>';
+        danhSachDM.forEach(dm => {
+            html += `<option value="${dm.id}">${dm.ten}</option>`;
+        });
+        return html;
+    }
+
+    function getOptionsHTML(dmId = null) {
         let html = '<option value="">-- Chọn Nguyên liệu --</option>';
         danhSachNL.forEach(nl => {
-            html += `<option value="${nl.id}" data-dvt="${nl.dvt}" data-gia="${nl.donGia}">${nl.ten}</option>`;
+            if (!dmId || nl.dm === dmId) {
+                html += `<option value="${nl.id}" data-dvt="${nl.dvt}" data-gia="${nl.donGia}">${nl.ten}</option>`;
+            }
         });
         return html;
     }
@@ -507,9 +563,14 @@
         
         tr.innerHTML = `
             <td>
-                <select class="form-select select-nl" onchange="nlChanged(this)">
-                    ${getOptionsHTML()}
-                </select>
+                <div class="d-flex gap-2">
+                    <select class="form-select select-dm text-muted" onchange="dmChanged(this)" style="width: 40%; font-size: 0.85rem;">
+                        ${getDMOptionsHTML()}
+                    </select>
+                    <select class="form-select select-nl" onchange="nlChanged(this)" style="width: 60%">
+                        ${getOptionsHTML()}
+                    </select>
+                </div>
             </td>
             <td><input type="number" class="form-control text-center input-qty" value="1" min="0.1" step="0.1" oninput="calcTotal()"></td>
             <td><input type="text" class="form-control bg-light input-dvt" readonly></td>
@@ -523,6 +584,13 @@
     function removeRow(btn) {
         btn.closest('tr').remove();
         calcTotal();
+    }
+
+    function dmChanged(selectObj) {
+        const tr = selectObj.closest('tr');
+        const nlSelect = tr.querySelector('.select-nl');
+        nlSelect.innerHTML = getOptionsHTML(selectObj.value);
+        nlChanged(nlSelect);
     }
 
     function nlChanged(selectObj) {
@@ -561,6 +629,11 @@
     // 4. XỬ LÝ LƯU PHIẾU NHẬP BẰNG AJAX FETCH
     function submitPhieuNhap(event) {
         let ncc_id = document.querySelector('select[name="ncc"]').value;
+        if (!ncc_id) {
+            alert("Vui lòng chọn Nhà Cung Cấp!");
+            return;
+        }
+
         let ngay_nhap = document.getElementById('todayDate').value;
         let ghi_chu = document.querySelector('input[name="ghi_chu"]').value;
         
@@ -614,7 +687,8 @@
         .then(res => res.json())
         .then(data => {
             if (data.status === 'success') {
-                window.location.reload(); // Tải lại trang để cập nhật danh sách
+                // Tải lại trang nhưng bỏ query parameters đi để tránh modal tự động mở lại
+                window.location.href = window.location.pathname;
             } else {
                 alert("Lỗi: " + data.message);
                 btn.innerHTML = originalText;
@@ -668,5 +742,49 @@
             new bootstrap.Modal(document.getElementById('deleteInwardModal')).show();
         });
     });
+
+    // 7. LỌC TÌM KIẾM THEO TỪ KHÓA & NGÀY
+    const searchInput = document.getElementById('searchInput');
+    const dateFilter = document.getElementById('dateFilter');
+
+    function filterTable() {
+        const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+        const filterDate = dateFilter ? dateFilter.value : ''; 
+
+        let formattedDate = "";
+        if (filterDate) {
+            const parts = filterDate.split('-');
+            if (parts.length === 3) {
+                formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`; // YYYY-MM-DD -> DD/MM/YYYY
+            }
+        }
+
+        const rows = document.querySelectorAll('.table-saas tbody tr');
+        rows.forEach(row => {
+            // Bỏ qua dòng trống
+            if (row.cells.length < 3) return;
+
+            const textContent = row.textContent.toLowerCase();
+            const dateCell = row.querySelector('td:nth-child(2)'); 
+            const dateText = dateCell ? dateCell.textContent.trim() : '';
+
+            let matchText = textContent.includes(searchText);
+            let matchDate = true;
+
+            if (formattedDate) {
+                matchDate = dateText.includes(formattedDate);
+            }
+
+            if (matchText && matchDate) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+    if (dateFilter) dateFilter.addEventListener('change', filterTable);
+
 </script>
 {% endblock %}

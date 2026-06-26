@@ -144,16 +144,16 @@
 {% block content %}
 <div id="printable-area">
 
-    <div class="page-header no-print fade-in-up">
+    <div class="page-header no-print">
         <div>
             <h1 class="page-title">Báo Cáo Hiệu Suất Vận Hành</h1>
             <p class="page-subtitle">Đo lường thời gian quay vòng bàn, tỷ lệ lấp đầy và năng suất của đội ngũ nhân viên</p>
             <div class="breadcrumb-saas">
                 <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span>Báo cáo</span>
+                <span>Báo cáo & Thống kê</span>
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span class="text-muted">Hiệu suất</span>
+                <span class="text-muted">Hiệu suất nhân sự</span>
             </div>
         </div>
         <div class="d-flex gap-2">
@@ -164,7 +164,7 @@
         </div>
     </div>
 
-    <form method="GET" action="{% url 'report_performance' %}" class="toolbar-saas no-print fade-in-up delay-1" id="filterForm">
+    <form method="GET" action="{% url 'report_performance' %}" class="toolbar-saas no-print" id="filterForm">
         <div class="filter-group">
             <div class="search-box">
                 <i class="bi bi-search"></i>
@@ -178,17 +178,10 @@
                 <option value="this_month">Tháng này</option>
             </select>
             
-            <input type="date" class="filter-input text-muted" name="start_date" id="startDate" value="{{ start_date }}" required>
+            <input type="date" class="filter-input text-muted" name="start_date" id="startDate" value="{{ start_date }}" required onchange="this.form.submit()">
             <span class="text-muted fw-bold">-</span>
-            <input type="date" class="filter-input text-muted" name="end_date" id="endDate" value="{{ end_date }}" required>
-
-            <select class="filter-input ms-3" style="padding-right: 16px;" name="shift">
-                <option value="all">Tất cả Ca làm việc</option>
-                <option value="morning">Ca Sáng (08:00 - 14:00)</option>
-                <option value="evening">Ca Tối (14:00 - 22:30)</option>
-            </select>
+            <input type="date" class="filter-input text-muted" name="end_date" id="endDate" value="{{ end_date }}" required onchange="this.form.submit()">
         </div>
-        <button type="submit" class="btn-create px-4"><i class="bi bi-speedometer2"></i> Phân tích</button>
     </form>
 
     <div class="print-only" style="margin-bottom: 25px; text-align: center;">
@@ -203,7 +196,7 @@
         <div style="font-size: 12px; margin-top: 5px; color: #64748b;">Thời gian xuất PDF: <span id="printDatePlaceholder"></span></div>
     </div>
 
-    <div class="kpi-grid fade-in-up delay-2">
+    <div class="kpi-grid">
         <div class="kpi-card c-primary">
             <div>
                 <div class="kpi-title">Tỷ Lệ Lấp Đầy Bàn (Occupancy)</div>
@@ -238,7 +231,7 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-4 no-print d-print-none fade-in-up delay-3" id="charts-row">
+    <div class="row g-4 mb-4 no-print d-print-none" id="charts-row">
         <div class="col-lg-7">
             <div class="chart-container">
                 <div class="section-title"><i class="bi bi-graph-up text-primary"></i> Mật độ Khách theo Khung Giờ (Peak Hours)</div>
@@ -258,7 +251,7 @@
         </div>
     </div>
 
-    <div class="table-container fade-in-up delay-4">
+    <div class="table-container">
         <div class="p-3 border-bottom border-light bg-white d-flex justify-content-between align-items-center no-print">
             <h4 class="m-0 fw-bold fs-6 text-dark text-uppercase"><i class="bi bi-person-hearts me-2 text-primary"></i> Bảng Xếp Hạng Năng Suất Nhân Viên Phục Vụ</h4>
         </div>
@@ -340,6 +333,7 @@
             startInput.value = formatDate(firstDay);
             endInput.value = formatDate(today);
         }
+        document.getElementById('filterForm').submit();
     }
 
     // Lọc bảng tại chỗ

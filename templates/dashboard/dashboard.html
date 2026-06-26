@@ -40,7 +40,7 @@
     
     /* Dự báo Load Gauge (Thanh quá tải) */
     .load-gauge-bg { background: #e2e8f0; height: 12px; border-radius: 10px; width: 100%; position: relative; overflow: hidden; margin-top: 10px;}
-    .load-gauge-fill { height: 100%; border-radius: 10px; transition: width 1.5s ease-in-out;}
+    .load-gauge-fill { height: 100%; border-radius: 10px; transition: width 1.5s ease-in-out, background-color 0.5s ease;}
     .marker-limit { position: absolute; top: 0; bottom: 0; width: 2px; background: #dc2626; z-index: 2;}
 
     .chart-wrapper { position: relative; width: 100%; height: 260px; }
@@ -63,6 +63,33 @@
     .delay-1 { animation-delay: 0.1s; }
     .delay-2 { animation-delay: 0.2s; }
     @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* Weather widget nhỏ trong Dashboard */
+    .dash-weather-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 4px 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: #334155;
+        white-space: nowrap;
+    }
+    .dash-weather-pill.rain  { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+    .dash-weather-pill.sun   { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .dash-weather-pill.storm { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+    .waf-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 100px;
+    }
 </style>
 {% endblock %}
 
@@ -77,7 +104,7 @@
             <span class="text-muted fw-bold d-none d-md-inline-block me-3" style="font-size: 0.85rem;">
                 <i class="bi bi-clock-history me-1"></i> Cập nhật: <span id="liveClock">{% now "H:i" %}</span>
             </span>
-            <button id="btnReload" class="btn-erp"><i class="bi bi-arrow-clockwise text-primary"></i> Làm mới</button>
+            <button id="btnReload" class="btn-erp" onclick="forceRefresh()"><i class="bi bi-arrow-clockwise text-primary"></i> Làm mới</button>
         </div>
     </div>
 
@@ -149,7 +176,10 @@
                     </div>
                     <div class="d-flex justify-content-center gap-4 mt-3" style="font-size: 0.8rem;">
                         <span class="d-flex align-items-center gap-2"><span style="width: 12px; height: 12px; background: #2563eb; border-radius: 50%;"></span> Khách Thực Tế</span>
-                        <span class="d-flex align-items-center gap-2"><span style="width: 12px; height: 12px; background: transparent; border: 2px dashed #9333ea; border-radius: 50%;"></span> AI Dự Báo</span>
+                        <span class="d-flex align-items-center gap-2">
+                            <span style="width: 24px; height: 10px; background: rgba(147,51,234,0.12); border: 1px dashed #9333ea; border-radius: 3px; display:inline-block;"></span>
+                            AI Dự Báo <span class="text-muted">(dải kịch bản thấp–cao)</span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -207,11 +237,41 @@
             <div class="erp-card border-primary" style="border-top-width: 4px;">
                 <div class="erp-card-header bg-white">
                     <h2 class="erp-card-title"><i class="bi bi-speedometer text-primary"></i> Dự báo Tải trọng Ca tới</h2>
+                    {% if weather_data %}
+                    <span class="dash-weather-pill {% if weather_data.waf < 0.90 %}storm{% elif weather_data.waf < 1.0 %}rain{% elif weather_data.waf > 1.05 %}sun{% endif %}">
+                        {{ weather_data.icon }}
+                        {{ weather_data.temp_max }}°C
+                        <span class="waf-chip {% if weather_data.waf < 0.90 %}bg-danger text-white{% elif weather_data.waf < 1.0 %}bg-warning text-dark{% elif weather_data.waf > 1.05 %}bg-success text-white{% else %}bg-secondary text-white{% endif %}">
+                            WAF {{ weather_data.waf|floatformat:2 }}
+                        </span>
+                    </span>
+                    {% endif %}
                 </div>
                 <div class="erp-card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-muted fw-bold small">DỰ KIẾN LƯỢNG KHÁCH</span>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted fw-bold small">DỰ KIẾN TỔNG KHÁCH</span>
                         <span class="fs-4 fw-bold text-dark">{{ ai_khach_max|default:"0" }} <span class="fs-6 text-muted">Pax</span></span>
+                    </div>
+                    {% if weather_data %}
+                    <div class="small text-muted mb-2 text-end">
+                        <i class="bi bi-cloud-sun me-1"></i>
+                        Đã điều chỉnh thời tiết: <b>{{ weather_data.description }}</b>,
+                        mưa {{ weather_data.precipitation }}mm
+                        <span class="ms-1 {% if weather_data.waf < 1.0 %}text-warning fw-bold{% elif weather_data.waf > 1.05 %}text-success fw-bold{% endif %}">
+                            (WAF {{ weather_data.waf|floatformat:2 }})
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-flex gap-2 mb-3">
+                        <div class="flex-fill bg-light rounded p-2 text-center border border-warning" style="border-left-width: 3px !important;">
+                            <div class="small text-muted fw-bold mb-1"><i class="bi bi-brightness-high text-warning"></i> CA TRƯA</div>
+                            <div class="fw-bold fs-5 text-dark">{{ ai_khach_trua|default:"0" }}</div>
+                        </div>
+                        <div class="flex-fill bg-light rounded p-2 text-center border border-primary" style="border-left-width: 3px !important;">
+                            <div class="small text-muted fw-bold mb-1"><i class="bi bi-moon-stars text-primary"></i> CA TỐI</div>
+                            <div class="fw-bold fs-5 text-dark">{{ ai_khach_toi|default:"0" }}</div>
+                        </div>
                     </div>
                     
                     <div class="load-gauge-bg mb-3">
@@ -221,15 +281,29 @@
                     
                     <div class="d-flex justify-content-between small text-muted mb-4">
                         <span>0</span>
-                        <span>Sức chứa: 500</span>
+                        <span>Sức chứa: <span id="maxCapacityLabel">800</span></span>
                     </div>
 
                     <div class="p-3 rounded bg-light border">
                         <div class="fw-bold text-dark mb-1 fs-6"><i class="bi bi-person-workspace text-secondary"></i> Khuyến nghị nhân sự:</div>
                         <ul class="mb-0 small text-muted" style="padding-left: 1.2rem;">
-                            <li>Cần chuẩn bị tối thiểu <b>{% widthratio ai_khach_max 30 1 %} nhân viên</b> phục vụ (Tỷ lệ 1:30).</li>
-                            <li>Tình trạng tải trọng: <b id="capacityStatus" class="text-success">Trong ngưỡng an toàn</b>.</li>
+                            <li class="mb-2">Ca trưa: Khuyến nghị <b><span id="staffTrua">0</span> Nhân viên phục vụ</b> (Đã xếp: {{ staff_trua_thuc_te|default:"0" }}) <span id="diffTrua" class="d-block mt-1 ms-3"></span></li>
+                            <li class="mb-2">Ca tối: Khuyến nghị <b><span id="staffToi">0</span> Nhân viên phục vụ</b> (Đã xếp: {{ staff_toi_thuc_te|default:"0" }}) <span id="diffToi" class="d-block mt-1 ms-3"></span></li>
                         </ul>
+                        {% for insight in insights_today %}
+                            {% if insight.algo_tag == 'WMA + Workload Rule' %}
+                            <div class="mt-2 p-2 rounded" style="background:#fff; font-size:0.75rem; color:#334155; font-weight:500; border: 1px dashed #cbd5e1;">
+                                <i class="bi bi-arrow-right-circle text-primary me-1"></i>{{ insight.action }}
+                            </div>
+                            <div class="mt-2 mb-2 d-flex justify-content-between align-items-center">
+                                <span style="font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:100px; background:{% if insight.confidence >= 80 %}#dcfce7; color:#166534{% elif insight.confidence >= 65 %}#fef3c7; color:#92400e{% else %}#fee2e2; color:#b91c1c{% endif %};">{{ insight.confidence }}% tin cậy</span>
+                                <span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">{{ insight.algo_tag }}</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        <div class="mt-2 text-end">
+                            <a href="{% url 'shifts' %}" class="btn btn-sm btn-outline-warning text-dark fw-bold border-warning" style="font-size:0.75rem;"><i class="bi bi-gear"></i> Phân ca ngay</a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -241,7 +315,7 @@
                     <h2 class="erp-card-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Rủi ro cạn nguyên liệu (Trong ca)</h2>
                 </div>
                 <div class="erp-card-body p-3">
-                    <p class="small text-muted mb-3">Dựa trên tốc độ tiêu hao hiện tại, các món sau có nguy cơ hết trước khi đóng cửa:</p>
+                    <p class="small text-muted mb-3">Dựa trên tốc độ xuất kho trung bình theo chu kỳ dữ liệu AI, các món sau có nguy cơ thiếu hụt:</p>
                     
                     {% for item in inventory_warnings|slice:":2" %}
                     <div class="p-3 border rounded mb-2 bg-white" style="border-left: 4px solid #dc2626 !important;">
@@ -249,10 +323,22 @@
                             <h6 class="fw-bold m-0 text-dark">{{ item.ten_nguyen_lieu }}</h6>
                             <span class="badge badge-erp badge-danger">High Risk</span>
                         </div>
-                        <div class="small text-muted">
+                        <div class="small text-muted mb-2">
                             Kho còn: <b>{{ item.ton_kho }} {{ item.don_vi }}</b>. <br>
                             Dự kiến thiếu: <b class="text-danger">{{ item.de_xuat_nhap }} {{ item.don_vi }}</b> để phục vụ ca tới.
                         </div>
+                        {% for insight in insights_today %}
+                            {% if insight.algo_tag == 'JIT Burn Rate + Safety Stock' and item.ten_nguyen_lieu in insight.title|default:"" %}
+                            <div class="mt-2 p-2 rounded mb-2" style="background:#f8fafc; font-size:0.75rem; color:#334155; font-weight:500; border: 1px dashed #cbd5e1;">
+                                <i class="bi bi-arrow-right-circle text-primary me-1"></i>{{ insight.action }}
+                            </div>
+                            <div class="mb-2 d-flex justify-content-between align-items-center">
+                                <span style="font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:100px; background:{% if insight.confidence >= 80 %}#dcfce7; color:#166534{% elif insight.confidence >= 65 %}#fef3c7; color:#92400e{% else %}#fee2e2; color:#b91c1c{% endif %};">{{ insight.confidence }}% tin cậy</span>
+                                <span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">{{ insight.algo_tag }}</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                        <a href="{% url 'inventory' %}?auto_nl_id={{ item.id }}&auto_sl={{ item.de_xuat_nhap }}" class="btn btn-sm btn-danger fw-bold py-1 w-100" style="font-size:0.75rem;"><i class="bi bi-box-arrow-in-right"></i> Nhập kho ngay</a>
                     </div>
                     {% empty %}
                     <div class="text-center py-4 text-muted">
@@ -267,7 +353,7 @@
         <div class="col-lg-4">
             <div class="erp-card border-warning" style="border-top-width: 4px;">
                 <div class="erp-card-header bg-white">
-                    <h2 class="erp-card-title"><i class="bi bi-fire text-warning"></i> Top 5 Đồ Uống Hôm Nay</h2>
+                    <h2 class="erp-card-title"><i class="bi bi-fire text-warning"></i> Chiến lược Upsell Đồ Uống</h2>
                 </div>
                 <div class="erp-card-body p-0">
                     <table class="table-erp">
@@ -280,7 +366,10 @@
                         <tbody>
                             {% for mon in top_do_uong %}
                             <tr>
-                                <td class="fw-bold text-dark">{{ mon.ten_mon_luu_tru }}</td>
+                                <td class="fw-bold text-dark">
+                                    {{ mon.ten_mon_luu_tru }}
+                                    {% if forloop.first %} <span class="badge badge-erp badge-danger ms-1">🔥 Hot</span> {% endif %}
+                                </td>
                                 <td class="text-end text-primary fw-bold">{{ mon.total_sold|intcomma }}</td>
                             </tr>
                             {% empty %}
@@ -294,6 +383,7 @@
 
     </div>
 </div>
+
 
 {{ chart_labels|json_script:"chart-labels" }}
 {{ chart_thuc_te|json_script:"chart-actual" }}
@@ -316,35 +406,64 @@
         }
 
         // Action Buttons
-        document.getElementById('btnReload')?.addEventListener('click', function() {
-            this.disabled = true;
-            this.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin"></i> Đang tải...';
-            window.location.reload();
-        });
-
-        // Tự động làm mới 3 phút
-        setInterval(() => window.location.reload(), 180000);
-
-        // ==========================================
-        // 1. FORMAT TIỀN TỆ JS (Dấu Chấm)
-        // ==========================================
-        document.querySelectorAll('.format-money').forEach(function(el) {
-            let rawValue = el.innerText.trim().replace(/,/g, ''); 
-            let numberValue = parseFloat(rawValue);
-            if (!isNaN(numberValue)) {
-                el.innerText = numberValue.toLocaleString('vi-VN');
+        window.forceRefresh = function() {
+            const btn = document.getElementById('btnReload');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin"></i> Đang tải...';
             }
-        });
+            // Gọi ?refresh=1 để xóa cache cũ, lấy dữ liệu mới ngay
+            const url = new URL(window.location.href);
+            url.searchParams.set('refresh', '1');
+            window.location.href = url.toString();
+        }
+
+        // Tự động làm mới 90 giây (giảm từ 3 phút)
+        setInterval(() => forceRefresh(), 90000);
+
 
         // ==========================================
-        // 2. HIỆU ỨNG THANH TẢI TRỌNG
+        // 2. HIỆU ỨNG THANH TẢI TRỌNG & TÍNH NHÂN SỰ ĐỘNG
         // ==========================================
         setTimeout(function() {
             const capacityBar = document.getElementById('capacityBar');
             if (capacityBar) {
                 const aiKhachMax = parseInt("{{ ai_khach_max|default:'0' }}"); 
-                const maxCapacity = 500; 
+                const aiKhachTrua = parseInt("{{ ai_khach_trua|default:'0' }}"); 
+                const aiKhachToi = parseInt("{{ ai_khach_toi|default:'0' }}"); 
+                const tongBan = parseInt("{{ tong_ban|default:'20' }}");
+                const maxCapacity = parseInt("{{ tong_suc_chua|default:'0' }}") || (tongBan * 4); 
+                const maxCapacityLabel = document.getElementById('maxCapacityLabel');
+                if (maxCapacityLabel) maxCapacityLabel.innerText = maxCapacity;
                 
+                // Tính toán nhân sự bằng JS cho linh hoạt
+                const nhanSuTrua = Math.ceil(aiKhachTrua / 25);
+                const nhanSuToi = Math.ceil(aiKhachToi / 25);
+                
+                const staffTruaEl = document.getElementById('staffTrua');
+                if (staffTruaEl) staffTruaEl.innerText = nhanSuTrua;
+                const staffToiEl = document.getElementById('staffToi');
+                if (staffToiEl) staffToiEl.innerText = nhanSuToi;
+
+                // Tính toán thừa/thiếu
+                const actualTrua = parseInt("{{ staff_trua_thuc_te|default:'0' }}");
+                const actualToi = parseInt("{{ staff_toi_thuc_te|default:'0' }}");
+
+                const diffTruaEl = document.getElementById('diffTrua');
+                if (diffTruaEl) {
+                    let diff = actualTrua - nhanSuTrua;
+                    if (diff < 0) diffTruaEl.innerHTML = `<b class="text-danger">👉 Thiếu ${Math.abs(diff)} Nhân viên phục vụ</b>`;
+                    else if (diff > 0) diffTruaEl.innerHTML = `<b class="text-warning text-dark">👉 Thừa ${diff} Nhân viên phục vụ</b>`;
+                    else diffTruaEl.innerHTML = `<b class="text-success">👉 Đủ Nhân viên phục vụ</b>`;
+                }
+                const diffToiEl = document.getElementById('diffToi');
+                if (diffToiEl) {
+                    let diff = actualToi - nhanSuToi;
+                    if (diff < 0) diffToiEl.innerHTML = `<b class="text-danger">👉 Thiếu ${Math.abs(diff)} Nhân viên phục vụ</b>`;
+                    else if (diff > 0) diffToiEl.innerHTML = `<b class="text-warning text-dark">👉 Thừa ${diff} Nhân viên phục vụ</b>`;
+                    else diffToiEl.innerHTML = `<b class="text-success">👉 Đủ Nhân viên phục vụ</b>`;
+                }
+
                 let percentage = (aiKhachMax / maxCapacity) * 100;
                 if (percentage > 100) percentage = 100; 
                 
@@ -353,12 +472,6 @@
                 if (percentage >= 80) {
                     capacityBar.classList.remove('bg-primary');
                     capacityBar.classList.add('bg-danger');
-                    
-                    const statusText = document.getElementById('capacityStatus');
-                    if(statusText) {
-                        statusText.innerText = 'Cảnh báo: Rủi ro quá tải phục vụ!';
-                        statusText.classList.replace('text-success', 'text-danger');
-                    }
                 }
             }
         }, 500);
@@ -369,10 +482,19 @@
         const canvasGuest = document.getElementById('guestChart');
         if (canvasGuest) {
             try {
-                const labels = JSON.parse(document.getElementById('chart-labels').textContent || "[]");
-                const actualData = JSON.parse(document.getElementById('chart-actual').textContent || "[]");
-                const forecastData = JSON.parse(document.getElementById('chart-forecast').textContent || "[]");
-                
+                const allLabels = JSON.parse(document.getElementById('chart-labels').textContent || "[]");
+                const allActualData = JSON.parse(document.getElementById('chart-actual').textContent || "[]");
+                const allForecastData = JSON.parse(document.getElementById('chart-forecast').textContent || "[]");
+
+                // Chỉ hiển thị khung giờ hoạt động: 8h – 22h (index 8 → 22)
+                const START_H = 8, END_H = 22;
+                const labels = allLabels.slice(START_H, END_H + 1);
+                const actualData = allActualData.slice(START_H, END_H + 1);
+                const forecastData = allForecastData.slice(START_H, END_H + 1);
+
+                // Dải confidence: min = forecast * 0.92, max = forecast (thực tế chính là max)
+                const forecastMin = forecastData.map(v => v != null ? Math.round(v * 0.92) : null);
+
                 new Chart(canvasGuest.getContext('2d'), {
                     type: 'line',
                     data: {
@@ -383,21 +505,43 @@
                                 borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)',
                                 borderWidth: 3, tension: 0.4, fill: true,
                                 pointBackgroundColor: '#fff', pointBorderColor: '#2563eb', pointRadius: 4,
+                                order: 1,
                             },
                             {
-                                label: 'AI Dự Báo', data: forecastData,
+                                label: 'AI Dự Báo (Kịch bản cao)', data: forecastData,
                                 borderColor: '#9333ea', borderWidth: 2, borderDash: [5, 5],
+                                tension: 0.4, fill: '-1',
+                                backgroundColor: 'rgba(147, 51, 234, 0.06)',
+                                pointBackgroundColor: '#fff', pointBorderColor: '#9333ea', pointRadius: 3,
+                                order: 2,
+                            },
+                            {
+                                label: 'AI Dự Báo (Kịch bản thấp)', data: forecastMin,
+                                borderColor: '#9333ea', borderWidth: 1, borderDash: [3, 6],
                                 tension: 0.4, fill: false,
-                                pointBackgroundColor: '#fff', pointBorderColor: '#9333ea', pointRadius: 4,
+                                backgroundColor: 'transparent',
+                                pointRadius: 0,
+                                order: 3,
                             }
                         ]
                     },
                     options: {
                         responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false }, tooltip: { padding: 12 } },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                padding: 12,
+                                callbacks: {
+                                    label: function(ctx) {
+                                        if (ctx.datasetIndex === 2) return null; // Ẩn tooltip của dải dưới
+                                        return ` ${ctx.dataset.label}: ${(ctx.parsed.y || 0).toLocaleString('vi-VN')} khách`;
+                                    }
+                                }
+                            }
+                        },
                         scales: {
-                            y: { 
-                                beginAtZero: true, 
+                            y: {
+                                beginAtZero: true,
                                 grid: { color: '#f1f5f9' },
                                 ticks: {
                                     callback: function(value) { return value.toLocaleString('vi-VN'); }

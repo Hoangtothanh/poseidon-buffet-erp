@@ -1,349 +1,689 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}{{ page_title|default:"AI Hỗ trợ Ra Quyết Định" }} - Poseidon ERP{% endblock %}
+{% block title %}AI Dự Báo Tương Lai - Poseidon ERP{% endblock %}
 
 {% block extra_css %}
 <style>
-    .ai-gradient-text {
-        background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 900;
+    /* ==========================================
+       CSS ĐỒNG BỘ SAAS-ERP (giống suppliers.html)
+       ========================================== */
+    .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; }
+    .page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    .page-subtitle { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0 0 8px 0; }
+    .breadcrumb-saas { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0; display: flex; align-items: center; }
+    .breadcrumb-saas a { color: var(--accent); text-decoration: none; }
+    .breadcrumb-saas a:hover { text-decoration: underline; }
+
+    /* Date Picker Toolbar */
+    .toolbar-saas { background: var(--bg-card); padding: 16px 20px; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .date-input-group { display: flex; align-items: center; gap: 10px; flex-grow: 1; }
+    .date-input-group label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
+    .date-input-group input[type="date"] { border-radius: 10px; border: 1px solid var(--border-color); height: 40px; padding: 0 14px; font-size: 0.92rem; font-weight: 600; color: var(--text-main); background: #f8fafc; transition: var(--transition); }
+    .date-input-group input[type="date"]:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(229,57,53,0.1); outline: none; }
+    .btn-forecast { background: var(--primary); color: #fff; height: 40px; border-radius: 10px; font-weight: 700; padding: 0 24px; border: none; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(229,57,53,0.25); font-size: 0.9rem; }
+    .btn-forecast:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-window { background: #f1f5f9; color: var(--text-muted); height: 34px; border-radius: 8px; font-weight: 600; padding: 0 14px; border: 1px solid var(--border-color); font-size: 0.8rem; transition: var(--transition); cursor: pointer; }
+    .btn-window.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .ai-engine-badge { display: inline-flex; align-items: center; gap: 6px; background: #f0fdf4; border: 1px solid #bbf7d0; color: #16a34a; border-radius: 20px; padding: 5px 14px; font-size: 0.78rem; font-weight: 700; }
+    .ai-engine-badge::before { content: ''; width: 7px; height: 7px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+
+    /* Alert Banner */
+    .forecast-alert { border-radius: 12px; padding: 14px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px; font-size: 0.9rem; font-weight: 600; border: 1px solid; }
+    .alert-future { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+    .alert-today  { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .alert-past   { background: #fffbeb; border-color: #fde68a; color: #92400e; }
+
+    /* KPI Grid (4 cards) */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 28px; }
+    .kpi-card { background: var(--bg-card); border-radius: 16px; padding: 20px 22px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; transition: var(--transition); position: relative; overflow: hidden; }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; border-radius: 4px 0 0 4px; }
+    .kpi-card.c-primary::before { background: #ef4444; }
+    .kpi-card.c-blue::before   { background: #3b82f6; }
+    .kpi-card.c-orange::before { background: #f59e0b; }
+    .kpi-card.c-purple::before { background: #8b5cf6; }
+    .kpi-card.c-green::before  { background: #10b981; }
+    .kpi-card.c-weather::before { background: #0ea5e9; }
+    .kpi-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .kpi-value { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1.1; }
+    .kpi-sub { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
+    .icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .icon-red    { background: #fee2e2; color: #ef4444; }
+    .icon-blue   { background: #dbeafe; color: #3b82f6; }
+    .icon-orange { background: #fef3c7; color: #f59e0b; }
+    .icon-purple { background: #ede9fe; color: #7c3aed; }
+    .icon-green  { background: #dcfce7; color: #10b981; }
+    .icon-sky    { background: #e0f2fe; color: #0369a1; }
+
+    /* Content Cards */
+    .erp-card { background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); overflow: hidden; }
+    .erp-card-header { padding: 16px 22px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+    .erp-card-title { font-size: 0.95rem; font-weight: 800; color: var(--text-main); margin: 0; display: flex; align-items: center; gap: 8px; }
+    .erp-card-body { padding: 20px 22px; }
+
+    /* Section divider */
+    .section-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin: 28px 0 16px 0; display: flex; align-items: center; gap: 10px; }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
+
+    /* Ingredient Table */
+    .table-container { background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); overflow: hidden; margin-bottom: 28px; }
+    .table-saas { width: 100%; border-collapse: collapse; min-width: 760px; }
+    .table-saas th { background: #f8fafc; color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; font-weight: 800; padding: 14px 18px; border-bottom: 1px solid var(--border-color); letter-spacing: 0.4px; white-space: nowrap; }
+    .table-saas td { padding: 13px 18px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; color: var(--text-main); }
+    .table-saas tr:last-child td { border-bottom: none; }
+    .table-saas tr:hover { background: #f8fafc; }
+    .nl-name { font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
+    .nl-cat  { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+
+    /* Status Badges */
+    .badge-status { padding: 4px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; border: 1px solid transparent; white-space: nowrap; }
+    .badge-danger  { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+    .badge-warning { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+    .badge-success { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+
+    /* Filter Tabs */
+    .filter-tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 22px; border-bottom: 1px solid var(--border-color); background: #fafafa; }
+    .tab-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; border: 1px solid var(--border-color); background: #fff; color: var(--text-muted); cursor: pointer; transition: var(--transition); }
+    .tab-btn:hover { background: #f1f5f9; color: var(--text-main); }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .tab-count { background: rgba(255,255,255,0.25); border-radius: 100px; padding: 1px 7px; font-size: 0.7rem; }
+    .tab-btn:not(.active) .tab-count { background: #e2e8f0; color: var(--text-muted); }
+
+    /* Insight Cards */
+    .insight-card { border-radius: 12px; border: 1px solid var(--border-color); padding: 16px 18px; margin-bottom: 12px; transition: var(--transition); cursor: pointer; }
+    .insight-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .insight-card.warning { border-left: 4px solid #f59e0b; background: #fffbeb; }
+    .insight-card.opportunity { border-left: 4px solid #10b981; background: #f0fdf4; }
+    .insight-card.risk { border-left: 4px solid #ef4444; background: #fef2f2; }
+    .insight-card.info { border-left: 4px solid #3b82f6; background: #eff6ff; }
+    .insight-title { font-size: 0.9rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+    .insight-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+    .insight-action { margin-top: 10px; padding: 8px 12px; background: rgba(0,0,0,0.04); border-radius: 8px; font-size: 0.8rem; color: var(--text-main); font-weight: 500; }
+    .insight-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .conf-pill { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
+    .conf-high { background: #dcfce7; color: #166534; }
+    .conf-mid  { background: #fef3c7; color: #92400e; }
+    .conf-low  { background: #fee2e2; color: #b91c1c; }
+    .algo-tag  { font-size: 0.68rem; color: var(--text-muted); font-weight: 600; padding: 2px 8px; border-radius: 100px; background: #f1f5f9; }
+
+    /* Chart */
+    .chart-wrapper { position: relative; height: 240px; }
+
+    /* AI Model Params */
+    .param-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+    .param-row:last-child { border-bottom: none; }
+    .param-label { color: var(--text-muted); font-weight: 600; }
+    .param-value { font-weight: 800; color: var(--text-main); }
+
+    /* Animations */
+    .fade-in-up { animation: fadeInUp 0.35s ease forwards; opacity: 0; transform: translateY(10px); }
+    .delay-1 { animation-delay: 0.08s; }
+    .delay-2 { animation-delay: 0.16s; }
+    .delay-3 { animation-delay: 0.24s; }
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+    @media (max-width: 768px) {
+        .kpi-grid { grid-template-columns: 1fr 1fr; }
+        .date-input-group { flex-wrap: wrap; }
     }
-    
-    /* Chuyển các link thành giao diện nút bấm */
-    .filter-btn-group a.btn { border-color: var(--border-color); color: var(--text-muted); font-weight: 600; font-size: 0.85rem; text-decoration: none;}
-    .filter-btn-group a.btn.active { background: #f5f3ff; color: #8b5cf6; border-color: #8b5cf6; pointer-events: none;}
-
-    .ai-kpi-card { background: #fff; border-radius: 16px; padding: 20px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); position: relative; overflow: hidden; transition: var(--transition); height: 100%;}
-    .ai-kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(139, 92, 246, 0.1); border-color: #ddd6fe;}
-    .ai-kpi-title { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;}
-    .ai-kpi-value { font-size: 1.8rem; font-weight: 900; color: var(--text-main); margin-bottom: 4px; line-height: 1;}
-    
-    .trend-up { color: #10b981; font-size: 0.85rem; font-weight: 700; background: #dcfce7; padding: 2px 8px; border-radius: 20px;}
-    .trend-down { color: #ef4444; font-size: 0.85rem; font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 20px;}
-
-    .chart-container { height: 250px; width: 100%; position: relative; }
-    
-    .ai-insight-box { background: #fff; border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 20px; box-shadow: var(--shadow-sm); overflow: hidden;}
-    .ai-insight-header { background: #f8fafc; padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;}
-    .ai-insight-body { padding: 20px; }
-    
-    .insight-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-    .insight-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
-    
-    .ai-action-box { background: #f5f3ff; border: 1px dashed #c4b5fd; border-radius: 12px; padding: 15px; margin-top: 15px; }
-    .confidence-badge { background: #1e293b; color: #fff; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;}
-    
-    .btn-apply { background: #8b5cf6; color: white; font-weight: 700; border: none; padding: 8px 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(139,92,246,0.3); transition: 0.2s;}
-    .btn-apply:hover { background: #7c3aed; transform: translateY(-1px); color: white;}
-    .btn-resolve { background: #f1f5f9; color: var(--text-muted); font-weight: 600; border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 8px; transition: 0.2s;}
-    .btn-resolve:hover { background: #e2e8f0; color: var(--text-main);}
-
-    .mutation-item { padding: 12px 0; border-bottom: 1px dashed var(--border-color); display: flex; align-items: flex-start; gap: 12px;}
-    .mutation-item:last-child { border-bottom: none; padding-bottom: 0;}
-    .warning-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 15px; border-left: 4px solid #f59e0b;}
+    @media (max-width: 480px) {
+        .kpi-grid { grid-template-columns: 1fr; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-header fade-in-up d-flex justify-content-between align-items-center mb-4">
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mb-3" style="border-radius:12px; font-weight:500;" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- PAGE HEADER -->
+<div class="page-header fade-in-up">
     <div>
-        <h1 class="page-title"><i class="bi bi-robot text-primary me-2" style="color: #8b5cf6 !important;"></i> <span class="ai-gradient-text">{{ page_title|default:"AI Hỗ trợ Ra Quyết Định (DSS)" }}</span></h1>
-        <p class="page-subtitle">Hệ thống phân tích Pipeline: Data &rarr; Features &rarr; Scoring Model &rarr; Decisions</p>
+        <h1 class="page-title">
+            <i class="bi bi-robot text-primary"></i> AI Dự Báo Tương Lai
+        </h1>
+        <p class="page-subtitle">Phân tích và lập kế hoạch trước cho ngày bất kỳ</p>
+        <div class="breadcrumb-saas">
+            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a>
+            <i class="bi bi-chevron-right mx-2" style="font-size:0.7rem;"></i>
+            <span class="text-muted">AI Dự Báo</span>
+        </div>
     </div>
-    
-    <div class="btn-group filter-btn-group shadow-sm">
-        <a href="?range=today" class="btn btn-outline-secondary {% if time_range == 'today' or not time_range %}active{% endif %}">Hôm nay</a>
-        <a href="?range=7d" class="btn btn-outline-secondary {% if time_range == '7d' %}active{% endif %}">7 ngày tới</a>
-        <a href="?range=30d" class="btn btn-outline-secondary {% if time_range == '30d' %}active{% endif %}">30 ngày tới</a>
+    <div class="ai-engine-badge">
+        AI Engine Active
     </div>
 </div>
 
-<div class="row g-3 mb-4 fade-in-up delay-1">
-    <div class="col-md-3">
-        <div class="ai-kpi-card border-bottom border-4" style="border-bottom-color: #8b5cf6 !important;" data-bs-toggle="tooltip" title="Dựa trên trung bình tuần + hệ số mùa vụ x {% if time_range == '7d' %}7 ngày{% elif time_range == '30d' %}30 ngày{% else %}1 ngày{% endif %}">
-            <div class="ai-kpi-title">
-                <span>🤖 AI Forecast Pax</span>
-                <i class="bi bi-info-circle text-muted" style="font-size: 0.8rem;"></i>
-            </div>
-            <div class="ai-kpi-value">{{ features.pax_forecast|default:"0"|intcomma }} <span class="fs-5 text-muted">Pax</span></div>
-            <div class="mt-2 text-muted small ms-1">Học từ Lịch sử: {{ features.avg_pax_7d|floatformat:0 }} pax/ngày</div>
+<!-- DATE PICKER TOOLBAR -->
+<div class="toolbar-saas fade-in-up delay-1">
+    <form method="GET" action="" id="forecastForm" class="d-flex flex-wrap gap-3 align-items-center w-100">
+        <div class="date-input-group">
+            <label for="dateInput"><i class="bi bi-calendar3 me-1"></i>Chọn ngày dự báo:</label>
+            <input type="date" id="dateInput" name="date"
+                   value="{{ target_date }}"
+                   onchange="this.form.submit()">
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="ai-kpi-card border-bottom border-4" style="border-bottom-color: #3b82f6 !important;" data-bs-toggle="tooltip" title="Tỷ lệ hóa đơn có >= 4 khách">
-            <div class="ai-kpi-title">
-                <span>👥 Family Ratio</span>
-                <i class="bi bi-info-circle text-muted" style="font-size: 0.8rem;"></i>
-            </div>
-            <div class="ai-kpi-value">{{ features.family_ratio|default:"0"|floatformat:1 }} <span class="fs-5 text-muted">%</span></div>
-            <div class="mt-2 text-muted small ms-1">Tổng bill pattern base: {{ features.total_bills_today|default:"0" }}</div>
+
+        <div class="d-flex gap-2 align-items-center">
+            <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Dữ liệu học:</span>
+            <button type="submit" name="window" value="15d" class="btn-window {% if window == '15d' %}active{% endif %}">15 ngày</button>
+            <button type="submit" name="window" value="30d" class="btn-window {% if window == '30d' %}active{% endif %}">30 ngày</button>
+            <button type="submit" name="window" value="60d" class="btn-window {% if window == '60d' %}active{% endif %}">60 ngày</button>
         </div>
+
+        <button type="submit" class="btn-forecast ms-auto">
+            <i class="bi bi-cpu-fill"></i> Chạy AI
+        </button>
+    </form>
+</div>
+
+<!-- ALERT BANNER -->
+{% if is_future %}
+<div class="forecast-alert alert-future fade-in-up delay-1">
+    <i class="bi bi-calendar-week fs-4"></i>
+    <div>
+        <b>Đang xem dự báo cho ngày {{ target_date_obj|date:"d/m/Y" }}</b> (còn {{ delta_days }} ngày nữa)
+        — Mô hình WMA sử dụng lịch sử {{ window }} ngày qua, cùng thứ {{ target_date_obj|date:"l" }}{% if features.weather_data %}, có tích hợp thời tiết dự báo{% endif %}.
     </div>
-    <div class="col-md-3">
-        <div class="ai-kpi-card border-bottom border-4" style="border-bottom-color: #ef4444 !important;">
-            <div class="ai-kpi-title">
-                <span><i class="bi bi-pie-chart-fill text-warning me-1"></i> Tăng trưởng Dessert</span>
-            </div>
-            <div class="ai-kpi-value {% if features.dessert_growth < 0 %}text-danger{% else %}text-success{% endif %}">
-                {{ features.dessert_growth|default:"0"|floatformat:1 }}%
-            </div>
-            <div class="mt-2">
-                {% if features.dessert_growth < 0 %}
-                    <span class="trend-down"><i class="bi bi-arrow-down-right"></i> Suy giảm</span>
-                {% else %}
-                    <span class="trend-up"><i class="bi bi-arrow-up-right"></i> Tăng trưởng</span>
+</div>
+{% elif is_past %}
+<div class="forecast-alert alert-past fade-in-up delay-1">
+    <i class="bi bi-clock-history fs-4"></i>
+    <div>
+        <b>Đang xem phân tích ngày quá khứ {{ target_date_obj|date:"d/m/Y" }}</b>
+        — Dữ liệu thời tiết lịch sử không khả dụng. WAF = 1.0 (không điều chỉnh thời tiết).
+    </div>
+</div>
+{% else %}
+<div class="forecast-alert alert-today fade-in-up delay-1">
+    <i class="bi bi-check-circle-fill fs-4"></i>
+    <div>
+        <b>Đang xem dự báo cho Hôm Nay ({{ target_date_obj|date:"d/m/Y" }})</b>
+        — Kết hợp dữ liệu lịch sử và thực tiễn. Xem Dashboard để theo dõi thời gian thực.
+    </div>
+</div>
+{% endif %}
+
+<!-- ======================================================
+     KPI ROW — 4 CARDS
+====================================================== -->
+<div class="kpi-grid fade-in-up delay-1">
+
+    <!-- 1. Khách dự báo -->
+    <div class="kpi-card c-primary">
+        <div>
+            <div class="kpi-label">👥 Tổng Khách Dự Báo</div>
+            <div class="kpi-value">{{ features.pax_forecast|default:"0"|intcomma }}</div>
+            <div class="kpi-sub">
+                Pax · WMA × Weekday × WAF
+                {% if features.weather_data %}
+                    <br><span style="color: {% if features.weather_waf < 1.0 %}#f59e0b{% elif features.weather_waf > 1.05 %}#10b981{% else %}#64748b{% endif %}; font-weight:700;">
+                        {{ features.weather_data.icon }} WAF={{ features.weather_waf|floatformat:2 }}
+                    </span>
                 {% endif %}
-                <span class="text-muted small ms-1">So với T.Bình tuần</span>
             </div>
         </div>
+        <div class="icon-box icon-red"><i class="bi bi-people-fill"></i></div>
     </div>
-    <div class="col-md-3">
-        <div class="ai-kpi-card border-bottom border-4" style="border-bottom-color: #f59e0b !important; background: #fffbeb;">
-            <div class="ai-kpi-title text-warning-custom">
-                <span style="color: #b45309;">🤖 AI Cảnh báo Tải Trọng</span>
+
+    <!-- 2. Thời tiết -->
+    <div class="kpi-card c-weather">
+        <div>
+            <div class="kpi-label">🌤️ Thời Tiết</div>
+            {% if features.weather_data %}
+            <div class="kpi-value" style="font-size:1.5rem;">
+                {{ features.weather_data.icon }} {{ features.weather_data.temp_max }}°C
             </div>
-            <div class="ai-kpi-value text-warning-custom" style="color: #b45309;">{{ features.staff_count|default:"0" }} <span class="fs-5">Staff</span></div>
-            <div class="mt-2">
-                <span class="trend-down" style="background: #fef3c7; color: #b45309;"><i class="bi bi-exclamation-circle"></i> Workload</span> 
-                <span class="text-muted small ms-1" style="color: #b45309 !important;">
-                    {% if features.staff_count > 0 %}
-                        1 Phục vụ / {% widthratio features.pax_forecast features.staff_count 1 %} Khách
-                    {% else %}
-                        Chưa xếp ca!
-                    {% endif %}
-                </span>
-            </div>
+            <div class="kpi-sub">{{ features.weather_data.description }}<br>Mưa {{ features.weather_data.precipitation }} mm</div>
+            {% else %}
+            <div class="kpi-value" style="font-size:1rem; color:var(--text-muted);">Không có dữ liệu</div>
+            <div class="kpi-sub">WAF = 1.0 (không điều chỉnh)</div>
+            {% endif %}
         </div>
+        <div class="icon-box icon-sky"><i class="bi bi-thermometer-sun"></i></div>
     </div>
+
+    <!-- 3. Ca Trưa -->
+    <div class="kpi-card c-orange">
+        <div>
+            <div class="kpi-label">🌞 Ca Trưa (10h–15h)</div>
+            <div class="kpi-value">{{ features.pax_forecast_trua|default:"--" }}</div>
+            <div class="kpi-sub">Pax · cần {{ features.staff_required_trua|default:"--" }} Nhân viên phục vụ</div>
+        </div>
+        <div class="icon-box icon-orange"><i class="bi bi-brightness-high-fill"></i></div>
+    </div>
+
+    <!-- 4. Ca Tối -->
+    <div class="kpi-card c-purple">
+        <div>
+            <div class="kpi-label">🌙 Ca Tối (17h–22h)</div>
+            <div class="kpi-value">{{ features.pax_forecast_toi|default:"--" }}</div>
+            <div class="kpi-sub">Pax · cần {{ features.staff_required_toi|default:"--" }} Nhân viên phục vụ</div>
+        </div>
+        <div class="icon-box icon-purple"><i class="bi bi-moon-stars-fill"></i></div>
+    </div>
+
 </div>
 
-<div class="row g-4 mb-4 fade-in-up delay-2">
-    <div class="col-md-6">
-        <div class="card-saas p-4 h-100 bg-white border rounded-3 shadow-sm">
-            <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-graph-up text-primary me-2"></i> Xu hướng Doanh thu (Triệu VNĐ)</span>
-                <span class="badge bg-light text-dark border"><i class="bi bi-robot text-primary"></i> Lịch sử & Dự báo</span>
-            </h6>
-            <div class="chart-container">
-                <canvas id="revenueChart"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card-saas p-4 h-100 bg-white border rounded-3 shadow-sm">
-            <h6 class="fw-bold mb-3 d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-bar-chart-fill text-success me-2"></i> Dự báo Lưu lượng khách ({% if time_range == '7d' %}7 ngày tới{% elif time_range == '30d' %}30 ngày tới{% else %}Tối nay{% endif %})</span>
-                <span class="badge bg-light text-dark border"><i class="bi bi-robot text-primary"></i> Phân bổ theo giờ</span>
-            </h6>
-            <div class="chart-container">
-                <canvas id="trafficChart"></canvas>
-            </div>
-        </div>
-    </div>
+<!-- ======================================================
+     SECTION 1: BẢNG NGUYÊN LIỆU CẦN CHUẨN BỊ
+====================================================== -->
+<div class="section-label fade-in-up delay-2">
+    <i class="bi bi-box-seam text-primary"></i> Nguyên Liệu Cần Chuẩn Bị
 </div>
 
-<div class="row g-4 fade-in-up delay-3">
-    
-    <div class="col-md-8">
-        <h5 class="fw-bold mb-3 ai-gradient-text"><i class="bi bi-cpu-fill me-2"></i> AI Đề Xuất Chiến Lược (Decision Support)</h5>
-        
-        {% for insight in insights %}
-        <div class="ai-insight-box border-start border-4" 
-             style="border-left-color: {% if insight.color == 'danger' %}#ef4444{% elif insight.color == 'warning' %}#f59e0b{% else %}#10b981{% endif %} !important;">
-            
-            <div class="ai-insight-header flex-wrap gap-2">
-                <h6 class="fw-bold m-0 text-dark">
-                    <i class="bi {{ insight.icon }} text-{{ insight.color }} me-1"></i> {{ insight.title }}
-                </h6>
-                <div class="d-flex align-items-center gap-3">
-                    <span class="text-muted small d-none d-md-inline-block">
-                        <i class="bi bi-cpu"></i> <i>{{ insight.explain }}</i>
-                    </span>
-                    <span class="confidence-badge border border-success" style="background: #ecfdf5; color: #10b981;" data-bs-toggle="tooltip" title="Điểm tin cậy của thuật toán Scoring">
-                        <i class="bi bi-bullseye me-1"></i> AI Confidence: {{ insight.confidence|floatformat:1 }}%
-                    </span>
-                </div>
-            </div>
-            
-            <div class="ai-insight-body">
-                <div class="insight-row">
-                    <div class="insight-icon bg-{{ insight.color }} bg-opacity-10 text-{{ insight.color }}"><i class="bi {{ insight.icon }}"></i></div>
-                    <div>
-                        <span class="fw-bold text-dark d-block">Phân tích dữ liệu:</span>
-                        <span class="text-muted small">{{ insight.description }}</span>
-                    </div>
-                </div>
-                
-                <div class="insight-row">
-                    <div class="insight-icon bg-secondary bg-opacity-10 text-secondary"><i class="bi bi-diagram-3-fill"></i></div>
-                    <div>
-                        <span class="fw-bold text-dark d-block">Nguyên nhân lõi (Root Cause):</span>
-                        <span class="text-muted small">{{ insight.root_cause }}</span>
-                    </div>
-                </div>
-                
-                <div class="ai-action-box" {% if insight.color == 'warning' %}style="background: #fef3c7; border-color: #fde68a;"{% endif %}>
-                    <div class="mb-3">
-                        <span class="fw-bold text-dark"><i class="bi bi-lightbulb-fill text-warning me-1"></i> Quyết định đề xuất:</span>
-                        <p class="m-0 mt-1 small"><b>{{ insight.action }}</b></p>
-                    </div>
-                    
-                    <div class="bg-white p-2 rounded border mb-3 small d-flex justify-content-between align-items-center">
-                        <span><i class="bi bi-intersect text-danger me-1"></i> <b>Tác động dự kiến (Simulation):</b></span>
-                        <span class="fw-bold {% if insight.color == 'warning' %}text-primary{% else %}text-success{% endif %}">
-                            <i class="bi {% if insight.color == 'warning' %}bi-arrow-down-right{% else %}bi-arrow-up-right{% endif %}"></i> 
-                            {{ insight.simulation }} ({{ insight.impact_metric }})
-                        </span>
-                    </div>
-                    
-                    <div class="d-flex gap-2">
-                        <button class="btn-apply" {% if insight.color == 'warning' %}style="background: #f59e0b; box-shadow: 0 4px 10px rgba(245,158,11,0.3);"{% endif %} onclick="alert('Đã áp dụng tự động trên hệ thống ERP!')">
-                            <i class="bi {% if insight.color == 'warning' %}bi-send-fill{% else %}bi-check2-all{% endif %} me-1"></i> Thực thi / Áp dụng
-                        </button>
-                        <button class="btn-resolve" onclick="this.closest('.ai-insight-box').style.display='none'"><i class="bi bi-check-lg me-1"></i> Đánh dấu đã xử lý</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="text-center py-5 bg-white border rounded-3 text-muted shadow-sm">
-            <i class="bi bi-shield-check fs-1 text-success opacity-75"></i>
-            <p class="mt-3 mb-0 fw-bold">Hệ thống đang hoạt động trong ngưỡng tối ưu.</p>
-            <p class="small">AI chưa phát hiện rủi ro hay bất thường nào cần xử lý ngay.</p>
-        </div>
+<!-- KPI nhanh về kho -->
+<div class="d-flex gap-3 mb-3 flex-wrap fade-in-up delay-2">
+    <div class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 border" style="background:#fef2f2; border-color:#fecaca !important;">
+        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+        <span class="fw-bold text-danger" style="font-size:0.9rem;">{{ so_can_nhap }} nguyên liệu cần nhập thêm</span>
+    </div>
+    <div class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 border" style="background:#fffbeb; border-color:#fde68a !important;">
+        <i class="bi bi-exclamation-circle-fill text-warning"></i>
+        <span class="fw-bold text-warning" style="font-size:0.9rem;">{{ so_sap_het }} sắp hết hàng</span>
+    </div>
+    <div class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 border" style="background:#f0fdf4; border-color:#bbf7d0 !important;">
+        <i class="bi bi-check-circle-fill text-success"></i>
+        <span class="fw-bold text-success" style="font-size:0.9rem;">{{ so_du_hang }} đủ hàng</span>
+    </div>
+    {% if tong_chi_phi > 0 %}
+    <div class="d-flex align-items-center gap-2 px-4 py-2 rounded-3 border ms-auto" style="background:#eff6ff; border-color:#bfdbfe !important;">
+        <i class="bi bi-wallet2 text-primary"></i>
+        <span class="fw-bold text-primary" style="font-size:0.9rem;">Chi phí nhập ước tính: {{ tong_chi_phi|intcomma }} ₫</span>
+    </div>
+    {% endif %}
+</div>
+
+<div class="table-container fade-in-up delay-2">
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <button class="tab-btn active" onclick="filterTable('all', this)">
+            <i class="bi bi-grid"></i> Tất cả
+            <span class="tab-count">{{ nguyen_lieu_list|length }}</span>
+        </button>
+        <button class="tab-btn" onclick="filterTable('can_nhap', this)" style="border-color:#fecaca; color:#dc2626;">
+            <i class="bi bi-arrow-down-circle-fill text-danger"></i> Cần nhập
+            <span class="tab-count" style="background:#fee2e2; color:#dc2626;">{{ so_can_nhap }}</span>
+        </button>
+        <button class="tab-btn" onclick="filterTable('sap_het', this)" style="border-color:#fde68a; color:#d97706;">
+            <i class="bi bi-exclamation-circle text-warning"></i> Sắp hết
+            <span class="tab-count" style="background:#fef3c7; color:#d97706;">{{ so_sap_het }}</span>
+        </button>
+        {% for dm in danh_muc_list %}
+        <button class="tab-btn" onclick="filterCat('{{ dm.key }}', this)">
+            <i class="bi {{ dm.icon }}"></i> {{ dm.label }}
+        </button>
         {% endfor %}
     </div>
 
-    <div class="col-md-4">
-        
-        <div class="card-saas p-4 mb-4 bg-white border rounded-3 shadow-sm">
-            <h6 class="fw-bold mb-3 border-bottom pb-2 d-flex justify-content-between">
-                <span><i class="bi bi-bar-chart-steps text-success me-2"></i> Báo cáo Đột biến Menu</span>
-                <span class="badge bg-light text-muted border" data-bs-toggle="tooltip" title="Đã chuẩn hóa (Normalize) theo tỷ trọng giỏ hàng 3 ngày qua">AI Detect</span>
-            </h6>
-            
-            {% for item in mutations %}
-            <div class="mutation-item">
-                <div class="mutation-icon" style="background: {{ item.bg_color }}; color: {{ item.text_color }}; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                    <i class="bi {{ item.icon }}"></i>
-                </div>
-                <div>
-                    <h6 class="fw-bold m-0" style="font-size: 0.9rem;">{{ item.ten_mon }}</h6>
-                    <span class="text-muted" style="font-size: 0.75rem;">{{ item.mo_ta|safe }}</span>
-                </div>
-            </div>
-            {% empty %}
-            <div class="text-center text-muted small py-3">Chưa phát hiện biến động tỷ trọng gọi món đáng kể.</div>
-            {% endfor %}
-        </div>
-
-        <div class="card-saas p-4 mb-4 bg-white border rounded-3 shadow-sm">
-            <h6 class="fw-bold mb-3 border-bottom pb-2">
-                <i class="bi bi-list-check text-primary me-2"></i> Quyết định chờ duyệt
-            </h6>
-            <ul class="list-unstyled m-0">
-                {% for dec in decisions %}
-                <li class="mb-3 border-bottom pb-2">
-                    <span class="badge {% if dec.type == 'warning' %}bg-danger{% elif dec.type == 'risk' %}bg-warning text-dark{% else %}bg-success{% endif %} mb-1">
-                        {{ dec.type|upper }}
-                    </span>
-                    <p class="m-0 small fw-bold text-dark">{{ dec.title }}</p>
-                </li>
-                {% empty %}
-                <li class="text-muted small text-center py-3">Không có task chờ duyệt từ hệ thống AI.</li>
+    <div class="table-responsive">
+        <table class="table-saas" id="ingredientTable">
+            <thead>
+                <tr>
+                    <th width="28%">Nguyên liệu</th>
+                    <th width="10%" class="text-center">Tồn kho</th>
+                    <th width="10%" class="text-center">Nhu cầu</th>
+                    <th width="10%" class="text-center">Safety Stock</th>
+                    <th width="10%" class="text-center">Cần có</th>
+                    <th width="12%" class="text-center">Cần nhập</th>
+                    <th width="10%" class="text-center">Đơn giá</th>
+                    <th width="10%" class="text-center">Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody id="ingredientBody">
+                {% regroup nguyen_lieu_list by danh_muc as grouped_nl %}
+                {% for group in grouped_nl %}
+                <tr class="cat-header-row" data-bs-toggle="collapse" data-bs-target=".group-{{ group.grouper }}" style="cursor: pointer; background: #f1f5f9; border-top: 2px solid #e2e8f0;">
+                    <td colspan="8">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold" style="color: var(--text-main);"><i class="bi {{ group.list.0.danh_muc_icon }} text-primary me-2"></i> {{ group.list.0.danh_muc_label }}</span>
+                            <div>
+                                <span class="badge bg-white text-dark border rounded-pill px-2 py-1 me-2" style="font-size: 0.75rem;">{{ group.list|length }} món</span>
+                                <i class="bi bi-chevron-expand text-muted"></i>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% for nl in group.list %}
+                <tr class="item-row collapse group-{{ group.grouper }}" data-status="{{ nl.trang_thai }}" data-cat="{{ nl.danh_muc }}">
+                    <td>
+                        <div class="nl-name">{{ nl.ten_nguyen_lieu }}</div>
+                        <div class="nl-cat"><i class="bi {{ nl.danh_muc_icon }} me-1"></i>{{ nl.danh_muc_label }} · {{ nl.don_vi }}</div>
+                    </td>
+                    <td class="text-center">
+                        <span class="fw-bold {% if nl.ton_kho <= nl.muc_canh_bao %}text-danger{% else %}text-dark{% endif %}">
+                            {{ nl.ton_kho|floatformat:1 }}
+                        </span>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">Min: {{ nl.muc_canh_bao }}</div>
+                    </td>
+                    <td class="text-center fw-bold">{{ nl.nhu_cau|floatformat:1 }}</td>
+                    <td class="text-center text-muted">{{ nl.safety_stock|floatformat:1 }}</td>
+                    <td class="text-center fw-bold text-primary">{{ nl.luong_can_co|floatformat:1 }}</td>
+                    <td class="text-center">
+                        {% if nl.de_xuat_nhap > 0 %}
+                        <span class="fw-bold text-danger" style="font-size:1rem;">+{{ nl.de_xuat_nhap }}</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted);"> {{ nl.don_vi }}</span>
+                        {% else %}
+                        <span class="text-muted fw-bold">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if nl.don_gia > 0 %}
+                        <span style="font-size:0.82rem; font-weight:600;">{{ nl.don_gia|intcomma }}</span>
+                        <span style="font-size:0.7rem; color:var(--text-muted);">₫</span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge-status badge-{{ nl.trang_thai_class }} d-block mb-1">{{ nl.trang_thai_label }}</span>
+                        {% if nl.trang_thai == 'can_nhap' or nl.trang_thai == 'sap_het' %}
+                        <a href="{% url 'inventory' %}?auto_nl_id={{ nl.id }}&auto_sl={{ nl.de_xuat_nhap }}" class="btn btn-sm btn-outline-danger" style="font-size:0.7rem; padding: 3px 8px; font-weight:700;"><i class="bi bi-box-arrow-in-right"></i> Nhập ngay</a>
+                        {% endif %}
+                    </td>
+                </tr>
                 {% endfor %}
-            </ul>
-        </div>
-        
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-5 text-muted">
+                        <i class="bi bi-box2 fs-2 d-block mb-2"></i>
+                        Chưa có dữ liệu nguyên liệu. Vui lòng thêm nguyên liệu vào kho.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
-{{ rev_labels|json_script:"rev-labels" }}
-{{ rev_actual|json_script:"rev-actual" }}
-{{ rev_forecast|json_script:"rev-forecast" }}
-{{ traffic_labels|json_script:"traffic-labels" }}
-{{ traffic_forecast|json_script:"traffic-forecast" }}
+<!-- ======================================================
+     SECTION 2: BIỂU ĐỒ + INSIGHTS + AI MODEL
+====================================================== -->
+<div class="section-label fade-in-up delay-2">
+    <i class="bi bi-bar-chart-line text-primary"></i> Phân Tích Chi Tiết
+</div>
+
+<div class="row g-4 fade-in-up delay-3">
+
+    <!-- Biểu đồ phân bố khách theo giờ -->
+    <div class="col-lg-5">
+        <div class="erp-card h-100">
+            <div class="erp-card-header">
+                <h2 class="erp-card-title"><i class="bi bi-bar-chart-fill text-primary"></i> Phân bố Khách theo Giờ</h2>
+                <span class="badge-status badge-success" style="font-size:0.7rem;">Thứ {{ target_date_obj|date:"l" }}</span>
+            </div>
+            <div class="erp-card-body">
+                <div class="chart-wrapper">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+                <div class="d-flex justify-content-between mt-3 text-muted" style="font-size:0.8rem;">
+                    <span><i class="bi bi-brightness-high-fill text-warning me-1"></i>Ca Trưa (10–15h): <b class="text-dark">{{ features.pax_forecast_trua|default:"--" }} pax</b></span>
+                    <span><i class="bi bi-moon-stars-fill text-primary me-1"></i>Ca Tối (17–22h): <b class="text-dark">{{ features.pax_forecast_toi|default:"--" }} pax</b></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <div class="col-lg-4">
+        <div class="erp-card h-100">
+            <div class="erp-card-header">
+                <h2 class="erp-card-title"><i class="bi bi-lightbulb-fill text-warning"></i> Đề Xuất Vận Hành</h2>
+                {% if insights %}
+                <span class="badge-status badge-warning" style="font-size:0.7rem;">{{ insights|length }} đề xuất</span>
+                {% endif %}
+            </div>
+            <div class="erp-card-body" style="max-height:460px; overflow-y:auto;">
+                {% if insights %}
+                    {% for insight in insights %}
+                    <div class="insight-card {{ insight.type }}">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi {{ insight.icon }} mt-1" style="font-size:1rem; {% if insight.type == 'warning' %}color:#f59e0b{% elif insight.type == 'opportunity' %}color:#10b981{% elif insight.type == 'risk' %}color:#ef4444{% else %}color:#3b82f6{% endif %}; flex-shrink:0;"></i>
+                            <div class="flex-grow-1">
+                                <div class="insight-title">{{ insight.title }}</div>
+                                <div class="insight-desc">{{ insight.description }}</div>
+                                {% if insight.action %}
+                                <div class="insight-action">
+                                    <i class="bi bi-arrow-right-circle me-1 text-primary"></i>
+                                    <b>Hành động:</b> {{ insight.action }}
+                                </div>
+                                {% endif %}
+                                <div class="insight-meta">
+                                    <span class="conf-pill {% if insight.confidence >= 80 %}conf-high{% elif insight.confidence >= 65 %}conf-mid{% else %}conf-low{% endif %}">
+                                        {{ insight.confidence }}% tin cậy
+                                    </span>
+                                    {% if insight.algo_tag %}
+                                    <span class="algo-tag">{{ insight.algo_tag }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-check-circle-fill text-success fs-2 d-block mb-2"></i>
+                    <span style="font-size:0.88rem;">Không có đề xuất đặc biệt. Vận hành bình thường.</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông số mô hình AI -->
+    <div class="col-lg-3">
+        <div class="erp-card h-100">
+            <div class="erp-card-header">
+                <h2 class="erp-card-title"><i class="bi bi-cpu text-purple" style="color:#7c3aed;"></i> Thông Số Mô Hình</h2>
+            </div>
+            <div class="erp-card-body">
+                <div class="param-row">
+                    <span class="param-label">Thuật toán</span>
+                    <span class="param-value" style="font-size:0.8rem;">WMA × WAF</span>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">Dữ liệu học</span>
+                    <span class="param-value">{{ window }}</span>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">WMA thuần</span>
+                    <span class="param-value">{{ features.pax_forecast_wma|default:features.pax_forecast }} Pax</span>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">μ (mean 7d)</span>
+                    <span class="param-value">{{ features.avg_pax_7d|floatformat:0 }} Pax</span>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">σ (std)</span>
+                    <span class="param-value">{{ features.pax_std|floatformat:1 }}</span>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">CV%</span>
+                    <span class="param-value {% if features.pax_cv < 15 %}text-success{% elif features.pax_cv < 30 %}text-warning{% else %}text-danger{% endif %}">
+                        {{ features.pax_cv|floatformat:1 }}%
+                    </span>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">WAF</span>
+                    <span class="param-value {% if features.weather_waf < 0.9 %}text-danger{% elif features.weather_waf > 1.05 %}text-success{% endif %}">
+                        {{ features.weather_waf|floatformat:3 }}
+                    </span>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">Weekday Factor</span>
+                    <span class="param-value">{{ features.weekday_factor|default:"1.0"|floatformat:2 }}</span>
+                </div>
+                <div class="param-row">
+                    <span class="param-label">Nhân sự đề xuất</span>
+                    <span class="param-value">{{ features.staff_required }} NV</span>
+                </div>
+
+                {% if features.weather_data %}
+                <div class="mt-3 p-3 rounded-3" style="background:#f0f9ff; border:1px solid #bae6fd;">
+                    <div style="font-size:0.75rem; font-weight:700; color:#0369a1; text-transform:uppercase; margin-bottom:6px;">Thời tiết</div>
+                    <div class="d-flex justify-content-between" style="font-size:0.82rem;">
+                        <span>{{ features.weather_data.icon }} {{ features.weather_data.description }}</span>
+                        <span class="fw-bold">{{ features.weather_data.temp_max }}°C</span>
+                    </div>
+                    <div style="font-size:0.78rem; color:#0369a1; margin-top:4px;">
+                        Mưa {{ features.weather_data.precipitation }} mm
+                        → Điều chỉnh {{ features.weather_waf|floatformat:2 }}×
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="mt-3 text-center">
+                    <a href="{% url 'dashboard' %}" class="btn btn-sm btn-outline-primary w-100" style="border-radius:8px; font-weight:700; font-size:0.8rem;">
+                        <i class="bi bi-speedometer2 me-1"></i>Xem Dashboard hôm nay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JSON Data for charts -->
+{{ hourly_labels|json_script:"hourly-labels" }}
+{{ hourly_data|json_script:"hourly-data" }}
 
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl)
+document.addEventListener('DOMContentLoaded', function() {
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // ─── Biểu đồ phân bố khách theo giờ ───
+    const hourlyCanvas = document.getElementById('hourlyChart');
+    if (hourlyCanvas) {
+        try {
+            const labels = JSON.parse(document.getElementById('hourly-labels').textContent || '[]');
+            const data   = JSON.parse(document.getElementById('hourly-data').textContent || '[]');
+
+            const bgColors = labels.map((_, i) => {
+                const h = 8 + i;
+                if (h >= 10 && h <= 14) return 'rgba(245,158,11,0.7)';   // Ca trưa - cam
+                if (h >= 17 && h <= 22) return 'rgba(139,92,246,0.7)';   // Ca tối  - tím
+                return 'rgba(203,213,225,0.5)';                           // Ngoài giờ
+            });
+
+            new Chart(hourlyCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Khách dự báo',
+                        data: data,
+                        backgroundColor: bgColors,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed.y} khách dự báo`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { stepSize: 5 } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        } catch(e) { console.error('Chart error:', e); }
+    }
+
+    // ─── Filter bảng nguyên liệu ───
+    window.filterTable = function(status, btn) {
+        const isActive = btn.classList.contains('active');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        let shouldExpand = true;
+        if (isActive) {
+            const visibleItems = Array.from(document.querySelectorAll('#ingredientBody .item-row')).filter(r => status === 'all' || r.dataset.status === status);
+            const anyExpanded = visibleItems.some(r => r.classList.contains('show'));
+            shouldExpand = !anyExpanded;
+        }
+        
+        document.querySelectorAll('#ingredientBody .cat-header-row').forEach(h => h.style.display = 'none');
+        
+        document.querySelectorAll('#ingredientBody .item-row').forEach(row => {
+            const showRow = status === 'all' || row.dataset.status === status;
+            row.style.display = showRow ? '' : 'none';
+            if (showRow) {
+                if (shouldExpand) row.classList.add('show');
+                else row.classList.remove('show');
+                let prev = row.previousElementSibling;
+                while (prev && !prev.classList.contains('cat-header-row')) prev = prev.previousElementSibling;
+                if (prev) prev.style.display = '';
+            } else {
+                row.classList.remove('show');
+            }
         });
+    };
 
-        Chart.defaults.font.family = "'Inter', sans-serif";
-
-        // Khởi tạo Chart Doanh thu
-        const canvasRev = document.getElementById('revenueChart');
-        if (canvasRev) {
-            try {
-                const rLabels = JSON.parse(document.getElementById('rev-labels').textContent);
-                const rActual = JSON.parse(document.getElementById('rev-actual').textContent);
-                const rForecast = JSON.parse(document.getElementById('rev-forecast').textContent);
-                
-                new Chart(canvasRev.getContext('2d'), {
-                    type: 'line',
-                    data: {
-                        labels: rLabels,
-                        datasets: [{
-                            label: 'Thực tế (Triệu VNĐ)',
-                            data: rActual, 
-                            borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                            borderWidth: 3, fill: true, tension: 0.4, spanGaps: true
-                        },
-                        {
-                            label: 'AI Dự báo',
-                            data: rForecast, 
-                            borderColor: '#8b5cf6', borderDash: [5, 5],
-                            borderWidth: 3, fill: false, tension: 0.4, spanGaps: true
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { position: 'bottom', labels: {boxWidth: 12, font: {family: 'Inter', weight: 'bold'}} } },
-                        scales: { y: { beginAtZero: true, grid: { borderDash: [2, 2] } }, x: { grid: { display: false } } },
-                        interaction: { intersect: false, mode: 'index' }
-                    }
-                });
-            } catch(e) { console.error('Lỗi Data Revenue Chart:', e); }
+    window.filterCat = function(cat, btn) {
+        const isActive = btn.classList.contains('active');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        let shouldExpand = true;
+        if (isActive) {
+            const visibleItems = Array.from(document.querySelectorAll('#ingredientBody .item-row')).filter(r => r.dataset.cat === cat);
+            const anyExpanded = visibleItems.some(r => r.classList.contains('show'));
+            shouldExpand = !anyExpanded;
         }
+        
+        document.querySelectorAll('#ingredientBody .cat-header-row').forEach(h => h.style.display = 'none');
+        
+        document.querySelectorAll('#ingredientBody .item-row').forEach(row => {
+            const showRow = row.dataset.cat === cat;
+            row.style.display = showRow ? '' : 'none';
+            if (showRow) {
+                if (shouldExpand) row.classList.add('show');
+                else row.classList.remove('show');
+                let prev = row.previousElementSibling;
+                while (prev && !prev.classList.contains('cat-header-row')) prev = prev.previousElementSibling;
+                if (prev) prev.style.display = '';
+            } else {
+                row.classList.remove('show');
+            }
+        });
+    };
 
-        // Khởi tạo Chart Lưu lượng tối nay
-        const canvasTraffic = document.getElementById('trafficChart');
-        if (canvasTraffic) {
-            try {
-                const tLabels = JSON.parse(document.getElementById('traffic-labels').textContent);
-                const tForecast = JSON.parse(document.getElementById('traffic-forecast').textContent);
-
-                new Chart(canvasTraffic.getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: tLabels,
-                        datasets: [{
-                            label: 'Lượng khách dự kiến',
-                            data: tForecast,
-                            backgroundColor: function(context) {
-                                const val = context.dataset.data[context.dataIndex];
-                                return val >= 150 ? '#ef4444' : (val >= 100 ? '#f59e0b' : '#3b82f6'); 
-                            },
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, grid: { borderDash: [2, 2] } }, x: { grid: { display: false } } }
-                    }
-                });
-            } catch (e) { console.error('Lỗi Data Traffic Chart:', e); }
-        }
+    // ─── Window buttons: giữ ngày khi đổi window ───
+    document.querySelectorAll('.btn-window').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const dateVal = document.getElementById('dateInput').value;
+            const windowVal = this.value;
+            window.location.href = `?date=${dateVal}&window=${windowVal}`;
+        });
     });
+
+    // ─── Auto-expand: Hiển thị tất cả hàng nguyên liệu khi load trang ───
+    document.querySelectorAll('#ingredientBody .item-row').forEach(row => {
+        row.classList.add('show');
+        row.style.display = '';
+    });
+    document.querySelectorAll('#ingredientBody .cat-header-row').forEach(h => {
+        h.style.display = '';
+    });
+});
 </script>
 {% endblock %}

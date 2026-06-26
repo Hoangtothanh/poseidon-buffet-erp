@@ -114,9 +114,9 @@
         <div class="breadcrumb-saas">
             <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
             <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span>Khách hàng & Khuyến mãi</span>
+            <span>Khách hàng & Voucher</span>
             <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span class="text-muted">Khách hàng</span>
+            <span class="text-muted">Hồ sơ khách hàng</span>
         </div>
     </div>
     <div class="d-flex gap-2">
@@ -155,7 +155,7 @@
         <div>
             <div class="kpi-title">Khách sinh nhật (Tháng này)</div>
             <div class="kpi-value text-warning">{{ khach_sinh_nhat|default:"0" }}</div>
-            <div class="kpi-trend text-primary" id="btnSendSMS" style="cursor: pointer;"><i class="bi bi-envelope-paper"></i> Gửi SMS CSKH</div>
+            <div class="kpi-trend text-primary"><i class="bi bi-gift"></i> Khách hàng sinh nhật</div>
         </div>
         <div class="icon-box icon-warning"><i class="bi bi-gift-fill"></i></div>
     </div>
@@ -331,7 +331,7 @@
 <div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
-            <form method="POST" action="#" enctype="multipart/form-data">
+            <form method="POST" action="{% url 'import_customers' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-header">
                     <h5 class="modal-title">Tải lên file Khách hàng</h5>
@@ -434,21 +434,6 @@
             });
         }
 
-        // Tính năng giả lập Gửi SMS Chúc mừng sinh nhật (Ăn điểm đồ án tốt nghiệp)
-        const btnSendSMS = document.getElementById('btnSendSMS');
-        if (btnSendSMS) {
-            btnSendSMS.addEventListener('click', function() {
-                const originalContent = this.innerHTML;
-                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Đang gửi...';
-                this.style.pointerEvents = 'none'; 
-                
-                setTimeout(() => {
-                    alert('✅ Hệ thống CRM đã tự động quét và gửi thành công 24 tin nhắn SMS Chúc mừng sinh nhật kèm Mã Voucher giảm 15% đến các Khách hàng có ngày sinh trong tháng này!');
-                    this.innerHTML = '<i class="bi bi-check2-all text-success"></i> Đã gửi SMS';
-                    this.className = "kpi-trend text-success";
-                }, 1500);
-            });
-        }
     });
 </script>
 {% endblock %}

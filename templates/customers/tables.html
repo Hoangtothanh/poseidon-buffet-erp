@@ -168,7 +168,7 @@
         <div class="breadcrumb-saas">
             <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
             <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span>Khách & Bàn</span>
+            <span>Quản lý Tiếp tân</span>
             <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
             <span class="text-muted">Sơ đồ bàn</span>
         </div>
@@ -206,13 +206,21 @@
         </div>
         <div class="icon-box icon-danger"><i class="bi bi-fire"></i></div>
     </div>
+
+    <div class="kpi-card c-warning" style="background-color: #fffbeb; border-color: #fcd34d;">
+        <div>
+            <div class="kpi-title text-warning" style="color: #d97706 !important;">Chờ Thanh Toán</div>
+            <div class="kpi-value text-warning" style="color: #b45309 !important;">{{ cho_thanh_toan|default:"0" }}</div>
+        </div>
+        <div class="icon-box" style="background: #fef3c7; color: #b45309;"><i class="bi bi-wallet2"></i></div>
+    </div>
 </div>
 
 <div class="toolbar-saas fade-in-up delay-2">
     <div class="filter-group">
         <div class="search-box">
             <i class="bi bi-search"></i>
-            <input type="text" id="searchInput" placeholder="Nhập tên bàn (VD: Bàn 101)...">
+            <input type="text" id="searchInput" placeholder="Nhập tên bàn, tên KH hoặc SĐT...">
         </div>
     </div>
 
@@ -230,7 +238,7 @@
     {% for khu_vuc, danh_sach_ban in ban_theo_khu_vuc.items %}
         <div class="zone-container">
             <div class="zone-header">
-                <h2 class="zone-title">{{ khu_vuc.ten_khu_vuc|default:"Khu vực chung" }}</h2>
+                <h2 class="zone-title">{{ khu_vuc|default:"Khu vực chung" }}</h2>
                 <span class="zone-count">{{ danh_sach_ban|length }} Bàn</span>
                 <div class="zone-line"></div>
             </div>
@@ -239,6 +247,8 @@
                 {% for ban in danh_sach_ban %}
                     <div class="t-card bg-{{ ban.trang_thai_hien_thi }} table-item" 
                          data-name="{{ ban.ten_ban|lower }}"
+                         data-customer="{{ ban.kh_ten|lower }}"
+                         data-phone="{{ ban.kh_sdt|lower }}"
                          onclick="openTableActions(
                              {{ ban.id }}, 
                              '{{ ban.ten_ban|escapejs }}', 
@@ -271,6 +281,11 @@
                                             <span class="badge bg-light text-dark border" title="Trẻ em"><i class="bi bi-person"></i> {{ ban.kh_children }}</span>
                                         {% endif %}
                                     </div>
+                                    {% if ban.kh_sdt %}
+                                        <div class="cust-meta mt-1">
+                                            <span class="badge bg-light text-dark border text-primary" title="Số điện thoại"><i class="bi bi-telephone-fill"></i> {{ ban.kh_sdt }}</span>
+                                        </div>
+                                    {% endif %}
                                     {% if ban.kh_time %}
                                         <div class="cust-meta mt-1">
                                             <span class="badge bg-light text-dark border"><i class="bi bi-clock-fill"></i> {{ ban.kh_time }}</span>
@@ -656,7 +671,15 @@
         searchInput.addEventListener('input', function() {
             const query = this.value.toLowerCase().trim();
             tables.forEach(table => {
-                table.style.display = table.dataset.name.includes(query) ? '' : 'none';
+                const nameMatch = table.dataset.name ? table.dataset.name.includes(query) : false;
+                const customerMatch = table.dataset.customer ? table.dataset.customer.includes(query) : false;
+                const phoneMatch = table.dataset.phone ? table.dataset.phone.includes(query) : false;
+                
+                if (nameMatch || customerMatch || phoneMatch) {
+                    table.style.display = '';
+                } else {
+                    table.style.display = 'none';
+                }
             });
             document.querySelectorAll('.zone-container').forEach(zone => {
                 const visibleTables = zone.querySelectorAll('.table-item[style=""]').length;

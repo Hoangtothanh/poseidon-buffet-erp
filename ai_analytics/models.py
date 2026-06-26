@@ -111,10 +111,10 @@ class AIDuDoanLuuLuong(models.Model):
         ('qua_tai', 'Quá tải / Full (>95%)'),
     ]
 
-    ngay_du_doan = models.DateField(verbose_name="Ngày")
+    ngay_du_doan = models.DateField(verbose_name="Ngày dự đoán (tương lai)")
     ca_lam_viec = models.CharField(max_length=20, choices=CA_LAM_VIEC, verbose_name="Ca làm việc")
     
-    khach_thuc_te = models.IntegerField(null=True, blank=True, help_text="Bỏ trống nếu là ngày ở tương lai", verbose_name="Khách thực tế (Pax)")
+    khach_thuc_te = models.IntegerField(null=True, blank=True, help_text="Bỏ trống nếu là ngày ở tương lai. Update sau khi ngày kết thúc để AI học lại (tái huấn luyện WMA).", verbose_name="Khách thực tế (Pax)")
     ai_du_doan_khach = models.IntegerField(verbose_name="AI Dự đoán (Pax)")
     
     ty_le_lap_day = models.FloatField(verbose_name="Tỷ lệ lấp đầy dự kiến (%)")
@@ -124,10 +124,57 @@ class AIDuDoanLuuLuong(models.Model):
     
     loi_khuyen_van_hanh = models.TextField(verbose_name="Đề xuất vận hành (Nhân sự/Bàn ghế)")
 
+    # ==========================================
+    # YẾU TỐ NGOẠI CẢNH (External Factors)
+    # Dữ liệu thu thập từ Open-Meteo API để đưa vào
+    # tính toán Weather Adjustment Factor (WAF) trong mô hình WMA
+    # ==========================================
+    nhiet_do = models.FloatField(
+        null=True, blank=True,
+        verbose_name="Nhiệt độ tối đa (°C)",
+        help_text="Nhiệt độ tối đa trong ngày lấy từ Open-Meteo API. "
+                  "Dùng để tính WAF: >36°C giảm 3% khách, 25-30°C tăng 5% khách."
+    )
+    luong_mua = models.FloatField(
+        null=True, blank=True,
+        verbose_name="Lượng mưa (mm)",
+        help_text="Lượng mưa dự báo (mm) lấy từ Open-Meteo API. "
+                  "WAF: >10mm giảm 15% khách, 2-10mm giảm 5% khách."
+    )
+    weather_code = models.IntegerField(
+        null=True, blank=True,
+        verbose_name="Mã thời tiết WMO",
+        help_text="WMO Weather Code (0=Nắng, 61=Mưa nhẹ, 95=Giông bão...). "
+                  "WAF: WMO 0-2 tăng 10% khách; WMO 95-99 giảm thêm 5%."
+    )
+    mo_ta_thoi_tiet = models.CharField(
+        max_length=100, null=True, blank=True,
+        verbose_name="Mô tả thời tiết",
+        help_text="Mô tả thời tiết tiếng Việt (Ví dụ: Mưa lớn, Trời quang...)"
+    )
+    weather_adjustment_factor = models.FloatField(
+        null=True, blank=True,
+        verbose_name="Hệ số điều chỉnh thời tiết (WAF)",
+        help_text="WAF = f(nhiet_do, luong_mua, weather_code). "
+                  "Khoảng [0.60, 1.25]. Pax_forecast = WMA × WAF."
+    )
+    is_holiday = models.BooleanField(
+        default=False,
+        verbose_name="Ngày lễ / Sự kiện đặc biệt",
+        help_text="True nếu là ngày lễ tết (30/4, 1/5, Tết Nguyên Đán...) "
+                  "hoặc sự kiện ngoại cảnh. Dùng để nhận diện ngoại lệ "
+                  "trong chuỗi thời gian (Anomaly Detection)."
+    )
+    ten_su_kien = models.CharField(
+        max_length=200, null=True, blank=True,
+        verbose_name="Tên sự kiện (nếu có)",
+        help_text="Ví dụ: Tết Nguyên Đán 2026, Giải marathon TP.HCM..."
+    )
+
     class Meta:
         verbose_name = "Dự đoán lượng khách"
         verbose_name_plural = "4. AI Phân tích lưu lượng"
         ordering = ['-ngay_du_doan']
 
     def __str__(self):
-        return f"{self.ngay_du_doan} ({self.get_ca_lam_viec_display()}) - {self.ai_du_doan_khach} Pax"
+        return f"{self.ngay_du_doan} ({self.get_ca_lam_viec_display()}) - {self.ai_du_doan_khach} Pax"

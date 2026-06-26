@@ -128,14 +128,14 @@
 {% block content %}
 <div id="printable-area">
 
-    <div class="page-header no-print fade-in-up">
+    <div class="page-header no-print">
         <div>
             <h1 class="page-title">Báo Cáo Doanh Thu</h1>
             <p class="page-subtitle">Phân tích hiệu quả kinh doanh, lượt khách và cơ cấu doanh thu nhà hàng</p>
             <div class="breadcrumb-saas">
                 <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span>Báo cáo</span>
+                <span>Báo cáo & Thống kê</span>
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
                 <span class="text-muted">Doanh thu</span>
             </div>
@@ -148,7 +148,7 @@
         </div>
     </div>
 
-    <form method="GET" action="{% url 'report_revenue' %}" class="toolbar-saas no-print fade-in-up delay-1" id="filterForm">
+    <form method="GET" action="{% url 'report_revenue' %}" class="toolbar-saas no-print" id="filterForm">
         <div class="filter-group">
             <select class="filter-input fw-bold text-primary" id="quickDateSelect" style="padding-right: 16px;" onchange="setQuickDate()">
                 <option value="custom">Tùy chọn...</option>
@@ -159,17 +159,10 @@
                 <option value="last_month">Tháng trước</option>
             </select>
             
-            <input type="date" class="filter-input text-muted" name="start_date" id="startDate" value="{{ start_date }}" required>
+            <input type="date" class="filter-input text-muted" name="start_date" id="startDate" value="{{ start_date }}" required onchange="this.form.submit()">
             <span class="text-muted fw-bold">-</span>
-            <input type="date" class="filter-input text-muted" name="end_date" id="endDate" value="{{ end_date }}" required>
-
-            <select class="filter-input ms-3" style="padding-right: 16px;">
-                <option value="all">Tất cả Ca làm việc</option>
-                <option value="morning">Ca Sáng</option>
-                <option value="evening">Ca Tối</option>
-            </select>
+            <input type="date" class="filter-input text-muted" name="end_date" id="endDate" value="{{ end_date }}" required onchange="this.form.submit()">
         </div>
-        <button type="submit" class="btn-create px-4"><i class="bi bi-filter"></i> Lọc Dữ Liệu</button>
     </form>
 
     <div class="print-only" style="margin-bottom: 25px; text-align: center;">
@@ -184,11 +177,11 @@
         <div style="font-size: 12px; margin-top: 5px; color: #64748b;">Thời gian xuất PDF: <span id="printDatePlaceholder"></span></div>
     </div>
 
-    <div class="kpi-grid fade-in-up delay-2">
+    <div class="kpi-grid">
         <div class="kpi-card c-primary">
             <div>
                 <div class="kpi-title">Tổng Doanh Thu</div>
-                <div class="kpi-value">{{ tong_doanh_thu|floatformat:0|intcomma }} <span class="fs-6 fw-bold text-muted">₫</span></div>
+                <div class="kpi-value"><span class="format-money">{{ tong_doanh_thu|floatformat:0 }}</span> <span class="fs-6 fw-bold text-muted">đ</span></div>
             </div>
             <div class="kpi-trend trend-up"><i class="bi bi-calendar2-range"></i> Tổng tiền đã thanh toán</div>
             <i class="bi bi-cash-stack position-absolute text-muted opacity-25" style="font-size: 4rem; right: -10px; bottom: -10px;"></i>
@@ -204,7 +197,7 @@
         <div class="kpi-card c-warning">
             <div>
                 <div class="kpi-title">Trung bình / Khách (ARPU)</div>
-                <div class="kpi-value text-warning">{{ arpu|floatformat:0|intcomma }} <span class="fs-6 fw-bold text-muted">₫</span></div>
+                <div class="kpi-value text-warning"><span class="format-money">{{ arpu|floatformat:0 }}</span> <span class="fs-6 fw-bold text-muted">đ</span></div>
             </div>
             <div class="kpi-trend trend-up"><i class="bi bi-arrow-up-right"></i> Bình quân mỗi khách trả</div>
             <i class="bi bi-calculator position-absolute text-warning opacity-25" style="font-size: 4rem; right: -10px; bottom: -10px;"></i>
@@ -219,7 +212,7 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-4 no-print d-print-none fade-in-up delay-3" id="charts-row">
+    <div class="row g-4 mb-4 no-print d-print-none" id="charts-row">
         <div class="col-lg-8">
             <div class="chart-container">
                 <div class="section-title"><i class="bi bi-graph-up-arrow text-primary"></i> Biểu đồ Doanh thu</div>
@@ -238,7 +231,7 @@
         </div>
     </div>
 
-    <div class="table-container fade-in-up delay-4">
+    <div class="table-container">
         <div class="p-3 border-bottom border-light bg-white d-flex justify-content-between align-items-center no-print">
             <h4 class="m-0 fw-bold fs-6 text-dark text-uppercase"><i class="bi bi-table me-2 text-primary"></i> Bảng chi tiết Doanh thu theo Ngày</h4>
         </div>
@@ -260,9 +253,9 @@
                         <td class="fw-bold {% if forloop.first %}text-primary{% endif %}">{{ row.ngay }}</td>
                         <td class="text-center">{{ row.so_hd|intcomma }}</td>
                         <td class="text-center">{{ row.so_khach|intcomma }}</td>
-                        <td class="text-end">{{ row.tien_ve|floatformat:0|intcomma }}</td>
-                        <td class="text-end">{{ row.tien_phu_thu|floatformat:0|intcomma }}</td>
-                        <td class="text-end amount-text amount-highlight">{{ row.tong_doanh_thu|floatformat:0|intcomma }}</td>
+                        <td class="text-end"><span class="format-money">{{ row.tien_ve|floatformat:0 }}</span> đ</td>
+                        <td class="text-end"><span class="format-money">{{ row.tien_phu_thu|floatformat:0 }}</span> đ</td>
+                        <td class="text-end amount-text amount-highlight"><span class="format-money">{{ row.tong_doanh_thu|floatformat:0 }}</span> đ</td>
                     </tr>
                     {% empty %}
                     <tr><td colspan="6" class="text-center py-4">Không có dữ liệu trong khoảng thời gian này.</td></tr>
@@ -273,9 +266,9 @@
                         <td class="fw-bold">TỔNG CỘNG</td>
                         <td class="text-center fw-bold">{{ so_hd_tong|intcomma }}</td>
                         <td class="text-center fw-bold">{{ tong_khach|intcomma }}</td>
-                        <td class="text-end fw-bold">{{ tong_ve|floatformat:0|intcomma }}</td>
-                        <td class="text-end fw-bold">{{ tong_phu_thu|floatformat:0|intcomma }}</td>
-                        <td class="text-end amount-highlight fw-bold">{{ tong_doanh_thu|floatformat:0|intcomma }}</td>
+                        <td class="text-end fw-bold"><span class="format-money">{{ tong_ve|floatformat:0 }}</span> đ</td>
+                        <td class="text-end fw-bold"><span class="format-money">{{ tong_phu_thu|floatformat:0 }}</span> đ</td>
+                        <td class="text-end amount-highlight fw-bold"><span class="format-money">{{ tong_doanh_thu|floatformat:0 }}</span> đ</td>
                     </tr>
                 </tfoot>
             </table>
@@ -329,6 +322,7 @@
             startInput.value = formatDate(firstDay);
             endInput.value = formatDate(lastDay);
         }
+        document.getElementById('filterForm').submit();
     }
 
     // Đọc dữ liệu Biểu đồ
@@ -377,8 +371,8 @@
 
     // 2. Biểu đồ Tròn
     const ctxSource = document.getElementById('revenueSourceChart').getContext('2d');
-    const tongVe = {{ tong_ve|default:0|floatformat:0 }};
-    const tongPhuThu = {{ tong_phu_thu|default:0|floatformat:0 }};
+    const tongVe = parseFloat("{{ tong_ve|default:0|floatformat:0 }}".replace(/[^0-9]+/g,"")) || 0;
+    const tongPhuThu = parseFloat("{{ tong_phu_thu|default:0|floatformat:0 }}".replace(/[^0-9]+/g,"")) || 0;
     
     // Xử lý dữ liệu hiển thị nếu trống
     let doughnutData = [tongVe, tongPhuThu];

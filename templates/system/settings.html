@@ -83,7 +83,6 @@
             <button class="nav-link" id="v-roles-tab" data-bs-toggle="pill" data-bs-target="#v-roles" type="button"><i class="bi bi-shield-lock"></i> Vai trò & Phân quyền</button>
             
             <div class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.7rem;">Hệ thống & Dữ liệu</div>
-            <button class="nav-link ai-tab" id="v-ai-tab" data-bs-toggle="pill" data-bs-target="#v-ai" type="button"><i class="bi bi-robot"></i> AI Machine Learning</button>
             <button class="nav-link" id="v-logs-tab" data-bs-toggle="pill" data-bs-target="#v-logs" type="button"><i class="bi bi-journal-text"></i> Lịch sử Hệ thống (Logs)</button>
             <button class="nav-link" id="v-backup-tab" data-bs-toggle="pill" data-bs-target="#v-backup" type="button"><i class="bi bi-cloud-arrow-down"></i> Backup Dữ liệu</button>
         </div>
@@ -171,33 +170,23 @@
             <form method="POST" action="{% url 'settings_integrations' %}" class="auto-disable-form">
                 {% csrf_token %}
                 <div class="row g-4">
-                    <div class="col-md-6">
+                    <div class="col-md-12">
                         <div class="p-4 border rounded-3 bg-light">
                             <h6 class="fw-bold mb-3"><i class="bi bi-qr-code-scan text-success me-2"></i> Cổng thanh toán VietQR</h6>
-                            <div class="mb-3">
-                                <label class="form-label">Ngân hàng (Mã định danh)</label>
-                                <input type="text" class="form-control" name="bank_id" value="{{ setting.bank_id }}" placeholder="VD: MB, VCB...">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Ngân hàng (Mã định danh)</label>
+                                    <input type="text" class="form-control" name="bank_id" value="{{ setting.bank_id }}" placeholder="VD: MB, VCB...">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Số tài khoản hưởng thụ</label>
+                                    <input type="text" class="form-control" name="bank_account_no" value="{{ setting.bank_account_no }}">
+                                </div>
+                                <div class="col-md-4 mb-0">
+                                    <label class="form-label">Tên chủ tài khoản</label>
+                                    <input type="text" class="form-control" name="bank_account_name" value="{{ setting.bank_account_name }}" placeholder="NGUYEN VAN A">
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Số tài khoản hưởng thụ</label>
-                                <input type="text" class="form-control" name="bank_account_no" value="{{ setting.bank_account_no }}">
-                            </div>
-                            <div class="mb-0">
-                                <label class="form-label">Tên chủ tài khoản</label>
-                                <input type="text" class="form-control" name="bank_account_name" value="{{ setting.bank_account_name }}" placeholder="NGUYEN VAN A">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <div class="p-4 border rounded-3 bg-light h-100">
-                            <h6 class="fw-bold mb-3"><i class="bi bi-chat-dots-fill text-primary me-2"></i> Tích hợp Zalo ZNS (Sắp ra mắt)</h6>
-                            <p class="text-muted small">Cấu hình gửi tin nhắn xác nhận tự động qua Zalo cho khách hàng khi đặt bàn.</p>
-                            <div class="mb-3">
-                                <label class="form-label">Zalo OA Access Token</label>
-                                <input type="password" class="form-control" disabled placeholder="••••••••••••••••">
-                            </div>
-                            <div class="alert alert-info py-2 px-3 m-0 small border-0"><i class="bi bi-info-circle me-1"></i> Tính năng đang được phát triển.</div>
                         </div>
                     </div>
                 </div>
@@ -358,36 +347,6 @@
             </form>
         </div>
 
-        <div class="tab-pane fade" id="v-ai" role="tabpanel">
-            <div class="tab-pane-title" style="color: #8b5cf6;">
-                <span class="d-flex align-items-center gap-2"><i class="bi bi-cpu text-purple"></i> AI & Machine Learning Engine</span>
-                <span class="badge bg-success">Status: Online</span>
-            </div>
-            <form method="POST" action="{% url 'settings_ai' %}" class="auto-disable-form">
-                {% csrf_token %}
-                <div class="ai-card">
-                    <h6 class="fw-bold text-dark mb-1">Dữ liệu huấn luyện Model</h6>
-                    <div class="row g-3 mt-2">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: #6b21a8;">Lịch sử lấy mẫu (Dataset)</label>
-                            <select class="form-select border-primary" name="ai_dataset_window">
-                                <option value="1_month" {% if setting.ai_dataset_window == '1_month' %}selected{% endif %}>1 Tháng qua</option>
-                                <option value="3_months" {% if setting.ai_dataset_window == '3_months' %}selected{% endif %}>3 Tháng qua (Khuyên dùng)</option>
-                                <option value="6_months" {% if setting.ai_dataset_window == '6_months' %}selected{% endif %}>6 Tháng qua</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: #6b21a8;">Thời gian dự phóng (Window)</label>
-                            <select class="form-select border-primary" name="ai_prediction_window">
-                                <option value="7_days" {% if setting.ai_prediction_window == '7_days' %}selected{% endif %}>Dự đoán 7 ngày tới</option>
-                                <option value="14_days" {% if setting.ai_prediction_window == '14_days' %}selected{% endif %}>Dự đoán 14 ngày tới</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="text-end mt-4 pt-3 border-top"><button type="submit" class="btn text-white fw-bold btn-save px-5" style="background: #8b5cf6;"><i class="bi bi-magic me-2"></i> LƯU CẤU HÌNH AI</button></div>
-            </form>
-        </div>
 
         <div class="tab-pane fade" id="v-logs" role="tabpanel">
             <div class="tab-pane-title"><span>Nhật ký (System Logs)</span></div>
@@ -418,7 +377,49 @@
         </div>
 
         <div class="tab-pane fade" id="v-backup" role="tabpanel">
-            <div class="tab-pane-title text-danger"><span><i class="bi bi-shield-check me-2"></i> Sao lưu (Backup)</span></div>
+            <div class="tab-pane-title text-danger"><span><i class="bi bi-shield-check me-2"></i> Hệ thống & Dữ liệu</span></div>
+            
+            <div class="card p-4 border border-success shadow-sm bg-light mb-4">
+                <h5 class="fw-bold mb-3 text-success"><i class="bi bi-calendar-plus"></i> Tạo Dữ Liệu Mẫu Cho Ngày Cụ Thể</h5>
+                <p class="text-muted mb-4" style="font-size: 0.95rem;">Tự động sinh ngẫu nhiên hóa đơn đã thanh toán và dữ liệu kho cho CÁC NGÀY được chọn. (Sẽ ghi đè dữ liệu của các ngày đó).</p>
+                
+                <!-- Thư viện Flatpickr cho đa lựa chọn ngày -->
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+                <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+                <script src="https://npmcdn.com/flatpickr/dist/l10n/vn.js"></script>
+                
+                <form method="POST" action="{% url 'settings_seed_data_today' %}" class="auto-disable-form" id="seedDataForm">
+                    {% csrf_token %}
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex gap-2">
+                            <input type="text" name="seed_dates" id="seed_dates_picker" class="form-control" style="max-width: 350px; background-color: #fff;" placeholder="Click để chọn nhiều ngày (bôi đen)..." required>
+                            <button type="submit" class="btn btn-success fw-bold px-4 py-2"><i class="bi bi-magic me-2"></i> TẠO DỮ LIỆU MẪU NGAY</button>
+                        </div>
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" name="reset_inventory" id="reset_inventory">
+                            <label class="form-check-label fw-bold text-danger" for="reset_inventory" style="font-size: 0.85rem;">
+                                Dọn dẹp rác Tồn Kho (Đưa TẤT CẢ nguyên liệu về mức ngẫu nhiên 10-50 trước khi tạo dữ liệu)
+                            </label>
+                        </div>
+                    </div>
+                </form>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        flatpickr("#seed_dates_picker", {
+                            mode: "multiple",
+                            dateFormat: "Y-m-d",
+                            locale: "vn",
+                            defaultDate: ["{% now 'Y-m-d' %}"]
+                        });
+                        
+                        document.getElementById('seedDataForm').addEventListener('submit', function(e) {
+                            if (!confirm('Bạn có chắc chắn muốn tạo dữ liệu mẫu cho CÁC ngày này? Dữ liệu cũ trong các ngày đó sẽ bị xóa! Hệ thống có thể mất vài giây để xử lý.')) {
+                                e.preventDefault();
+                            }
+                        });
+                    });
+                </script>
+
             <div class="card p-4 border border-primary shadow-sm bg-light mb-4">
                 <h5 class="fw-bold mb-3 text-primary"><i class="bi bi-cloud-arrow-up"></i> Tải Xuống Dữ Liệu Gốc</h5>
                 <p class="text-muted mb-4" style="font-size: 0.95rem;">Lưu trữ toàn bộ dữ liệu (Hóa đơn, Khách hàng, Menu, Kho) dưới dạng tệp tin mã hóa JSON để phòng ngừa rủi ro máy chủ.</p>
@@ -427,6 +428,7 @@
                     <button type="submit" class="btn btn-primary fw-bold px-4 py-2"><i class="bi bi-hdd-fill me-2"></i> KHỞI TẠO BẢN SAO LƯU (.JSON)</button>
                 </form>
             </div>
+            
             <div class="card p-4 border border-danger shadow-sm bg-white">
                 <h5 class="fw-bold text-danger mb-3"><i class="bi bi-arrow-counterclockwise"></i> Phục Hồi Dữ Liệu (Restore)</h5>
                 <p class="text-muted mb-4" style="font-size: 0.95rem;">Cảnh báo: Việc phục hồi sẽ ghi đè lên dữ liệu hiện tại. Chỉ dành cho Quản trị viên cấp cao.</p>

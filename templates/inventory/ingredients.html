@@ -109,17 +109,19 @@
         <h1 class="page-title">Danh Mục Nguyên Liệu</h1>
         <p class="page-subtitle">Quản lý định mức, đơn vị tính và cảnh báo tồn kho của nguyên vật liệu</p>
         <div class="breadcrumb-saas">
-            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span>Kho nguyên liệu</span>
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span class="text-muted">Nguyên liệu</span>
+            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+            <span>Quản lý Kho &amp; NL</span>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+            <span class="text-muted">Danh mục nguyên liệu</span>
         </div>
     </div>
     <div class="d-flex gap-2">
+        {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_edit %}
         <button class="btn-outline-custom" data-bs-toggle="modal" data-bs-target="#importExcelModal">
             <i class="bi bi-upload text-primary me-2"></i> Nhập Excel
         </button>
+        {% endif %}
     </div>
 </div>
 
@@ -170,13 +172,11 @@
     </div>
 
     <div class="d-flex gap-2">
-        <button class="btn-outline-custom text-primary border-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal" style="background: #f0f9ff;">
-            <i class="bi bi-folder-plus"></i> Thêm Danh Mục
-        </button>
-
+        {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_edit %}
         <button class="btn-create" onclick="openAddModal()">
             <i class="bi bi-plus-lg"></i> Thêm Nguyên Liệu
         </button>
+        {% endif %}
     </div>
 </div>
 
@@ -195,14 +195,14 @@
             </thead>
             <tbody>
                 {% for nl in danh_sach_nl %}
-                <tr class="item-row" data-name="{{ nl.ten_nguyen_lieu|lower }}" data-cat="{% if nl.danh_muc %}{{ nl.danh_muc.id }}{% else %}none{% endif %}">
+                <tr class="item-row" data-name="{{ nl.ten_nguyen_lieu|lower }}" data-cat="{% if nl.danh_muc %}{{ nl.danh_muc }}{% else %}none{% endif %}">
                     <td>
                         <div class="item-name {% if nl.ton_kho <= 0 %}text-danger{% endif %}">{{ nl.ten_nguyen_lieu }}</div>
                         <div class="item-code">SKU: {{ nl.ma_nl }}</div>
                     </td>
                     <td>
                         {% if nl.danh_muc %}
-                            <span class="cat-badge"><i class="bi bi-tag-fill me-1"></i> {{ nl.danh_muc.ten_danh_muc }}</span>
+                            <span class="cat-badge"><i class="bi bi-tag-fill me-1"></i> {{ nl.get_danh_muc_display }}</span>
                         {% else %}
                             <span class="text-muted small">Chưa phân loại</span>
                         {% endif %}
@@ -227,13 +227,17 @@
                     
                     <td class="text-end row-actions">
                         <div class="d-flex justify-content-end gap-1">
-                            <button class="btn-action text-primary" onclick="openEditModal('{{ nl.id }}', '{{ nl.ten_nguyen_lieu|escapejs }}', '{{ nl.ma_nl|escapejs }}', '{% if nl.danh_muc %}{{ nl.danh_muc.id }}{% endif %}', '{{ nl.don_vi_tinh|escapejs }}', '{{ nl.muc_canh_bao }}', '{{ nl.don_gia_trung_binh }}')">
+                            {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_edit %}
+                            <button class="btn-action text-primary" onclick="openEditModal('{{ nl.id }}', '{{ nl.ten_nguyen_lieu|escapejs }}', '{{ nl.ma_nl|escapejs }}', '{% if nl.danh_muc %}{{ nl.danh_muc }}{% endif %}', '{{ nl.don_vi_tinh|escapejs }}', '{{ nl.muc_canh_bao }}', '{{ nl.don_gia_trung_binh }}')">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
+                            {% endif %}
                             
+                            {% if request.user.is_superuser or user_quyen.system_all or user_quyen.inventory_delete %}
                             <button type="button" class="btn-action text-danger delete-btn" title="Xóa nguyên liệu" data-id="{{ nl.id }}">
                                 <i class="bi bi-trash3"></i>
                             </button>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>

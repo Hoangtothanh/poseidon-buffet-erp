@@ -72,8 +72,8 @@
                     
                     <div class="text-center mb-4">
                         <div class="avatar-wrapper" onclick="document.getElementById('avatarUpload').click()" title="Đổi ảnh đại diện">
-                            {% if request.user.profile.anh_dai_dien %}
-                                <img src="{{ request.user.profile.anh_dai_dien.url }}" class="avatar-preview" id="avatarImg" alt="Avatar">
+                            {% if nhan_vien and nhan_vien.anh_dai_dien %}
+                                <img src="{{ nhan_vien.anh_dai_dien.url }}" class="avatar-preview" id="avatarImg" alt="Avatar">
                             {% else %}
                                 <div class="avatar-preview d-flex align-items-center justify-content-center text-primary fw-bold" id="avatarImg" style="font-size: 3rem;">
                                     {{ request.user.username|first|upper }}
@@ -99,8 +99,8 @@
 
                     <div class="row g-3 mb-4 p-3 rounded-3" style="background: #f8fafc; border: 1px dashed #cbd5e1;">
                         <div class="col-md-6">
-                            <label class="form-label text-primary">Tên đăng nhập (ID)</label>
-                            <input type="text" class="form-control readonly-field" value="{{ request.user.username }}" readonly>
+                            <label class="form-label text-primary">Tên đăng nhập (ID) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="username" value="{{ request.user.username }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-primary">Mã Nhân Viên (HRM)</label>

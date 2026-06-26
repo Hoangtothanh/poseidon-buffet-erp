@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User, Group
 import csv
 from django.http import HttpResponse
-from .models import NhanVien, CaLamViec, ChiTietCaLam, NgayNghi
+from .models import NhanVien, CaLamViec
 from datetime import datetime, timedelta
 from django.db import transaction
 from django.utils import timezone
@@ -32,6 +32,17 @@ def employees_view(request):
     # LẤY DANH SÁCH VAI TRÒ TỪ SETTINGS
     roles = Group.objects.all()
 
+    # Logic gợi ý AI đơn giản
+    today = timezone.now()
+    weekday = today.weekday() # 0 = Monday, 6 = Sunday
+    
+    if weekday in [4, 5, 6]: # Thứ 6, 7, CN
+        ai_suggestion = "Cuối tuần dự kiến rất đông khách, hệ thống AI đề xuất bố trí thêm 2-3 nhân viên phục vụ và 1 nhân viên bếp ca tối."
+    elif weekday == 0:
+        ai_suggestion = "Đầu tuần (Thứ 2) lượng khách thường vắng, có thể tối ưu giảm 1 nhân sự phục vụ ca sáng để tiết kiệm chi phí."
+    else:
+        ai_suggestion = "Lượng khách dự kiến ở mức ổn định trung bình, duy trì số lượng nhân viên trực như lịch tiêu chuẩn."
+
     context = {
         'danh_sach_nv': danh_sach_nv,
         'tong_nhan_vien': tong_nhan_vien,
@@ -39,6 +50,7 @@ def employees_view(request):
         'so_phuc_vu': so_phuc_vu,
         'so_tai_khoan': so_tai_khoan,
         'roles': roles, 
+        'ai_suggestion': ai_suggestion,
     }
     return render(request, 'employees/employees.html', context)
 
@@ -75,6 +87,14 @@ def save_employee(request):
                         nv_hien_tai = NhanVien.objects.get(id=emp_id)
                         if nv_hien_tai.user: # Đã có tài khoản 
                             user_obj = nv_hien_tai.user
+                            
+                            # Cập nhật username nếu có thay đổi
+                            if username != user_obj.username:
+                                if User.objects.filter(username=username).exclude(id=user_obj.id).exists():
+                                    messages.error(request, f"Tên đăng nhập '{username}' đã tồn tại!")
+                                    return redirect('employees')
+                                user_obj.username = username
+
                             if password:
                                 user_obj.set_password(password)
                             
@@ -226,24 +246,100 @@ def shifts_view(request):
     else:
         target_date = timezone.now().date()
 
-    danh_sach_ca = CaLamViec.objects.filter(ngay_lam_viec=target_date).order_by('loai_ca', 'bo_phan')
-    danh_sach_nv = NhanVien.objects.all().order_by('chuc_vu', 'ho_ten')
+    danh_sach_ca = CaLamViec.objects.filter(ngay_lam_viec=target_date).exclude(loai_ca='nghi_phep').order_by('loai_ca', 'bo_phan')
     
-    nv_nghi_hom_nay = list(NgayNghi.objects.filter(ngay_nghi=target_date).values_list('nhan_vien_id', flat=True))
+    from datetime import timedelta
+    import json
+    
+    start_date = target_date - timedelta(days=15)
+    end_date = target_date + timedelta(days=15)
+    ca_nghi_all = CaLamViec.objects.filter(ngay_lam_viec__range=[start_date, end_date], loai_ca='nghi_phep').prefetch_related('nhan_vien')
+    
+    leave_dict_target = {}
+    leave_json = {}
+    for ca in ca_nghi_all:
+        date_str = ca.ngay_lam_viec.strftime('%Y-%m-%d')
+        if date_str not in leave_json:
+            leave_json[date_str] = {}
+        for nv in ca.nhan_vien.all():
+            leave_json[date_str][nv.id] = ca.ghi_chu or 'Nghỉ phép'
+            if ca.ngay_lam_viec == target_date:
+                leave_dict_target[nv.id] = ca.ghi_chu or 'Nghỉ phép'
+            
+    danh_sach_nv = NhanVien.objects.all().order_by('chuc_vu', 'ho_ten')
 
-    tong_nv_hom_nay = ChiTietCaLam.objects.filter(ca_lam_viec__ngay_lam_viec=target_date).values('nhan_vien').distinct().count()
-    ca_sang_count = ChiTietCaLam.objects.filter(ca_lam_viec__ngay_lam_viec=target_date, ca_lam_viec__loai_ca='morning').count()
-    ca_toi_count = ChiTietCaLam.objects.filter(ca_lam_viec__ngay_lam_viec=target_date, ca_lam_viec__loai_ca='evening').count()
+    tong_nv_hom_nay = CaLamViec.objects.filter(ngay_lam_viec=target_date).exclude(loai_ca='nghi_phep').values('nhan_vien').distinct().count()
+    ca_sang_count = CaLamViec.objects.filter(ngay_lam_viec=target_date, loai_ca='morning').values('nhan_vien').count()
+    ca_toi_count = CaLamViec.objects.filter(ngay_lam_viec=target_date, loai_ca='evening').values('nhan_vien').count()
+    
+    nv_nghi_hom_nay = list(leave_dict_target.keys())
+    
+    # Logic gợi ý AI từ ai_analytics
+    ai_suggestion = "Lượng khách dự kiến ở mức ổn định trung bình, duy trì số lượng nhân viên trực như lịch tiêu chuẩn."
+    try:
+        from ai_analytics.views import get_ai_features
+        now = timezone.now()
+        features = get_ai_features(now.date(), target_date, now.hour)
+        
+        tong_khach = features.get('pax_forecast', 0)
+        pax_trua = features.get('pax_trua', 0)
+        pax_toi = features.get('pax_toi', 0)
+        staff_trua = features.get('staff_required_trua', 0)
+        staff_toi = features.get('staff_required_toi', 0)
+        
+        weather = features.get('weather_data')
+        weather_str = ""
+        if weather:
+            weather_str = f"Thời tiết: {weather.get('icon', '')} {weather.get('temp_max', '')}°C ({weather.get('description', '')}). "
+            
+        # Lấy nhân viên phục vụ thực tế đã xếp
+        ca_lam_target = CaLamViec.objects.filter(ngay_lam_viec=target_date, bo_phan='service')
+        actual_service_trua = 0
+        actual_service_toi = 0
+        for ca in ca_lam_target:
+            if ca.loai_ca in ['morning', 'full']:
+                actual_service_trua += ca.nhan_vien.count()
+            if ca.loai_ca in ['evening', 'full']:
+                actual_service_toi += ca.nhan_vien.count()
+                
+        # Tính toán thừa/thiếu ca trưa
+        if actual_service_trua < staff_trua:
+            status_trua = f"<span class='d-block mt-1 ms-3 text-danger fw-bold'>👉 Thiếu {staff_trua - actual_service_trua} Nhân viên phục vụ</span>"
+        elif actual_service_trua > staff_trua:
+            status_trua = f"<span class='d-block mt-1 ms-3 text-warning fw-bold'>👉 Thừa {actual_service_trua - staff_trua} Nhân viên phục vụ</span>"
+        else:
+            status_trua = f"<span class='d-block mt-1 ms-3 text-success fw-bold'>👉 Đủ Nhân viên phục vụ</span>"
 
+        # Tính toán thừa/thiếu ca tối
+        if actual_service_toi < staff_toi:
+            status_toi = f"<span class='d-block mt-1 ms-3 text-danger fw-bold'>👉 Thiếu {staff_toi - actual_service_toi} Nhân viên phục vụ</span>"
+        elif actual_service_toi > staff_toi:
+            status_toi = f"<span class='d-block mt-1 ms-3 text-warning fw-bold'>👉 Thừa {actual_service_toi - staff_toi} Nhân viên phục vụ</span>"
+        else:
+            status_toi = f"<span class='d-block mt-1 ms-3 text-success fw-bold'>👉 Đủ Nhân viên phục vụ</span>"
+            
+        ai_suggestion = (
+            f"Dự báo <b>{tong_khach} khách</b>. "
+            f"{weather_str}"
+            f"<ul style='margin-bottom: 0; padding-left: 20px; margin-top: 5px;'>"
+            f"<li><b>Ca Trưa</b>: ~{pax_trua} khách (Khuyến nghị: {staff_trua} Nhân viên phục vụ | Đã xếp: {actual_service_trua} Nhân viên phục vụ) {status_trua}</li>"
+            f"<li><b>Ca Tối</b>: ~{pax_toi} khách (Khuyến nghị: {staff_toi} Nhân viên phục vụ | Đã xếp: {actual_service_toi} Nhân viên phục vụ) {status_toi}</li>"
+            f"</ul>"
+        )
+    except Exception as e:
+        print("Lỗi tính ai_suggestion shifts:", e)
+    
     context = {
         'target_date': target_date.strftime('%Y-%m-%d'),
         'danh_sach_ca': danh_sach_ca,
         'danh_sach_nv': danh_sach_nv,
+        'ai_suggestion': ai_suggestion,
         'nv_nghi_hom_nay': nv_nghi_hom_nay, 
         'tong_nv_hom_nay': tong_nv_hom_nay,
         'ca_sang_count': ca_sang_count,
         'ca_toi_count': ca_toi_count,
         'nv_nghi_off': len(nv_nghi_hom_nay),
+        'leave_json': json.dumps(leave_json, ensure_ascii=False)
     }
     return render(request, 'employees/shifts.html', context)
 
@@ -276,12 +372,12 @@ def manage_shift(request):
                         ca.bo_phan = bo_phan
                         ca.ghi_chu = ghi_chu
                         ca.save()
-                        ChiTietCaLam.objects.filter(ca_lam_viec=ca).delete()
+                        ca.nhan_vien.clear()
                     else:
                         ca = CaLamViec.objects.create(ngay_lam_viec=ngay_lam, loai_ca=loai_ca, bo_phan=bo_phan, ghi_chu=ghi_chu)
                         
                     for nv_id in nhan_vien_ids:
-                        ChiTietCaLam.objects.create(ca_lam_viec=ca, nhan_vien_id=nv_id)
+                        ca.nhan_vien.add(nv_id)
                     messages.success(request, 'Đã lưu lịch trực thành công!')
 
             # LỆNH MỚI: BÁO NGHỈ PHÉP
@@ -289,14 +385,16 @@ def manage_shift(request):
                 nv_id = request.POST.get('nhan_vien_id')
                 ngay_nghi = request.POST.get('ngay_nghi')
                 ly_do = request.POST.get('ly_do_nghi')
-                NgayNghi.objects.get_or_create(nhan_vien_id=nv_id, ngay_nghi=ngay_nghi, defaults={'ly_do': ly_do})
+                ca_nghi, created = CaLamViec.objects.get_or_create(ngay_lam_viec=ngay_nghi, loai_ca='nghi_phep', bo_phan='other', defaults={'ghi_chu': ly_do})
+                ca_nghi.nhan_vien.add(nv_id)
                 messages.success(request, 'Đã ghi nhận đơn nghỉ phép thành công!')
 
         except Exception as e:
             messages.error(request, f'Lỗi hệ thống: {str(e)}')
 
         filter_date = request.POST.get('ngay_lam_viec') or request.POST.get('ngay_nghi') or timezone.now().strftime('%Y-%m-%d')
-        return redirect(f'/shifts/?date={filter_date}')
+        from django.urls import reverse
+        return redirect(f"{reverse('shifts')}?date={filter_date}")
 
     return redirect('shifts')
 
@@ -308,7 +406,7 @@ def weekly_shifts_view(request):
     start_of_week = today - timedelta(days=today.weekday()) 
     dates = [start_of_week + timedelta(days=i) for i in range(7)]
 
-    ca_trong_tuan = CaLamViec.objects.filter(ngay_lam_viec__in=dates).prefetch_related('chi_tiet_ca__nhan_vien')
+    ca_trong_tuan = CaLamViec.objects.filter(ngay_lam_viec__in=dates).exclude(loai_ca='nghi_phep').prefetch_related('nhan_vien')
 
     week_data = {d: {'morning': [], 'evening': [], 'full': []} for d in dates}
     for ca in ca_trong_tuan:
@@ -321,3 +419,114 @@ def weekly_shifts_view(request):
         'end_of_week': dates[-1]
     }
     return render(request, 'employees/weekly_shifts.html', context)
+
+# --- HÀM MỚI: PHÂN CA NHANH ---
+@login_required(login_url='login')
+def quick_shift(request):
+    if request.method == 'POST':
+        shift_type = request.POST.get('shift_type')
+        target_date_str = request.POST.get('target_date')
+        
+        try:
+            target_date = datetime.strptime(target_date_str, '%Y-%m-%d').date()
+        except (ValueError, TypeError):
+            target_date = timezone.now().date()
+            
+        # Determine the shift name for messages
+        shift_name = 'sáng' if shift_type == 'morning' else 'tối'
+        
+        try:
+            with transaction.atomic():
+                import random
+                
+                # 1. Lấy dữ liệu dự báo AI cho ngày và ca này
+                required_service = 3 # Mặc định nếu không có AI
+                
+                try:
+                    from ai_analytics.views import get_ai_features
+                    now = timezone.now()
+                    features = get_ai_features(now.date(), target_date, now.hour)
+                    if shift_type == 'morning':
+                        required_service = features.get('staff_required_trua', 3)
+                    else:
+                        required_service = features.get('staff_required_toi', 3)
+                except Exception as e:
+                    print(f"Error getting AI features in quick_shift: {e}")
+                    pass
+
+                already_scheduled_count = 0
+                added_service_count = 0
+
+                # Tự động phân bổ theo chức vụ
+                for dept in ['service', 'kitchen', 'cashier']:
+                    ca, _ = CaLamViec.objects.get_or_create(
+                        ngay_lam_viec=target_date, 
+                        loai_ca=shift_type, 
+                        bo_phan=dept, 
+                        defaults={'ghi_chu': f'Phân ca nhanh tự động (AI đề xuất {required_service} NV)' if dept == 'service' else 'Phân ca nhanh tự động'}
+                    )
+                    
+                    if dept == 'service':
+                        # Lấy danh sách ID nhân viên đã được xếp ca này trước đó
+                        already_scheduled_ids = list(ca.nhan_vien.values_list('id', flat=True))
+                        already_scheduled_count = len(already_scheduled_ids)
+                        
+                        # Tính số nhân viên phục vụ cần thêm để đạt mức khuyến nghị của AI
+                        needed = max(0, required_service - already_scheduled_count)
+                        
+                        if needed > 0:
+                            # Lấy tất cả phục vụ
+                            all_service = list(NhanVien.objects.filter(chuc_vu__icontains='Phục vụ'))
+                            
+                            # Lấy danh sách ID nhân viên đã báo nghỉ vào target_date
+                            nghi_ids = CaLamViec.objects.filter(ngay_lam_viec=target_date, loai_ca='nghi_phep').values_list('nhan_vien__id', flat=True)
+                            
+                            # Lọc ra những người không nghỉ và chưa được xếp ca này
+                            available_service = [
+                                nv for nv in all_service 
+                                if nv.id not in nghi_ids and nv.id not in already_scheduled_ids
+                            ]
+                            
+                            # Chọn ngẫu nhiên số lượng cần thêm
+                            nvs = random.sample(available_service, min(len(available_service), needed))
+                            added_service_count = len(nvs)
+                        else:
+                            nvs = []
+                    elif dept == 'kitchen':
+                        nvs = NhanVien.objects.filter(chuc_vu__icontains='Bếp')
+                    elif dept == 'cashier':
+                        nvs = NhanVien.objects.filter(chuc_vu__icontains='Thu ngân')
+                        
+                    for nv in nvs:
+                        ca.nhan_vien.add(nv)
+                
+                # Các nhân viên khác
+                ca_other, _ = CaLamViec.objects.get_or_create(
+                     ngay_lam_viec=target_date, 
+                     loai_ca=shift_type, 
+                     bo_phan='other', 
+                     defaults={'ghi_chu': 'Phân ca nhanh tự động (Khác)'}
+                )
+                nvs_other = NhanVien.objects.exclude(chuc_vu__icontains='Phục vụ').exclude(chuc_vu__icontains='Bếp').exclude(chuc_vu__icontains='Thu ngân')
+                for nv in nvs_other:
+                    ca_other.nhan_vien.add(nv)
+
+                if SystemLog:
+                    SystemLog.objects.create(
+                        user=request.user, action=f"Sử dụng phân ca {shift_name} nhanh cho ngày {target_date.strftime('%d/%m/%Y')}",
+                        module="Nhân sự", level="info"
+                    )
+                    
+            if added_service_count > 0:
+                success_msg = f'Đã phân ca {shift_name} nhanh cho ngày {target_date.strftime("%d/%m/%Y")}! AI đã bổ sung thêm {added_service_count} nhân viên phục vụ (trước đó đã xếp {already_scheduled_count} NV, đạt tổng {already_scheduled_count + added_service_count}/{required_service} NV theo khuyến nghị của AI).'
+            else:
+                success_msg = f'Ca {shift_name} ngày {target_date.strftime("%d/%m/%Y")} đã được xếp đủ {already_scheduled_count} nhân viên phục vụ (Khuyến nghị của AI: {required_service} NV). Không cần bổ sung thêm.'
+                
+            messages.success(request, success_msg)
+        except Exception as e:
+            messages.error(request, f'Lỗi phân ca nhanh: {str(e)}')
+            
+        from django.urls import reverse
+        return redirect(f"{reverse('shifts')}?date={target_date.strftime('%Y-%m-%d')}")
+        
+    return redirect('employees')

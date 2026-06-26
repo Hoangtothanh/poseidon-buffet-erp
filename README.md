@@ -109,3 +109,18 @@ python manage.py createsuperuser
 # 6. Kích hoạt Server chạy thử nghiệm
 ```bash 
 python manage.py runserver
+```
+# 7. Khôi phục Dữ liệu từ file Backup (Restore)
+Khi bạn cần khôi phục lại dữ liệu phòng trường hợp rủi ro hoặc chuyển sang máy khác, hãy thực hiện nạp lại file json đã tải về. 
+Ví dụ với file `Poseidon_DB_Backup_20260615_224159.json`:
+
+```bash 
+# 1. Xóa sạch dữ liệu hiện tại trong Database (tránh xung đột)
+python manage.py flush
+
+# 2. Chạy lại migrate để đảm bảo cấu trúc bảng chuẩn xác
+python manage.py migrate
+
+# 3. Nạp lại dữ liệu từ file backup (đã đổi tên hoặc dùng tên gốc)
+python manage.py loaddata Poseidon_DB_Backup_20260615_224159.json
+```

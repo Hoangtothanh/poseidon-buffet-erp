@@ -133,9 +133,9 @@
             <div class="breadcrumb-saas">
                 <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span>Nhân sự</span>
+                <span>Quản lý Nhân sự</span>
                 <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span class="text-muted">Phân ca</span>
+                <span class="text-muted">Phân ca làm việc</span>
             </div>
         </div>
         <div class="d-flex gap-2">
@@ -182,7 +182,9 @@
         </div>
     </div>
 
-    <div class="toolbar-saas no-print fade-in-up delay-2">
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="toolbar-saas no-print fade-in-up delay-2">
         <div class="filter-group">
             <div class="search-box">
                 <i class="bi bi-search"></i>
@@ -242,6 +244,9 @@
                             {% elif ca.loai_ca == 'evening' %}
                                 <div class="shift-time"><i class="bi bi-moon-stars text-info"></i> Ca Tối</div>
                                 <span class="shift-type shift-evening">15:00 - 22:30</span>
+                            {% elif ca.loai_ca == 'nghi_phep' %}
+                                <div class="shift-time"><i class="bi bi-calendar-x text-danger"></i> Nghỉ phép</div>
+                                <span class="shift-type bg-danger text-white border-0">Không đi làm</span>
                             {% else %}
                                 <div class="shift-time"><i class="bi bi-clock-history text-purple"></i> Full-time</div>
                                 <span class="shift-type shift-full">Cả ngày</span>
@@ -265,15 +270,15 @@
                         <td>
                             <div class="staff-container">
                                 <div class="d-none staff-id-list">
-                                    {% for chitiet in ca.chi_tiet_ca.all %}
-                                        {{ chitiet.nhan_vien.id }},
+                                    {% for nv in ca.nhan_vien.all %}
+                                        {{ nv.id }},
                                     {% endfor %}
                                 </div>
                                 
-                                {% for chitiet in ca.chi_tiet_ca.all %}
-                                    <div class="staff-pill" title="{{ chitiet.nhan_vien.chuc_vu }}">
-                                        <div class="staff-avatar auto-avatar" data-name="{{ chitiet.nhan_vien.ho_ten }}">{{ chitiet.nhan_vien.ho_ten|make_list|first|upper }}</div> 
-                                        {{ chitiet.nhan_vien.ho_ten }}
+                                {% for nv in ca.nhan_vien.all %}
+                                    <div class="staff-pill" title="{{ nv.chuc_vu }}">
+                                        <div class="staff-avatar auto-avatar" data-name="{{ nv.ho_ten }}">{{ nv.ho_ten|make_list|first|upper }}</div> 
+                                        {{ nv.ho_ten }}
                                     </div>
                                 {% empty %}
                                     <span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Chưa có nhân viên nào trong ca này.</span>
@@ -299,6 +304,39 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+        </div>
+        
+        <div class="col-lg-3 no-print fade-in-up delay-4">
+            <!-- Phân Ca Nhanh -->
+            <div class="card shadow-sm border-0 mb-4" style="border-radius: 16px;">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3 text-center text-secondary" style="font-size: 0.85rem; letter-spacing: 1px;">PHÂN CA NHANH</h6>
+                    <form method="POST" action="{% url 'quick_shift' %}" class="d-grid gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="target_date" value="{{ target_date }}">
+                        <button type="submit" name="shift_type" value="morning" class="btn fw-bold py-2" style="background: #e0f2fe; color: #0369a1; border: none; border-radius: 8px; transition: 0.2s;">
+                            [ CA SÁNG ]
+                        </button>
+                        <button type="submit" name="shift_type" value="evening" class="btn fw-bold py-2" style="background: #fce7f3; color: #be185d; border: none; border-radius: 8px; transition: 0.2s;">
+                            [ CA TỐI ]
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- AI Gợi Ý -->
+            <div class="card shadow-sm border-0" style="background: #fef3c7; border-radius: 16px; position: relative;">
+                <div class="card-body">
+                    <div style="position: absolute; top: 16px; left: 16px; color: #f59e0b; font-size: 1.5rem;">
+                        <i class="bi bi-lightbulb-fill"></i>
+                    </div>
+                    <p class="mb-0 text-dark" style="font-size: 0.85rem; font-weight: 500; margin-left: 36px; padding-top: 2px;">
+                        <strong>AI đề xuất:</strong> {{ ai_suggestion|default:"Hôm nay lượng khách ổn định, hãy duy trì nhân sự theo tiêu chuẩn."|safe }}
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -331,7 +369,7 @@
                         
                         <div class="col-12">
                             <label class="form-label">Bộ phận <span class="text-danger">*</span></label>
-                            <select class="form-select" name="bo_phan" id="inBoPhan" required>
+                            <select class="form-select" name="bo_phan" id="inBoPhan" required onchange="filterModalStaff()">
                                 <option value="kitchen">Bộ phận Bếp</option>
                                 <option value="service">Phục vụ Sảnh</option>
                                 <option value="cashier">Thu ngân / Lễ tân</option>
@@ -340,21 +378,28 @@
                         </div>
 
                         <div class="col-12 mt-4 border-top pt-3">
-                            <label class="form-label d-flex justify-content-between align-items-center">
-                                <span>Chọn Nhân Viên tham gia ca này <span class="text-danger">*</span></span>
-                                <span style="font-size: 0.75rem; color: var(--text-muted); cursor: pointer;" onclick="toggleAllStaff()"><i class="bi bi-check-all"></i> Chọn hết</span>
-                            </label>
+                            <label class="form-label">Chọn Nhân Viên tham gia ca này <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-2 mb-3" style="height: 60px;">
+                                <div style="flex: 6;">
+                                    <input type="text" id="searchModalStaff" class="form-control h-100" placeholder="Tìm tên nhân viên..." onkeyup="filterModalStaff()">
+                                </div>
+                                <div style="flex: 4;">
+                                    <button type="button" class="btn btn-outline-secondary fw-bold w-100 h-100 shadow-sm lh-sm text-nowrap" onclick="toggleAllStaff()">
+                                        <i class="bi bi-check-all fs-5 me-1 align-middle"></i><span class="align-middle">Chọn tất cả</span>
+                                    </button>
+                                </div>
+                            </div>
                             <div class="multi-select-box" id="staffCheckContainer">
                                 {% for nv in danh_sach_nv %}
-                                    <div class="check-item {% if nv.id in nv_nghi_hom_nay %}opacity-50 bg-light{% endif %}">
-                                        <input type="checkbox" name="nhan_vien_ids" value="{{ nv.id }}" id="nv_{{ nv.id }}" class="staff-checkbox" {% if nv.id in nv_nghi_hom_nay %}disabled{% endif %}>
+                                    <div class="check-item {% if nv.is_on_leave %}opacity-50 bg-light{% endif %}">
+                                        <input type="checkbox" name="nhan_vien_ids" value="{{ nv.id }}" id="nv_{{ nv.id }}" class="staff-checkbox" {% if nv.is_on_leave %}disabled{% endif %}>
                                         <label for="nv_{{ nv.id }}">
                                             {% if 'quản lý' in nv.chuc_vu|lower or 'trưởng' in nv.chuc_vu|lower %}
                                                 <span class="badge bg-danger me-1">{{ nv.chuc_vu }}</span>
                                             {% endif %}
                                             {{ nv.ho_ten }} 
-                                            {% if nv.id in nv_nghi_hom_nay %}
-                                                <span class="badge bg-secondary ms-2"><i class="bi bi-airplane"></i> Nghỉ phép</span>
+                                            {% if nv.is_on_leave %}
+                                                <span class="badge bg-secondary ms-2" title="{{ nv.leave_reason }}"><i class="bi bi-airplane"></i> Nghỉ: {{ nv.leave_reason }}</span>
                                             {% else %}
                                                 <span class="text-muted" style="font-size:0.75rem;">- {{ nv.chuc_vu }}</span>
                                             {% endif %}
@@ -417,10 +462,20 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="add_leave">
                 <div class="modal-body">
+                    <div class="d-flex gap-2 mb-2">
+                        <input type="text" id="searchLeaveStaff" class="form-control form-control-sm" placeholder="Tìm tên..." onkeyup="filterLeaveStaff()">
+                        <select id="filterLeaveDept" class="form-select form-select-sm" style="width:120px;" onchange="filterLeaveStaff()">
+                            <option value="all">Tất cả</option>
+                            <option value="kitchen">Bếp</option>
+                            <option value="service">Phục vụ</option>
+                            <option value="reception">Lễ tân</option>
+                            <option value="manager">Quản lý</option>
+                        </select>
+                    </div>
                     <label class="form-label">Chọn Nhân Viên <span class="text-danger">*</span></label>
-                    <select class="form-select mb-3" name="nhan_vien_id" required>
+                    <select class="form-select mb-3" name="nhan_vien_id" id="leaveStaffSelect" required size="5">
                         {% for nv in danh_sach_nv %}
-                            <option value="{{ nv.id }}">{{ nv.ho_ten }} - {{ nv.chuc_vu }}</option>
+                            <option value="{{ nv.id }}" data-bophan="{{ nv.bo_phan }}">{{ nv.ho_ten }} - {{ nv.chuc_vu }}</option>
                         {% endfor %}
                     </select>
                     
@@ -489,21 +544,113 @@
         });
     }
 
-    // Tiện ích: Chọn tất cả Checkbox (bỏ qua những người đang nghỉ phép bị disabled)
-    function toggleAllStaff() {
-        const checkboxes = document.querySelectorAll('.staff-checkbox:not([disabled])');
-        let allChecked = true;
-        checkboxes.forEach(cb => { if(!cb.checked) allChecked = false; });
-        checkboxes.forEach(cb => { cb.checked = !allChecked; });
+    // Khi đổi bộ phận hoặc tìm kiếm trong Modal thì tự động lọc danh sách checkbox
+    function filterModalStaff() {
+        let selectedDept = document.getElementById('inBoPhan').value;
+        let searchQuery = document.getElementById('searchModalStaff').value.toLowerCase().trim();
+        const checkItems = document.querySelectorAll('#staffCheckContainer .check-item');
+        
+        checkItems.forEach(item => {
+            let label = item.querySelector('label').innerText.toLowerCase();
+            let matchDept = false;
+            
+            if(selectedDept === 'service' && label.includes('phục vụ')) matchDept = true;
+            else if(selectedDept === 'kitchen' && label.includes('bếp')) matchDept = true;
+            else if(selectedDept === 'cashier' && (label.includes('thu ngân') || label.includes('lễ tân'))) matchDept = true;
+            else if(selectedDept === 'other' && !label.includes('phục vụ') && !label.includes('bếp') && !label.includes('thu ngân') && !label.includes('lễ tân')) matchDept = true;
+            else if(!selectedDept) matchDept = true;
+            
+            let matchSearch = label.includes(searchQuery);
+            
+            if(matchDept && matchSearch) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+                // Nếu bị ẩn đi thì tự động bỏ tick
+                let cb = item.querySelector('.staff-checkbox');
+                if(cb) cb.checked = false;
+            }
+        });
     }
+
+    // Gắn event listener khi trang load
+    document.addEventListener('DOMContentLoaded', function() {
+        let inBoPhan = document.getElementById('inBoPhan');
+        if(inBoPhan) {
+            filterModalStaff();
+        }
+    });
+
+    // Tiện ích: Chọn tất cả Checkbox đang hiển thị (bỏ qua những người đang nghỉ phép bị disabled)
+    function toggleAllStaff() {
+        const checkItems = document.querySelectorAll('#staffCheckContainer .check-item');
+        let allChecked = true;
+        let visibleCheckboxes = [];
+        
+        checkItems.forEach(item => {
+            if(item.style.display !== 'none') {
+                let cb = item.querySelector('.staff-checkbox');
+                if(cb && !cb.disabled) {
+                    visibleCheckboxes.push(cb);
+                    if(!cb.checked) allChecked = false;
+                }
+            }
+        });
+        
+        visibleCheckboxes.forEach(cb => { cb.checked = !allChecked; });
+    }
+
+    const leaveData = JSON.parse('{{ leave_json|escapejs }}');
+    
+    // Cập nhật trạng thái hiển thị của từng checkbox dựa vào ngày
+    function updateLeaveStatus() {
+        const currentDate = document.getElementById('inNgayLam').value;
+        const leavesToday = leaveData[currentDate] || {};
+        const checkItems = document.querySelectorAll('#staffCheckContainer .check-item');
+        
+        checkItems.forEach(item => {
+            let cb = item.querySelector('.staff-checkbox');
+            let label = item.querySelector('label');
+            let nvId = cb.value;
+            
+            // Xóa badge cũ nếu có
+            let oldBadge = label.querySelector('.leave-badge');
+            if(oldBadge) oldBadge.remove();
+            
+            if (leavesToday[nvId]) {
+                // Đang nghỉ phép
+                item.classList.add('opacity-50', 'bg-light');
+                cb.disabled = true;
+                cb.checked = false;
+                
+                let reason = leavesToday[nvId];
+                let badge = document.createElement('span');
+                badge.className = 'badge bg-secondary ms-2 leave-badge';
+                badge.title = reason;
+                badge.innerHTML = `<i class="bi bi-airplane"></i> Nghỉ: ${reason}`;
+                label.appendChild(badge);
+            } else {
+                // Đi làm bình thường
+                item.classList.remove('opacity-50', 'bg-light');
+                cb.disabled = false;
+            }
+        });
+    }
+
+
+
+    document.getElementById('inNgayLam').addEventListener('change', updateLeaveStatus);
 
     // Mở Modal Thêm Ca Mới
     function openAddModal() {
         document.getElementById('formShift').reset();
         document.getElementById('caId').value = '';     
         // Giữ lại ngày hiện tại đang xem trên bộ lọc (nếu có)
-        document.getElementById('inNgayLam').value = document.querySelector('input[name="date"]').value; 
+        document.getElementById('inNgayLam').value = document.querySelector('input[name="date"]').value || '{{ target_date }}'; 
         
+        updateLeaveStatus();
+        filterModalStaff(); // Lọc lại danh sách nhân viên theo bộ phận hiện tại
+
         document.getElementById('modalTitle').innerHTML = '<i class="bi bi-calendar-plus text-primary me-2"></i> Thiết Lập Phân Ca Mới';
         new bootstrap.Modal(document.getElementById('shiftModal')).show();
     }
@@ -516,6 +663,8 @@
         document.getElementById('inBoPhan').value = bo_phan;
         document.getElementById('inGhiChu').value = ghi_chu;
         
+        filterModalStaff(); // Lọc lại danh sách nhân viên theo bộ phận hiện tại
+
         // Reset toàn bộ Checkbox
         document.querySelectorAll('.staff-checkbox').forEach(cb => cb.checked = false);
         
@@ -542,5 +691,42 @@
             new bootstrap.Modal(document.getElementById('deleteShiftModal')).show();
         });
     });
+
+    // Lọc Nhân viên trong Báo Nghỉ
+    function filterLeaveStaff() {
+        const searchText = document.getElementById('searchLeaveStaff').value.toLowerCase().trim();
+        const dept = document.getElementById('filterLeaveDept').value;
+        const options = document.getElementById('leaveStaffSelect').options;
+        
+        let firstVisible = null;
+        for(let i = 0; i < options.length; i++) {
+            const opt = options[i];
+            const text = opt.text.toLowerCase();
+            
+            const matchText = text.includes(searchText);
+            
+            let matchDept = false;
+            if(dept === 'all') matchDept = true;
+            else if(dept === 'service' && text.includes('phục vụ')) matchDept = true;
+            else if(dept === 'kitchen' && text.includes('bếp')) matchDept = true;
+            else if(dept === 'reception' && (text.includes('lễ tân') || text.includes('thu ngân'))) matchDept = true;
+            else if(dept === 'manager' && text.includes('quản lý')) matchDept = true;
+            
+            if (matchText && matchDept) {
+                opt.style.display = '';
+                opt.disabled = false;
+                if (!firstVisible) firstVisible = opt;
+            } else {
+                opt.style.display = 'none';
+                opt.disabled = true;
+            }
+        }
+        
+        if (firstVisible) {
+            document.getElementById('leaveStaffSelect').value = firstVisible.value;
+        } else {
+            document.getElementById('leaveStaffSelect').value = '';
+        }
+    }
 </script>
 {% endblock %}

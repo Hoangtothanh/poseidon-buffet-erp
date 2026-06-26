@@ -262,7 +262,12 @@
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold text-muted mb-1">Giờ đến</label>
-                                    <input type="time" class="form-control" id="bookTime" required>
+                                    <input type="time" class="form-control" id="bookTime" 
+                                           min="{{ global_setting.open_time|time:'H:i' }}" 
+                                           max="{{ global_setting.close_time|time:'H:i' }}" required>
+                                    {% if global_setting.open_time and global_setting.close_time %}
+                                    <small class="text-danger" style="font-size: 0.7rem;">Hoạt động: {{ global_setting.open_time|time:'H:i' }} - {{ global_setting.close_time|time:'H:i' }}</small>
+                                    {% endif %}
                                 </div>
                                 
                                 <div class="col-md-6 col-6">

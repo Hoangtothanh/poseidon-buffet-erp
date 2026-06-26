@@ -7,10 +7,10 @@ from datetime import timedelta
 # =====================================================================
 # CHÚ Ý: BẠN HÃY KIỂM TRA VÀ SỬA LẠI TÊN APP Ở CÁC DÒNG IMPORT NÀY
 # =====================================================================
-from reception.models import KhuVuc, BanAn, KhachHang, PhieuDatBan
-from menu.models import QuayLine, MonBuffet, GoiBuffet, DanhMuc, DoUongDichVu
-# Dòng dưới này, thay chữ 'core' bằng tên app chứa bảng HoaDon của bạn (VD: pos, orders, banhang...)
-from pos.models import HoaDon, ChiTietHoaDon, ThanhToan 
+from reception.models import BanAn, KhachHang, PhieuDatBan
+from menu.models import ThucDon
+from inventory.models import NhaCungCap, NguyenLieu, PhieuKho, ChiTietPhieuKho
+from pos.models import HoaDon, ChiTietHoaDon 
 
 class Command(BaseCommand):
     help = 'Tự động tạo dữ liệu mẫu (Bàn ăn, Món ăn, Hóa đơn 7 ngày) cho nhà hàng Buffet'

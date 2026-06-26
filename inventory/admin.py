@@ -1,30 +1,22 @@
 from django.contrib import admin
-from .models import DanhMucNguyenLieu, NhaCungCap, NguyenLieu, PhieuNhapKho, ChiTietNhapKho, PhieuXuatKho, ChiTietXuatKho
+from .models import NhaCungCap, NguyenLieu, PhieuKho, ChiTietPhieuKho
 
-# Hiển thị Chi tiết Nhập ngay bên trong Phiếu Nhập
-class ChiTietNhapKhoInline(admin.TabularInline):
-    model = ChiTietNhapKho
-    extra = 1
-
-class ChiTietXuatKhoInline(admin.TabularInline):
-    model = ChiTietXuatKho
-    extra = 1
+@admin.register(NhaCungCap)
+class NhaCungCapAdmin(admin.ModelAdmin):
+    list_display = ('ten_ncc', 'so_dien_thoai', 'cong_no', 'trang_thai')
+    list_filter = ('trang_thai',)
 
 @admin.register(NguyenLieu)
 class NguyenLieuAdmin(admin.ModelAdmin):
-    list_display = ('ma_nl', 'ten_nguyen_lieu', 'danh_muc', 'ton_kho', 'don_vi_tinh', 'muc_canh_bao')
+    list_display = ('ma_nl', 'ten_nguyen_lieu', 'danh_muc', 'ton_kho', 'don_vi_tinh')
     list_filter = ('danh_muc',)
-    search_fields = ('ten_nguyen_lieu', 'ma_nl')
 
-@admin.register(PhieuNhapKho)
-class PhieuNhapKhoAdmin(admin.ModelAdmin):
-    list_display = ('ma_phieu', 'nha_cung_cap', 'ngay_nhap', 'tong_tien_nhap', 'nguoi_nhap')
-    inlines = [ChiTietNhapKhoInline]
+class ChiTietPhieuKhoInline(admin.TabularInline):
+    model = ChiTietPhieuKho
+    extra = 1
 
-@admin.register(PhieuXuatKho)
-class PhieuXuatKhoAdmin(admin.ModelAdmin):
-    list_display = ('ma_phieu', 'ly_do_xuat', 'ngay_xuat', 'nguoi_xuat')
-    inlines = [ChiTietXuatKhoInline]
-
-admin.site.register(DanhMucNguyenLieu)
-admin.site.register(NhaCungCap)
+@admin.register(PhieuKho)
+class PhieuKhoAdmin(admin.ModelAdmin):
+    list_display = ('ma_phieu', 'loai_phieu', 'ngay_thuc_hien', 'tong_tien')
+    list_filter = ('loai_phieu',)
+    inlines = [ChiTietPhieuKhoInline]

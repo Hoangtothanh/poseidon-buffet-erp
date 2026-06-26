@@ -167,11 +167,11 @@
             <h1 class="page-title">Báo Cáo Tồn Kho</h1>
             <p class="page-subtitle">Theo dõi số lượng hiện tại, giá trị tồn kho và thực hiện kiểm kê tài sản</p>
             <div class="breadcrumb-saas">
-                <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
-                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span>Kho nguyên liệu</span>
-                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-                <span class="text-muted">Tồn kho</span>
+                <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a>
+                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+                <span>Quản lý Kho &amp; NL</span>
+                <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+                <span class="text-muted">Kiểm kê tồn kho</span>
             </div>
         </div>
         <div class="d-flex gap-2">
@@ -191,7 +191,7 @@
         <div class="kpi-card c-info">
             <div>
                 <div class="kpi-title">Tổng Giá Trị Kho</div>
-                <div class="kpi-value text-info">{{ tong_gia_tri|intcomma|default:"0" }} <span class="fs-6 fw-bold text-muted">VNĐ</span></div>
+                <div class="kpi-value text-info"><span class="format-money">{{ tong_gia_tri|default:"0" }}</span> <span class="fs-6 fw-bold text-muted">đ</span></div>
             </div>
             <div class="icon-box icon-info"><i class="bi bi-cash-stack"></i></div>
         </div>
@@ -260,7 +260,7 @@
 
         <div style="text-align: center; margin-top: 20px;">
             <h2 style="margin: 0; font-weight: bold; font-size: 22px; color: #000; text-transform: uppercase;">BÁO CÁO TỔNG HỢP TỒN KHO</h2>
-            <div style="font-size: 14px; font-style: italic; margin-top: 5px; color: #000;">Tổng giá trị kho hiện tại: <span style="font-weight: bold;">{{ tong_gia_tri|intcomma }} VNĐ</span></div>
+            <div class="font-size: 14px; font-style: italic; margin-top: 5px; color: #000;">Tổng giá trị kho hiện tại: <span style="font-weight: bold;"><span class="format-money">{{ tong_gia_tri }}</span> đ</span></div>
             <div style="font-size: 13px; margin-top: 5px; color: #000;">Ngày in: <span id="printDatePlaceholder"></span></div>
         </div>
     </div>
@@ -281,14 +281,14 @@
                 </thead>
                 <tbody>
                     {% for nl in danh_sach_nl %}
-                    <tr class="item-row" data-name="{{ nl.ten_nguyen_lieu|lower }}" data-cat="{% if nl.danh_muc %}{{ nl.danh_muc.id }}{% else %}none{% endif %}" data-status="{{ nl.trang_thai }}">
+                    <tr class="item-row" data-name="{{ nl.ten_nguyen_lieu|lower }}" data-cat="{% if nl.danh_muc %}{{ nl.danh_muc }}{% else %}none{% endif %}" data-status="{{ nl.trang_thai }}">
                         <td>
                             <div class="item-name {% if nl.trang_thai == 'out' %}text-danger{% endif %}">{{ nl.ten_nguyen_lieu }}</div>
                             <div class="item-code">SKU: {{ nl.ma_nl }}</div>
                         </td>
                         <td>
                             {% if nl.danh_muc %}
-                                <span class="cat-badge">{{ nl.danh_muc.ten_danh_muc }}</span>
+                                <span class="cat-badge">{{ nl.get_danh_muc_display }}</span>
                             {% else %}
                                 <span class="text-muted small">Chưa phân loại</span>
                             {% endif %}
@@ -300,11 +300,11 @@
                             </div>
                             <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">Min: {{ nl.muc_canh_bao|floatformat:2 }} {{ nl.don_vi_tinh }}</div>
                         </td>
-                        <td class="text-muted fw-bold text-end">{{ nl.don_gia_trung_binh|intcomma }} ₫</td>
+                        <td class="text-muted fw-bold text-end"><span class="format-money">{{ nl.don_gia_trung_binh }}</span> đ</td>
                         <td class="text-end">
                             <span class="amount-text {% if nl.trang_thai == 'out' %}text-muted{% endif %}">
                                 {% widthratio nl.ton_kho 1 nl.don_gia_trung_binh as subtotal %}
-                                {{ subtotal|intcomma }} ₫
+                                <span class="format-money">{{ subtotal }}</span> đ
                             </span>
                         </td>
                         <td>
@@ -410,7 +410,7 @@
                 <h4 class="fw-bold text-dark mb-2">Chốt Kỳ Kiểm Kê?</h4>
                 <p class="text-muted mb-4" style="font-size: 0.9rem;">
                     Hệ thống sẽ lưu lại bản ghi lịch sử gồm <strong>{{ tong_mat_hang }}</strong> mặt hàng với tổng giá trị kho là <br>
-                    <span class="text-primary fw-bold fs-5">{{ tong_gia_tri|intcomma }} VNĐ</span>.<br>
+                    <span class="text-primary fw-bold fs-5"><span class="format-money">{{ tong_gia_tri }}</span> đ</span>.<br>
                     Bạn sẽ không thể thay đổi dữ liệu của kỳ này sau khi chốt!
                 </p>
                 

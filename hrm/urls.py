@@ -11,4 +11,5 @@ urlpatterns = [
     path('shifts/', views.shifts_view, name='shifts'),
     path('shifts/manage/', views.manage_shift, name='manage_shift'),
     path('shifts/weekly/', views.weekly_shifts_view, name='weekly_shifts'),
+    path('shifts/quick_shift/', views.quick_shift, name='quick_shift'),
 ]

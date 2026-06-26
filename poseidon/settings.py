@@ -125,6 +125,9 @@ TIME_ZONE = 'Asia/Ho_Chi_Minh' # <--- SỬA DÒNG NÀY (Đúng chuẩn viết ho
 USE_I18N = True
 USE_TZ = False
 USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = '.'
+DECIMAL_SEPARATOR = ','
+NUMBER_GROUPING = 3
 
 
 # Static files (CSS, JavaScript, Images)

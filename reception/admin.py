@@ -1,14 +1,5 @@
 from django.contrib import admin
-from .models import KhachHang, KhuVuc, BanAn, PhieuDatBan
-
-@admin.register(KhachHang)
-class KhachHangAdmin(admin.ModelAdmin):
-    list_display = ('ho_ten', 'so_dien_thoai', 'diem_tich_luy')
-    search_fields = ('ho_ten', 'so_dien_thoai')
-
-@admin.register(KhuVuc)
-class KhuVucAdmin(admin.ModelAdmin):
-    list_display = ('ten_khu_vuc',)
+from .models import BanAn, PhieuDatBan
 
 @admin.register(BanAn)
 class BanAnAdmin(admin.ModelAdmin):

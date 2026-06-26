@@ -37,10 +37,12 @@
     <div class="ticket-container">
         
         {% if is_bar_ticket %}
+        
+        {% if bar_items %}
         <div class="ticket-block">
             <div class="text-center">
                 <div class="res-name">{{ setting.restaurant_name|default:"POSEIDON" }}</div>
-                <div style="font-weight: bold; margin: 5px 0; border: 1px solid #000; padding: 2px;">PHIẾU CHẾ BIẾN (QUẦY BAR)</div>
+                <div style="font-weight: bold; margin: 5px 0; border: 1px solid #000; padding: 2px;">{{ ticket_title|default:"PHIẾU CHẾ BIẾN (QUẦY BAR)" }}</div>
             </div>
             <div style="font-size: 11px;">
                 Mã: <b>{{ hd.ma_hoa_don }}</b> | Bàn: <b>{{ hd.ban_an.ten_ban|default:"--" }}</b><br>
@@ -50,44 +52,63 @@
             <table class="item-table">
                 <thead><tr><th>MÓN ĐỒ UỐNG</th><th class="qty">SL</th></tr></thead>
                 <tbody>
-                    {% for item in items %}
-                        {% if "vé" not in item.ten_mon_luu_tru|lower and "phụ thu" not in item.ten_mon_luu_tru|lower and "phí" not in item.ten_mon_luu_tru|lower %}
+                    {% for item in bar_items %}
                         <tr>
-                            <td><b>{{ item.ten_mon_luu_tru }}</b>{% if item.ghi_chu %}<div style="font-size: 10px; font-style: italic;">* {{ item.ghi_chu }}</div>{% endif %}</td>
-                            <td class="qty">{{ item.so_luong }}</td>
+                            <td>
+                                <b>{{ item.ten_mon_luu_tru }}</b>
+                                {% if item.in_loai %}
+                                    <br><span style="font-size: 11px; font-weight: bold; border: 1px solid #000; padding: 1px 3px;">{{ item.in_loai }}</span>
+                                {% endif %}
+                                {% if item.ghi_chu %}<div style="font-size: 10px; font-style: italic;">* {{ item.ghi_chu }}</div>{% endif %}
+                            </td>
+                            <td class="qty">{{ item.in_so_luong }}</td>
                         </tr>
-                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
             <div class="divider"></div>
         </div>
+        {% endif %}
 
+        {% if bar_items and cashier_items %}
         <div class="cut-line">- - - XÉ GỬI QUẦY BAR - - -</div>
+        {% endif %}
 
+        {% if cashier_items %}
         <div class="ticket-block">
             <div class="text-center">
-                <div style="font-weight: bold; margin: 5px 0; border: 1px solid #000; padding: 2px;">PHIẾU KIỂM SOÁT (THU NGÂN)</div>
+                <div style="font-weight: bold; margin: 5px 0; border: 1px solid #000; padding: 2px;">{{ ticket_title_cashier|default:"PHIẾU KIỂM SOÁT (THU NGÂN)" }}</div>
             </div>
             <div style="font-size: 11px;">
-                Mã: <b>{{ hd.ma_hoa_don }}</b> | Bàn: <b>{{ hd.ban_an.ten_ban|default:"--" }}</b>
+                Mã: <b>{{ hd.ma_hoa_don }}</b> | Bàn: <b>{{ hd.ban_an.ten_ban|default:"--" }}</b><br>
+                Giờ: {{ now|date:"H:i:s" }}
             </div>
             <div class="divider"></div>
             <table class="item-table">
                 <thead><tr><th>LOẠI VÉ / PHÍ</th><th class="qty">SL</th></tr></thead>
                 <tbody>
-                    {% for item in items %}
-                        {% if "vé" in item.ten_mon_luu_tru|lower or "phụ thu" in item.ten_mon_luu_tru|lower or "phí" in item.ten_mon_luu_tru|lower %}
+                    {% for item in cashier_items %}
                         <tr>
-                            <td><b>{{ item.ten_mon_luu_tru }}</b></td>
-                            <td class="qty">{{ item.so_luong }}</td>
+                            <td>
+                                <b>{{ item.ten_mon_luu_tru }}</b>
+                                {% if item.in_loai %}
+                                    <span style="font-size: 10px; font-weight: bold; margin-left: 5px;">[{{ item.in_loai }}]</span>
+                                {% endif %}
+                            </td>
+                            <td class="qty">{{ item.in_so_luong }}</td>
                         </tr>
-                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>
             <div class="divider"></div>
         </div>
+        {% endif %}
+
+        {% if not bar_items and not cashier_items %}
+        <div class="ticket-block text-center">
+            <div style="padding: 20px 0; font-size: 12px; font-style: italic;">(Không có món gọi mới để in)</div>
+        </div>
+        {% endif %}
 
         {% else %}
         <div class="ticket-block">
@@ -112,7 +133,7 @@
                     {% for item in items %}
                     <tr>
                         <td>{{ item.ten_mon_luu_tru }}{% if item.ghi_chu %}<div style="font-size: 10px; font-style: italic;">- {{ item.ghi_chu }}</div>{% endif %}</td>
-                        <td class="qty">{{ item.so_luong }}</td>
+                        <td class="qty">{{ item.in_so_luong }}</td>
                         <td class="price">
                             <span class="format-money">{{ item.thanh_tien|floatformat:0 }}</span>₫
                         </td>

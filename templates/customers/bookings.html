@@ -11,122 +11,680 @@
     /* ==========================================
        CSS CHUẨN ĐỒNG BỘ SAAS 
        ========================================== */
-    .page-header { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;}
-    .page-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
-    .page-subtitle { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0 0 8px 0; }
-    
-    .breadcrumb-saas { font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin: 0; display: flex; align-items: center; }
-    .breadcrumb-saas a { color: var(--accent); text-decoration: none; transition: 0.2s; }
-    .breadcrumb-saas a:hover { color: #0b5ed7; text-decoration: underline; }
-    
+    .page-header {
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin: 0 0 8px 0;
+    }
+
+    .breadcrumb-saas {
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--text-muted);
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .breadcrumb-saas a {
+        color: var(--accent);
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .breadcrumb-saas a:hover {
+        color: #0b5ed7;
+        text-decoration: underline;
+    }
+
     /* Toolbar & Filters */
-    .toolbar-saas { background: var(--bg-card); padding: 16px; border-radius: 16px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 24px; z-index: 10; position: relative;}
-    .filter-group { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; flex-grow: 1;}
-    
-    .search-box { position: relative; min-width: 250px; }
-    .search-box i.bi-search, .search-box i.bi-calendar3 { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none;}
-    .search-box input { padding-left: 42px; border-radius: 10px; border: 1px solid var(--border-color); height: 40px; width: 100%; background: #f8fafc; transition: var(--transition); font-size: 0.9rem;}
-    .search-box input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; }
-    
-    .clear-date-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #ef4444; cursor: pointer; display: none; padding: 5px; z-index: 5; font-size: 1.1rem;}
-    .clear-date-btn:hover { color: #dc2626; transform: translateY(-50%) scale(1.1); }
+    .toolbar-saas {
+        background: var(--bg-card);
+        padding: 16px;
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+        z-index: 10;
+        position: relative;
+    }
 
-    .filter-input { border-radius: 10px; border: 1px solid var(--border-color); height: 40px; padding: 0 16px; color: var(--text-main); font-size: 0.9rem; font-weight: 500; background-color: #f8fafc; cursor: pointer; transition: var(--transition); appearance: none;}
-    select.filter-input { padding-right: 36px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 10px; }
-    .filter-input:focus { border-color: var(--primary); background-color: #fff; outline: none; }
+    .filter-group {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        flex-grow: 1;
+    }
 
-    .btn-create { background: var(--primary); color: #fff; height: 40px; border-radius: 10px; font-weight: 600; padding: 0 20px; border: none; transition: var(--transition); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2); }
-    .btn-create:hover { background: var(--primary-hover); transform: translateY(-1px); color: #fff; }
+    .search-box {
+        position: relative;
+        min-width: 250px;
+    }
+
+    .search-box i.bi-search,
+    .search-box i.bi-calendar3 {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        pointer-events: none;
+    }
+
+    .search-box input {
+        padding-left: 42px;
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        height: 40px;
+        width: 100%;
+        background: #f8fafc;
+        transition: var(--transition);
+        font-size: 0.9rem;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+        outline: none;
+    }
+
+    .clear-date-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #ef4444;
+        cursor: pointer;
+        display: none;
+        padding: 5px;
+        z-index: 5;
+        font-size: 1.1rem;
+    }
+
+    .clear-date-btn:hover {
+        color: #dc2626;
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .filter-input {
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        height: 40px;
+        padding: 0 16px;
+        color: var(--text-main);
+        font-size: 0.9rem;
+        font-weight: 500;
+        background-color: #f8fafc;
+        cursor: pointer;
+        transition: var(--transition);
+        appearance: none;
+    }
+
+    select.filter-input {
+        padding-right: 36px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 10px 10px;
+    }
+
+    .filter-input:focus {
+        border-color: var(--primary);
+        background-color: #fff;
+        outline: none;
+    }
+
+    .btn-create {
+        background: var(--primary);
+        color: #fff;
+        height: 40px;
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 0 20px;
+        border: none;
+        transition: var(--transition);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 10px rgba(229, 57, 53, 0.2);
+    }
+
+    .btn-create:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        color: #fff;
+    }
 
     /* KPI Cards */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px; }
-    .kpi-card { background: var(--bg-card); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; transition: var(--transition); height: 100%; position: relative; overflow: hidden;}
-    .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.06); }
-    .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--accent); border-radius: 4px 0 0 4px;}
-    .kpi-card.c-primary::before { background: var(--primary); }
-    .kpi-card.c-warning::before { background: #f59e0b; }
-    .kpi-card.c-success::before { background: #10b981; }
-    .kpi-card.c-danger::before { background: #ef4444; }
-    
-    .kpi-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--text-main); margin: 0; line-height: 1.2; }
-    
-    .icon-box { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;}
-    .icon-primary { background: #fee2e2; color: var(--primary); }
-    .icon-success { background: #dcfce7; color: #10b981; }
-    .icon-warning { background: #fef3c7; color: #f59e0b; }
-    .icon-danger { background: #fee2e2; color: #ef4444; }
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .kpi-card {
+        background: var(--bg-card);
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: var(--transition);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    }
+
+    .kpi-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: var(--accent);
+        border-radius: 4px 0 0 4px;
+    }
+
+    .kpi-card.c-primary::before {
+        background: var(--primary);
+    }
+
+    .kpi-card.c-warning::before {
+        background: #f59e0b;
+    }
+
+    .kpi-card.c-success::before {
+        background: #10b981;
+    }
+
+    .kpi-card.c-danger::before {
+        background: #ef4444;
+    }
+
+    .kpi-title {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .kpi-value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .icon-box {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .icon-primary {
+        background: #fee2e2;
+        color: var(--primary);
+    }
+
+    .icon-success {
+        background: #dcfce7;
+        color: #10b981;
+    }
+
+    .icon-warning {
+        background: #fef3c7;
+        color: #f59e0b;
+    }
+
+    .icon-danger {
+        background: #fee2e2;
+        color: #ef4444;
+    }
 
     /* Table Styles */
-    .table-container { background: var(--bg-card); border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border-color); overflow: hidden; }
-    .table-saas { width: 100%; border-collapse: collapse; min-width: 1000px;}
-    .table-saas th { background: #f8fafc; color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; padding: 16px 20px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-    .table-saas td { padding: 16px 20px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
-    .table-saas tr:last-child td { border-bottom: none; }
-    .table-saas tr:hover { background-color: #f8fafc; }
+    .table-container {
+        background: var(--bg-card);
+        border-radius: 16px;
+        box-shadow: var(--shadow-md);
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
 
-    .customer-name { font-weight: 800; color: var(--text-main); font-size: 1rem; margin-bottom: 2px; }
-    .customer-phone { font-size: 0.8rem; color: var(--text-muted); font-weight: 600;}
-    .booking-time { font-size: 1.1rem; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px;}
+    .table-saas {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+    }
+
+    .table-saas th {
+        background: #f8fafc;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border-color);
+        white-space: nowrap;
+    }
+
+    .table-saas td {
+        padding: 16px 20px;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-main);
+    }
+
+    .table-saas tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-saas tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .customer-name {
+        font-weight: 800;
+        color: var(--text-main);
+        font-size: 1rem;
+        margin-bottom: 2px;
+    }
+
+    .customer-phone {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 600;
+    }
+
+    .booking-time {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
 
     /* Status Badges */
-    .status-badge { padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 4px; }
-    .st-cho_xac_nhan { background: #fef3c7; color: #b45309; } 
-    .st-da_xac_nhan { background: #e0f2fe; color: #0369a1; }
-    .st-hoan_thanh { background: #dcfce7; color: #166534; }
-    .st-huy { background: #f1f5f9; color: #64748b; text-decoration: line-through;}
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .st-cho_xac_nhan {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .st-da_xac_nhan {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .st-hoan_thanh {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .st-huy {
+        background: #f1f5f9;
+        color: #64748b;
+        text-decoration: line-through;
+    }
 
     /* Actions */
-    .row-actions .btn-action { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); background: transparent; border: none; transition: 0.2s; cursor: pointer; }
-    .row-actions .btn-action:hover { background: #e2e8f0; color: var(--primary); }
-    
-    .btn-receive { font-size: 0.75rem; font-weight: 700; background: var(--primary); color: #fff; padding: 6px 12px; border-radius: 6px; border: none; transition: 0.2s; box-shadow: 0 2px 5px rgba(229,57,53,0.2); text-decoration: none;}
-    .btn-receive:hover { background: var(--primary-hover); transform: translateY(-1px); color: white;}
+    .row-actions .btn-action {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        transition: 0.2s;
+        cursor: pointer;
+    }
+
+    .row-actions .btn-action:hover {
+        background: #e2e8f0;
+        color: var(--primary);
+    }
+
+    .btn-receive {
+        font-size: 0.75rem;
+        font-weight: 700;
+        background: var(--primary);
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: none;
+        transition: 0.2s;
+        box-shadow: 0 2px 5px rgba(229, 57, 53, 0.2);
+        text-decoration: none;
+    }
+
+    .btn-receive:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        color: white;
+    }
 
     /* Modal Form */
-    .modal-content { border-radius: 16px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-    .modal-header { background: #f8fafc; border-bottom: 1px solid var(--border-color); padding: 20px 24px; border-radius: 16px 16px 0 0;}
-    .modal-title { font-weight: 800; color: var(--text-main); font-size: 1.25rem; }
-    .modal-body { padding: 24px; }
-    .modal-footer { border-top: 1px solid var(--border-color); padding: 20px 24px; background: #f8fafc; border-radius: 0 0 16px 16px;}
-    .form-label { font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase;}
-    .form-control, .form-select { border-radius: 10px; border: 1px solid var(--border-color); padding: 10px 16px; font-size: 0.95rem; font-weight: 500; transition: var(--transition); background: #fff;}
-    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1); outline: none; }
+    .modal-content {
+        border-radius: 16px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        background: #f8fafc;
+        border-bottom: 1px solid var(--border-color);
+        padding: 20px 24px;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-title {
+        font-weight: 800;
+        color: var(--text-main);
+        font-size: 1.25rem;
+    }
+
+    .modal-body {
+        padding: 24px;
+    }
+
+    .modal-footer {
+        border-top: 1px solid var(--border-color);
+        padding: 20px 24px;
+        background: #f8fafc;
+        border-radius: 0 0 16px 16px;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 10px;
+        border: 1px solid var(--border-color);
+        padding: 10px 16px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        transition: var(--transition);
+        background: #fff;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.1);
+        outline: none;
+    }
 
     /* CSS MINI MAP */
     .mini-table {
-        width: calc(25% - 12px); background: #fff; border: 2px solid #dcfce7;
-        border-radius: 12px; padding: 15px; text-align: center; cursor: pointer;
-        transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative;
+        width: calc(25% - 12px);
+        background: #fff;
+        border: 2px solid #dcfce7;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: 0.2s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        position: relative;
     }
-    .mini-table:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.2); border-color: #10b981;}
-    .mini-table h4 { margin: 0; font-size: 1.2rem; font-weight: 800; color: #166534; transition: 0.2s; }
-    .mini-table span { font-size: 0.8rem; color: #64748b; font-weight: 600; }
-    
-    .mini-table.selected { background-color: #dcfce7; border-color: #16a34a; transform: translateY(-3px); box-shadow: 0 6px 15px rgba(22, 163, 74, 0.3);}
-    .mini-table.selected h4 { color: #16a34a; }
-    .check-icon { display: none; position: absolute; top: -10px; right: -10px; background: #fff; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2); color: #16a34a;}
-    .mini-table.selected .check-icon { display: block; }
-    
-    @media (max-width: 768px) { .mini-table { width: calc(50% - 10px); } }
+
+    .mini-table:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(16, 185, 129, 0.2);
+        border-color: #10b981;
+    }
+
+    .mini-table h4 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #166534;
+        transition: 0.2s;
+    }
+
+    .mini-table span {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .mini-table.selected {
+        background-color: #dcfce7;
+        border-color: #16a34a;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 15px rgba(22, 163, 74, 0.3);
+    }
+
+    .mini-table.selected h4 {
+        color: #16a34a;
+    }
+
+    .check-icon {
+        display: none;
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        color: #16a34a;
+    }
+
+    .mini-table.selected .check-icon {
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .mini-table {
+            width: calc(50% - 10px);
+        }
+    }
 
     /* =====================================
        FIX MỌI LỖI CỦA BỘ CHỌN LỊCH 
        ===================================== */
-    .flatpickr-calendar { 
-        z-index: 999999 !important; /* Lên trên mọi Modal */
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    .flatpickr-calendar {
+        z-index: 999999 !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
         border: none !important;
     }
-    .flatpickr-input[readonly] { cursor: pointer; background-color: #fff !important; }
+
+    .flatpickr-input[readonly] {
+        cursor: pointer;
+        background-color: #fff !important;
+    }
+
+    /* =====================================
+       SMART TIME INPUT
+       ===================================== */
+    .smart-time-wrapper {
+        position: relative;
+    }
+
+    .smart-time-field {
+        width: 100%;
+        padding: 10px 16px 10px 44px;
+        border-radius: 10px;
+        border: 2px solid var(--border-color);
+        background: #fff;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-main);
+        letter-spacing: 3px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        outline: none;
+    }
+
+    .smart-time-field::placeholder {
+        letter-spacing: 1px;
+        font-weight: 500;
+        color: #bbb;
+        font-size: 0.9rem;
+    }
+
+    .smart-time-field:focus {
+        border-color: #94a3b8;
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+    }
+
+    .smart-time-field.valid {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    }
+
+    .smart-time-field.invalid {
+        border-color: #ef4444;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+    }
+
+    .smart-time-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.1rem;
+        pointer-events: none;
+        transition: color 0.2s;
+        color: var(--text-muted);
+    }
+
+    .smart-time-icon.valid {
+        color: #10b981;
+    }
+
+    .smart-time-icon.invalid {
+        color: #ef4444;
+    }
+
+    .time-preview {
+        margin-top: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        min-height: 18px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .time-preview .preview-badge {
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+
+    .time-preview.valid .preview-badge {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .time-preview.invalid .preview-badge {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .time-preview.hint .preview-badge {
+        background: #f1f5f9;
+        color: #64748b;
+    }
+
+    /* =====================================
+       RESPONSIVE MOBILE CHO BOOKINGS
+       ===================================== */
+    @media (max-width: 768px) {
+        .toolbar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 15px;
+        }
+        .filter-group {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .search-box {
+            min-width: 100%;
+        }
+        .filter-input {
+            width: 100%;
+        }
+        .btn-create {
+            width: 100%;
+            justify-content: center;
+            margin-top: 5px;
+        }
+        .modal-body {
+            padding: 15px;
+        }
+    }
 </style>
 
 {% if messages %}
-    <div id="django-messages" style="display: none;">
-        {% for message in messages %}
-            <span class="d-msg" data-type="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</span>
-        {% endfor %}
-    </div>
+<div id="django-messages" style="display: none;">
+    {% for message in messages %}
+    <span class="d-msg" data-type="{% if message.tags == 'error' %}error{% else %}success{% endif %}">{{ message }}</span>
+    {% endfor %}
+</div>
 {% endif %}
 
 <div class="page-header fade-in-up">
@@ -134,11 +692,11 @@
         <h1 class="page-title">Danh sách Đặt bàn (Bookings)</h1>
         <p class="page-subtitle">Quản lý lịch hẹn, nhận cọc và xếp bàn trước cho khách</p>
         <div class="breadcrumb-saas">
-            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a> 
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span>Khách & Bàn</span>
-            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i> 
-            <span class="text-muted">Đặt bàn trước</span>
+            <a href="{% url 'dashboard' %}"><i class="bi bi-house-door-fill me-1"></i> Dashboard</a>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+            <span>Quản lý Tiếp tân</span>
+            <i class="bi bi-chevron-right mx-2" style="font-size: 0.7rem;"></i>
+            <span class="text-muted">Đặt bàn</span>
         </div>
     </div>
 </div>
@@ -147,21 +705,24 @@
     <div class="kpi-card c-primary">
         <div>
             <div class="kpi-title">Tổng Booking</div>
-            <div class="kpi-value">{{ tong_booking|default:"0" }} <span class="fs-6 fw-bold text-muted">Phiếu</span></div>
+            <div class="kpi-value">{{ tong_booking|default:"0" }} <span class="fs-6 fw-bold text-muted">Phiếu</span>
+            </div>
         </div>
         <div class="icon-box icon-primary"><i class="bi bi-journal-bookmark-fill"></i></div>
     </div>
     <div class="kpi-card c-warning">
         <div>
             <div class="kpi-title text-warning">Khách Dự Kiến</div>
-            <div class="kpi-value text-warning">{{ khach_du_kien|default:"0" }} <span class="fs-6 fw-bold">Người</span></div>
+            <div class="kpi-value text-warning">{{ khach_du_kien|default:"0" }} <span class="fs-6 fw-bold">Người</span>
+            </div>
         </div>
         <div class="icon-box icon-warning"><i class="bi bi-people-fill"></i></div>
     </div>
     <div class="kpi-card c-success">
         <div>
             <div class="kpi-title text-success">Đã Nhận Bàn (Check-in)</div>
-            <div class="kpi-value text-success">{{ da_nhan_ban|default:"0" }} <span class="fs-6 fw-bold">Phiếu</span></div>
+            <div class="kpi-value text-success">{{ da_nhan_ban|default:"0" }} <span class="fs-6 fw-bold">Phiếu</span>
+            </div>
         </div>
         <div class="icon-box icon-success"><i class="bi bi-check-circle-fill"></i></div>
     </div>
@@ -180,7 +741,7 @@
             <i class="bi bi-search"></i>
             <input type="text" id="searchInput" placeholder="Tìm Tên KH, SĐT...">
         </div>
-        
+
         <div class="search-box" style="min-width: 160px; z-index: 15;">
             <i class="bi bi-calendar3"></i>
             <input type="text" id="dateFilter" placeholder="Lọc theo ngày..." readonly>
@@ -207,27 +768,36 @@
             <thead>
                 <tr>
                     <th>Thời Gian Đến</th>
+                    <th>Đặt lúc</th>
                     <th>Khách Hàng</th>
                     <th>Số Lượng (Pax)</th>
-                    <th>Ghi chú / Bàn</th>
+                    <th>Bàn Xếp</th>
+                    <th>Ghi Chú</th>
                     <th>Trạng Thái</th>
                     <th class="text-end">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
                 {% for phieu in danh_sach_dat_ban %}
-                <tr class="booking-row" 
-                    data-name="{{ phieu.khach_hang.ho_ten|lower }}" 
-                    data-phone="{{ phieu.khach_hang.so_dien_thoai }}"
-                    data-status="{{ phieu.trang_thai }}"
-                    data-date="{{ phieu.thoi_gian_den|date:'Y-m-d' }}"
-                    {% if phieu.trang_thai == 'huy' %}style="opacity: 0.6;"{% endif %}>
-                    
+                <tr class="booking-row" data-name="{{ phieu.khach_hang.ho_ten|lower }}"
+                    data-phone="{{ phieu.khach_hang.so_dien_thoai }}" data-status="{{ phieu.trang_thai }}"
+                    data-date="{{ phieu.thoi_gian_den|date:'Y-m-d' }}" {% if phieu.trang_thai == 'huy' %}style="opacity: 0.6;"{% endif %}>
+
                     <td>
                         <div class="booking-time {% if phieu.trang_thai == 'huy' %}text-muted{% endif %}">
                             <i class="bi bi-clock me-1"></i> {{ phieu.thoi_gian_den|date:"H:i" }}
                         </div>
                         <div class="text-muted" style="font-size: 0.75rem;">{{ phieu.thoi_gian_den|date:"d/m/Y" }}</div>
+                    </td>
+                    <td>
+                        {% if phieu.thoi_gian_tao %}
+                            <div class="booking-time text-secondary">
+                                <i class="bi bi-pencil-square me-1"></i> {{ phieu.thoi_gian_tao|date:"H:i" }}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.75rem;">{{ phieu.thoi_gian_tao|date:"d/m/Y" }}</div>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
                     </td>
                     <td>
                         <div class="customer-name {% if phieu.trang_thai == 'huy' %}text-muted{% endif %}">
@@ -236,18 +806,26 @@
                         <div class="customer-phone"><i class="bi bi-telephone-fill text-muted me-1"></i> {{ phieu.khach_hang.so_dien_thoai }}</div>
                     </td>
                     <td>
-                        <div class="fw-bold fs-6 {% if phieu.trang_thai == 'huy' %}text-muted{% else %}text-dark{% endif %}">{{ phieu.so_nguoi }} Người lớn</div>
-                        <div class="text-muted" style="font-size: 0.8rem;">{{ phieu.so_tre_em|default:"0" }} Trẻ em</div>
+                        <div
+                            class="fw-bold fs-6 {% if phieu.trang_thai == 'huy' %}text-muted{% else %}text-dark{% endif %}">
+                            {{ phieu.so_nguoi }} Người lớn</div>
+                        <div class="text-muted" style="font-size: 0.8rem;">{{ phieu.so_tre_em|default:"0" }} Trẻ em
+                        </div>
                     </td>
                     <td>
                         {% if phieu.ban %}
-                            <div class="fw-bold text-dark">{{ phieu.ban.ten_ban }}</div>
+                        <div class="fw-bold text-dark"><span class="badge bg-light text-dark border"><i class="bi bi-grid-3x3-gap-fill me-1 text-primary"></i> {{ phieu.ban.ten_ban }}</span></div>
                         {% else %}
-                            <div class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Chưa xếp bàn</div>
+                        <div class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Chưa xếp bàn
+                        </div>
                         {% endif %}
-                        
+                    </td>
+                    <td>
                         {% if phieu.ghi_chu %}
-                            <div class="text-muted" style="font-size: 0.75rem; max-width: 250px; white-space: pre-wrap;"><i class="bi bi-chat-left-text me-1"></i> {{ phieu.ghi_chu }}</div>
+                        <div class="text-muted" style="font-size: 0.85rem; max-width: 250px; white-space: pre-wrap;"><i
+                                class="bi bi-chat-left-text me-1"></i> {{ phieu.ghi_chu }}</div>
+                        {% else %}
+                        <span class="text-muted">-</span>
                         {% endif %}
                     </td>
                     <td>
@@ -260,35 +838,35 @@
                         </span>
                     </td>
                     <td class="text-end row-actions">
-                        
+
                         {% if phieu.trang_thai == 'cho_xac_nhan' or not phieu.ban %}
-                            <button class="btn btn-primary shadow-sm me-2 open-minimap-btn" style="font-size: 0.75rem; padding: 6px 12px; border-radius: 6px; font-weight: 700;" data-id="{{ phieu.id }}">
-                                <i class="bi bi-grid-3x3-gap-fill me-1"></i> Xếp bàn
-                            </button>
+                        <button class="btn btn-primary shadow-sm me-2 open-minimap-btn"
+                            style="font-size: 0.75rem; padding: 6px 12px; border-radius: 6px; font-weight: 700;"
+                            data-id="{{ phieu.id }}">
+                            <i class="bi bi-grid-3x3-gap-fill me-1"></i> Xếp bàn
+                        </button>
                         {% elif phieu.trang_thai == 'da_xac_nhan' and phieu.ban %}
-                            <form id="form-checkin-{{ phieu.id }}" method="POST" action="" class="d-none">
-                                {% csrf_token %}
-                                <input type="hidden" name="action" value="checkin">
-                                <input type="hidden" name="booking_id" value="{{ phieu.id }}">
-                            </form>
-                            <button class="btn btn-success fw-bold text-white shadow-sm me-2" style="font-size: 0.75rem; padding: 6px 12px; border-radius: 6px; border: none;" onclick="triggerCheckin('{{ phieu.id }}', '{{ phieu.khach_hang.ho_ten|escapejs }}', '{{ phieu.ban.ten_ban|escapejs }}')">
-                                <i class="bi bi-box-arrow-in-right me-1"></i> Nhận bàn
-                            </button>
+                        <form id="form-checkin-{{ phieu.id }}" method="POST" action="" class="d-none">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="checkin">
+                            <input type="hidden" name="booking_id" value="{{ phieu.id }}">
+                        </form>
+                        <button class="btn btn-success fw-bold text-white shadow-sm me-2"
+                            style="font-size: 0.75rem; padding: 6px 12px; border-radius: 6px; border: none;"
+                            onclick="triggerCheckin('{{ phieu.id }}', '{{ phieu.khach_hang.ho_ten|escapejs }}', '{{ phieu.ban.ten_ban|escapejs }}')">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Nhận bàn
+                        </button>
                         {% endif %}
-                        
-                        <button class="btn-action edit-btn" 
-                            data-id="{{ phieu.id }}" 
-                            data-tenkh="{{ phieu.khach_hang.ho_ten }}"
-                            data-sdt="{{ phieu.khach_hang.so_dien_thoai }}"
+
+                        <button class="btn-action edit-btn" data-id="{{ phieu.id }}"
+                            data-tenkh="{{ phieu.khach_hang.ho_ten }}" data-sdt="{{ phieu.khach_hang.so_dien_thoai }}"
                             data-date="{{ phieu.thoi_gian_den|date:'Y-m-d' }}"
-                            data-time="{{ phieu.thoi_gian_den|date:'H:i' }}"
-                            data-adults="{{ phieu.so_nguoi }}"
-                            data-children="{{ phieu.so_tre_em|default:0 }}"
-                            data-status="{{ phieu.trang_thai }}"
+                            data-time="{{ phieu.thoi_gian_den|date:'H:i' }}" data-adults="{{ phieu.so_nguoi }}"
+                            data-children="{{ phieu.so_tre_em|default:0 }}" data-status="{{ phieu.trang_thai }}"
                             data-note="{{ phieu.ghi_chu|default:'' }}">
                             <i class="bi bi-pencil-square"></i>
                         </button>
-                        
+
                         <button class="btn-action text-danger delete-btn" data-id="{{ phieu.id }}">
                             <i class="bi bi-trash3"></i>
                         </button>
@@ -296,7 +874,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center py-5 text-muted">Chưa có phiếu đặt bàn nào trong hệ thống.</td>
+                    <td colspan="8" class="text-center py-5 text-muted">Chưa có phiếu đặt bàn nào trong hệ thống.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -307,74 +885,86 @@
 <div class="modal fade" id="bookingModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <form id="bookingForm" method="POST" action="">
+            <form id="bookingForm" method="POST" action="" data-open-time="{{ open_time }}"
+                data-close-time="{{ close_time }}">
                 {% csrf_token %}
                 <input type="hidden" name="action" id="formAction" value="add">
                 <input type="hidden" name="booking_id" id="bookingId">
                 <input type="hidden" name="thoi_gian_den" id="inputThoiGianGop">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle"><i class="bi bi-calendar-plus text-primary me-2"></i> Thông tin Đặt Bàn</h5>
+                    <h5 class="modal-title" id="modalTitle"><i class="bi bi-calendar-plus text-primary me-2"></i> Thông
+                        tin Đặt Bàn</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-4">
-                        <div class="col-md-6">
-                            <label class="form-label">Tên Khách Hàng <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="ten_khach_hang" id="inputTenKH" placeholder="Nhập tên khách..." required>
-                        </div>
                         <div class="col-md-6 position-relative">
                             <label class="form-label">
                                 Số Điện Thoại <span class="text-danger">*</span>
                             </label>
 
-                            <input type="text"
-                                class="form-control"
-                                name="so_dien_thoai"
-                                id="inputSDT"
-                                placeholder="Nhập SĐT..."
-                                autocomplete="off"
-                                required>
+                            <input type="text" class="form-control" name="so_dien_thoai" id="inputSDT"
+                                placeholder="Nhập SĐT..." autocomplete="off" required>
 
                             <!-- BOX GỢI Ý -->
-                            <div id="customerSuggestions"
-                                class="list-group position-absolute w-100 shadow"
-                                style="
+                            <div id="customerSuggestions" class="list-group position-absolute w-100 shadow" style="
                                     z-index: 9999;
                                     display:none;
                                     max-height:220px;
                                     overflow-y:auto;
+                                    top: 100%;
+                                    left: 0;
+                                    background: white;
                                 ">
                             </div>
                         </div>
-                        
+                        <div class="col-md-6">
+                            <label class="form-label">Tên Khách Hàng <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="ten_khach_hang" id="inputTenKH"
+                                placeholder="Nhập tên khách..." required>
+                        </div>
+
                         <div class="col-md-6">
                             <label class="form-label">Ngày đến <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-calendar-date text-primary"></i></span>
-                                <input type="text" class="form-control bg-white" id="inputNgayDen" placeholder="Chọn ngày..." required readonly>
+                                <span class="input-group-text bg-light"><i
+                                        class="bi bi-calendar-date text-primary"></i></span>
+                                <input type="text" class="form-control bg-white" id="inputNgayDen"
+                                    placeholder="Chọn ngày..." required readonly>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Giờ đến (24H) <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-clock text-primary"></i></span>
-                                <input type="text" class="form-control bg-white" id="inputGioDen" placeholder="VD: 18:30" required readonly>
+                            <label class="form-label">
+                                Giờ đến <span class="text-danger">*</span>
+                            </label>
+                            <div class="smart-time-wrapper">
+                                <i class="bi bi-clock-fill smart-time-icon" id="timeIcon"></i>
+                                <input type="text" class="smart-time-field" id="inputGioDenDisplay"
+                                    placeholder="VD: 1230 hoặc 18:30" maxlength="5" autocomplete="off"
+                                    inputmode="numeric">
+                                <input type="hidden" id="inputGioDen">
+                            </div>
+                            <div class="time-preview hint" id="timePreview">
+                                <span class="preview-badge">Gõ giờ bạn muốn vào ô trên</span>
                             </div>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label class="form-label">Số Người lớn <span class="text-danger">*</span></label>
                             <div class="input-group">
-                                <span class="input-group-text bg-light"><i class="bi bi-person-standing text-muted"></i></span>
-                                <input type="number" class="form-control" name="so_nguoi" id="inputSoNguoi" value="2" min="1" required>
+                                <span class="input-group-text bg-light"><i
+                                        class="bi bi-person-standing text-muted"></i></span>
+                                <input type="number" class="form-control" name="so_nguoi" id="inputSoNguoi" value="2"
+                                    min="1" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Số Trẻ em</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="bi bi-person text-muted"></i></span>
-                                <input type="number" class="form-control" name="so_tre_em" id="inputSoTreEm" value="0" min="0">
+                                <input type="number" class="form-control" name="so_tre_em" id="inputSoTreEm" value="0"
+                                    min="0">
                             </div>
                         </div>
 
@@ -389,12 +979,14 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label">Ghi chú (Tùy chọn)</label>
-                            <textarea class="form-control" name="ghi_chu" id="inputGhiChu" rows="2" placeholder="Cần ghế trẻ em, Sinh nhật..."></textarea>
+                            <textarea class="form-control" name="ghi_chu" id="inputGhiChu" rows="2"
+                                placeholder="Cần ghế trẻ em, Sinh nhật..."></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-light fw-bold px-4 border" style="border-radius: 8px; height: 42px;" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-light fw-bold px-4 border"
+                        style="border-radius: 8px; height: 42px;" data-bs-dismiss="modal">Hủy</button>
                     <button type="submit" class="btn-create px-5" style="border-radius: 10px; height: 42px;">
                         <i class="bi bi-save-fill me-2"></i> LƯU PHIẾU
                     </button>
@@ -412,14 +1004,18 @@
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="booking_id" id="deleteBookingId">
                 <div class="modal-body text-center p-4">
-                    <div class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10 text-danger" style="width: 60px; height: 60px;">
+                    <div class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle bg-danger bg-opacity-10 text-danger"
+                        style="width: 60px; height: 60px;">
                         <i class="bi bi-exclamation-triangle fs-1"></i>
                     </div>
                     <h5 class="fw-bold text-dark mb-2">Xóa Phiếu Này?</h5>
-                    <p class="text-muted" style="font-size: 0.85rem;">Hành động này sẽ xóa hoàn toàn phiếu đặt bàn khỏi hệ thống.</p>
+                    <p class="text-muted" style="font-size: 0.85rem;">Hành động này sẽ xóa hoàn toàn phiếu đặt bàn khỏi
+                        hệ thống.</p>
                     <div class="d-flex gap-2 mt-4">
-                        <button type="button" class="btn btn-light fw-bold flex-grow-1" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-danger fw-bold flex-grow-1" style="background-color: var(--primary);">Xóa ngay</button>
+                        <button type="button" class="btn btn-light fw-bold flex-grow-1"
+                            data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger fw-bold flex-grow-1"
+                            style="background-color: var(--primary);">Xóa ngay</button>
                     </div>
                 </div>
             </form>
@@ -437,18 +1033,22 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body bg-light p-4" style="max-height: 60vh; overflow-y: auto;">
-                <p class="text-muted mb-3"><i class="bi bi-info-circle me-1"></i> Bạn có thể chọn <b>nhiều bàn cùng lúc</b> để ghép cho đoàn khách đông.</p>
+                <p class="text-muted mb-3"><i class="bi bi-info-circle me-1"></i> Bạn có thể chọn <b>nhiều bàn cùng
+                        lúc</b> để ghép cho đoàn khách đông.</p>
                 <div id="miniMapContainer">
-                    <div class="text-center w-100 py-4"><span class="spinner-border text-primary"></span> Đang tải sơ đồ bàn...</div>
+                    <div class="text-center w-100 py-4"><span class="spinner-border text-primary"></span> Đang tải sơ đồ
+                        bàn...</div>
                 </div>
             </div>
-            
-            <div class="modal-footer border-0 bg-white d-flex justify-content-between align-items-center" style="border-radius: 0 0 16px 16px; box-shadow: 0 -4px 10px rgba(0,0,0,0.05);">
+
+            <div class="modal-footer border-0 bg-white d-flex justify-content-between align-items-center"
+                style="border-radius: 0 0 16px 16px; box-shadow: 0 -4px 10px rgba(0,0,0,0.05);">
                 <div class="fs-5">
                     <span class="text-muted fw-bold">Đã chọn: </span>
                     <span class="fw-bold text-success" id="selectedCountText">0 Bàn</span>
                 </div>
-                <button type="button" class="btn btn-primary fw-bold px-5 py-2" id="btnConfirmMultiAssign" onclick="submitMultiAssign()" disabled style="border-radius: 10px;">
+                <button type="button" class="btn btn-primary fw-bold px-5 py-2" id="btnConfirmMultiAssign"
+                    onclick="submitMultiAssign()" disabled style="border-radius: 10px;">
                     Xác nhận Xếp Bàn
                 </button>
             </div>
@@ -457,16 +1057,15 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/flatpickr"></script>
 <script src="https://unpkg.com/flatpickr/dist/l10n/vn.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const formModal = new bootstrap.Modal(document.getElementById('bookingModal'));
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteBookingModal'));
         const miniMapModal = new bootstrap.Modal(document.getElementById('miniMapModal'));
-        
+
         let currentAssignBookingId = null;
         let selectedTableIds = [];
 
@@ -492,15 +1091,15 @@
             dateFormat: "Y-m-d",
             locale: "vn",
             disableMobile: "true", // Ép chạy Flatpickr trên mobile, khóa lịch mặc định
-            onChange: function(selectedDates, dateStr) {
+            onChange: function (selectedDates, dateStr) {
                 clearDateBtn.style.display = dateStr ? 'block' : 'none';
-                filterTable(); 
+                filterTable();
             }
         });
 
-        clearDateBtn.addEventListener('click', function(e) {
-            e.stopPropagation(); filterDatePicker.clear(); 
-            clearDateBtn.style.display = 'none'; filterTable(); 
+        clearDateBtn.addEventListener('click', function (e) {
+            e.stopPropagation(); filterDatePicker.clear();
+            clearDateBtn.style.display = 'none'; filterTable();
         });
 
         // 2. Form Nhập Ngày
@@ -509,31 +1108,156 @@
             appendTo: document.getElementById('bookingModal') // Ép dính vào modal
         });
 
-        // 3. Form Nhập Giờ (Ép 24H)
-        const timePicker = flatpickr("#inputGioDen", {
-            enableTime: true, noCalendar: true, dateFormat: "H:i", 
-            time_24hr: true, // BẬT CHẾ ĐỘ 24H (Không bao giờ có CH/SA)
-            minuteIncrement: 15, disableMobile: "true",
-            appendTo: document.getElementById('bookingModal')
+        // 3. SMART TIME INPUT
+        const openTime = document.getElementById('bookingForm').dataset.openTime || '10:00';
+        const closeTime = document.getElementById('bookingForm').dataset.closeTime || '22:30';
+
+        const timeInput = document.getElementById('inputGioDenDisplay');
+        const timeHidden = document.getElementById('inputGioDen');
+        const timeIcon = document.getElementById('timeIcon');
+        const timePreview = document.getElementById('timePreview');
+
+        const SESSION_MAP = [
+            { label: '🌅 Buổi sáng', from: 0, to: 12 },
+            { label: '☀️ Buổi chiều', from: 12, to: 17 },
+            { label: '🌙 Buổi tối', from: 17, to: 24 },
+        ];
+
+        function parseSmartTime(raw) {
+            // Loại bỏ mọi ký tự không phải số và dấu ':'
+            const digits = raw.replace(/[^0-9]/g, '');
+            if (!digits) return null;
+
+            let h, m;
+            if (digits.length <= 2) {
+                // "9" → 09:00, "18" → 18:00
+                h = parseInt(digits, 10); m = 0;
+            } else if (digits.length === 3) {
+                // "830" → 08:30, "930" → 09:30
+                h = parseInt(digits[0], 10);
+                m = parseInt(digits.slice(1), 10);
+            } else {
+                // "1230" → 12:30, "1845" → 18:45
+                h = parseInt(digits.slice(0, 2), 10);
+                m = parseInt(digits.slice(2, 4), 10);
+            }
+
+            if (isNaN(h) || isNaN(m) || h > 23 || m > 59) return null;
+            return { h, m, str: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}` };
+        }
+
+        function getSession(h) {
+            return SESSION_MAP.find(s => h >= s.from && h < s.to)?.label || '';
+        }
+
+        function validateAgainstHours(h, m) {
+            const [oh, om] = openTime.split(':').map(Number);
+            const [ch, cm] = closeTime.split(':').map(Number);
+            const total = h * 60 + m;
+            const oTotal = oh * 60 + om;
+            const cTotal = ch * 60 + cm;
+            return total >= oTotal && total <= cTotal;
+        }
+
+        function updateTimeUI(parsed) {
+            if (!parsed) {
+                timeHidden.value = '';
+                timeInput.classList.remove('valid', 'invalid');
+                timeIcon.className = 'bi bi-clock-fill smart-time-icon';
+                timePreview.className = 'time-preview hint';
+                timePreview.innerHTML = '<span class="preview-badge">Gõ giờ bạn muốn vào ô trên</span>';
+                return;
+            }
+
+            const ok = validateAgainstHours(parsed.h, parsed.m);
+            timeHidden.value = ok ? parsed.str : '';
+
+            timeInput.classList.toggle('valid', ok);
+            timeInput.classList.toggle('invalid', !ok);
+            timeIcon.className = `bi bi-clock-fill smart-time-icon ${ok ? 'valid' : 'invalid'}`;
+
+            const session = getSession(parsed.h);
+            if (ok) {
+                timePreview.className = 'time-preview valid';
+                timePreview.innerHTML = `
+                    <span class="preview-badge">✅ ${parsed.str}</span>
+                    <span style="color:#16a34a;font-weight:600">${session}</span>`;
+            } else {
+                timePreview.className = 'time-preview invalid';
+                timePreview.innerHTML = `
+                    <span class="preview-badge">❌ ${parsed.str}</span>
+                    <span style="color:#b91c1c;font-weight:600">Ngoài giờ phục vụ (${openTime} – ${closeTime})</span>`;
+            }
+        }
+
+        // Auto-format khi gõ: chèn dấu ':' sau 2 ký số
+        timeInput.addEventListener('input', function () {
+            let raw = this.value.replace(/[^0-9:]/g, '');
+            // Nếu gõ 4 chữ số liền (1230) → tự format thành 12:30
+            const onlyDigits = raw.replace(':', '');
+            if (onlyDigits.length >= 4) {
+                raw = onlyDigits.slice(0, 2) + ':' + onlyDigits.slice(2, 4);
+                this.value = raw;
+            }
+            updateTimeUI(parseSmartTime(raw));
         });
+
+        // Parse khi rời ô (blur): cắn chỉnh giá trị hiển thị
+        timeInput.addEventListener('blur', function () {
+            const parsed = parseSmartTime(this.value);
+            if (parsed) this.value = parsed.str;   // chỉnh lại hiển thị về HH:MM
+            updateTimeUI(parsed);
+        });
+
+        // Hàm reset cho Add/Edit form
+        function resetTimePicker(defaultTime) {
+            if (defaultTime) {
+                timeInput.value = defaultTime;
+                updateTimeUI(parseSmartTime(defaultTime));
+            } else {
+                timeInput.value = '';
+                updateTimeUI(null);
+            }
+        }
 
         // ==========================================
         // SỰ KIỆN NÚT BẤM FORM
         // ==========================================
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+        document.getElementById('bookingForm').addEventListener('submit', function (e) {
 
             const dateVal = document.getElementById('inputNgayDen').value;
             const timeVal = document.getElementById('inputGioDen').value;
 
             if (!dateVal || !timeVal) {
                 e.preventDefault();
-
                 Swal.fire({
                     icon: 'error',
-                    title: 'Thiếu thời gian',
-                    text: 'Vui lòng chọn ngày và giờ đến'
+                    title: 'Thiếu thông tin',
+                    html: !dateVal && !timeVal
+                        ? 'Vui lòng chọn <b>ngày</b> và <b>giờ</b> đến'
+                        : !dateVal ? 'Vui lòng chọn <b>ngày đến</b>'
+                            : 'Vui lòng chọn <b>giờ đến</b> từ bảng bên dưới',
+                    confirmButtonColor: '#e53935'
                 });
+                return;
+            }
 
+            // ✅ VALIDATE GIỜ NẰM TRONG KHUNG PHỤC VỤ
+            const [selH, selM] = timeVal.split(':').map(Number);
+            const selMinutes = selH * 60 + selM;
+            const [openH, openM] = openTime.split(':').map(Number);
+            const [closeH, closeM] = closeTime.split(':').map(Number);
+            const openMinutes = openH * 60 + openM;
+            const closeMinutes = closeH * 60 + closeM;
+
+            if (selMinutes < openMinutes || selMinutes > closeMinutes) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Ngoài giờ phục vụ',
+                    html: `Nhà hàng phục vụ từ <b>${openTime}</b> đến <b>${closeTime}</b>.<br>Vui lòng chọn lại giờ đặt bàn.`,
+                    confirmButtonColor: '#e53935'
+                });
                 return;
             }
 
@@ -541,34 +1265,42 @@
                 `${dateVal}T${timeVal}:00`;
         });
 
-        document.getElementById('btnAddBooking').addEventListener('click', function() {
+        document.getElementById('btnAddBooking').addEventListener('click', function () {
             document.querySelector('#bookingModal form').reset();
             document.getElementById('formAction').value = 'add';
             document.getElementById('bookingId').value = '';
             document.getElementById('modalTitle').innerHTML = '<i class="bi bi-calendar-plus text-primary me-2"></i> Tạo Booking Mới';
             document.getElementById('statusWrapper').style.display = 'none';
-            
+
+            // Set ngày mặc định = hôm nay hoặc ngày mai
             const now = new Date(); now.setHours(now.getHours() + 1);
-            const roundedMin = Math.ceil(now.getMinutes() / 15) * 15; now.setMinutes(roundedMin);
-            datePicker.setDate(now); timePicker.setDate(now);
-            
+            const roundedMin = Math.ceil(now.getMinutes() / 30) * 30; now.setMinutes(roundedMin);
+            datePicker.setDate(now);
+
+            // Gợi ý giờ = giờ hiện tại làm tròn lên 30 phút
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes() % 60 === 0 ? now.getMinutes() : 0).padStart(2, '0');
+            const suggested = `${hh}:${mm}`;
+            resetTimePicker(suggested);
+
             formModal.show();
         });
 
         document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 document.getElementById('formAction').value = 'edit';
                 document.getElementById('bookingId').value = this.dataset.id;
                 document.getElementById('modalTitle').innerHTML = '<i class="bi bi-pencil-square text-primary me-2"></i> Cập nhật Booking';
-                
+
                 document.getElementById('inputTenKH').value = this.dataset.tenkh;
                 document.getElementById('inputSDT').value = this.dataset.sdt;
                 datePicker.setDate(this.dataset.date);
-                timePicker.setDate(this.dataset.time);
+                // Khôi phục giờ đã chọn vào time-slot picker
+                resetTimePicker(this.dataset.time);
                 document.getElementById('inputSoNguoi').value = this.dataset.adults;
                 document.getElementById('inputSoTreEm').value = this.dataset.children;
                 document.getElementById('inputGhiChu').value = this.dataset.note;
-                
+
                 document.getElementById('statusWrapper').style.display = 'block';
                 document.getElementById('inputTrangThai').value = this.dataset.status;
                 formModal.show();
@@ -576,7 +1308,7 @@
         });
 
         document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 document.getElementById('deleteBookingId').value = this.dataset.id;
                 deleteModal.show();
             });
@@ -586,16 +1318,16 @@
         // LOGIC CHỌN NHIỀU BÀN BẰNG MINI MAP
         // ==========================================
         document.querySelectorAll('.open-minimap-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 currentAssignBookingId = this.dataset.id;
-                selectedTableIds = []; updateSelectedCountUI(); 
+                selectedTableIds = []; updateSelectedCountUI();
                 const container = document.getElementById('miniMapContainer');
                 container.innerHTML = '<div class="text-center w-100 py-4"><span class="spinner-border text-primary"></span> Đang tải sơ đồ...</div>';
                 miniMapModal.show();
 
                 fetch('/bookings/ajax/available-tables/').then(res => res.json()).then(data => {
                     if (data.status === 'success') {
-                        if (data.tables.length === 0) { container.innerHTML = '<div class="alert alert-danger w-100 text-center fw-bold">Hiện tại nhà hàng đã hết bàn trống!</div>'; return;}
+                        if (data.tables.length === 0) { container.innerHTML = '<div class="alert alert-danger w-100 text-center fw-bold">Hiện tại nhà hàng đã hết bàn trống!</div>'; return; }
                         const zones = {};
                         data.tables.forEach(t => { const zoneName = t.khu_vuc || 'Khu vực chung'; if (!zones[zoneName]) zones[zoneName] = []; zones[zoneName].push(t); });
                         let html = '';
@@ -612,7 +1344,7 @@
             });
         });
 
-        window.toggleTableSelect = function(tableId) {
+        window.toggleTableSelect = function (tableId) {
             const tableDiv = document.getElementById(`mtbl-${tableId}`);
             if (selectedTableIds.includes(tableId)) {
                 selectedTableIds = selectedTableIds.filter(id => id !== tableId);
@@ -629,15 +1361,15 @@
             document.getElementById('btnConfirmMultiAssign').disabled = (count === 0);
         }
 
-        window.submitMultiAssign = function() {
-            if(selectedTableIds.length === 0) return;
+        window.submitMultiAssign = function () {
+            if (selectedTableIds.length === 0) return;
             const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
             Swal.fire({
                 title: 'Xác nhận xếp bàn?', text: `Bạn đang xếp khách vào ${selectedTableIds.length} bàn. Bàn đầu tiên được bấm chọn sẽ là bàn chính.`,
                 icon: 'question', showCancelButton: true, confirmButtonText: 'Đồng ý', cancelButtonText: 'Hủy', confirmButtonColor: '#10b981'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch('/api/assign-table/', { 
+                    fetch('/api/assign-table/', {
                         method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
                         body: JSON.stringify({ booking_id: currentAssignBookingId, table_ids: selectedTableIds })
                     }).then(res => res.json()).then(data => {
@@ -647,7 +1379,7 @@
             });
         };
 
-        window.triggerCheckin = function(bookingId, custName, tableName) {
+        window.triggerCheckin = function (bookingId, custName, tableName) {
             Swal.fire({
                 title: 'Khách đã đến?', html: `Xác nhận khách <b>${custName}</b> đã nhận bàn <b>${tableName}</b>?<br><br><span class="text-danger" style="font-size: 0.85rem;">Hệ thống sẽ mở bàn trên POS.</span>`,
                 icon: 'info', showCancelButton: true, confirmButtonColor: '#16a34a',
@@ -662,7 +1394,7 @@
             const autoAssignBtn = document.querySelector(`.open-minimap-btn[data-id="${urlParams.get('auto_map')}"]`);
             if (autoAssignBtn) { setTimeout(() => { autoAssignBtn.click(); }, 500); window.history.replaceState({}, document.title, window.location.pathname); }
         }
-        
+
         // ==========================================
         // LỌC DỮ LIỆU BẢNG BẰNG JS
         // ==========================================
@@ -673,22 +1405,22 @@
         function filterTable() {
             const query = searchInput.value.toLowerCase();
             const status = statusFilter.value;
-            const selectedDate = dateFilterInput.value; 
+            const selectedDate = dateFilterInput.value;
 
             rows.forEach(row => {
                 const name = (row.dataset.name || '').toLowerCase();
                 const phone = row.dataset.phone || '';
                 const rowStatus = row.dataset.status || '';
-                const rowDate = row.dataset.date || ''; 
-                
+                const rowDate = row.dataset.date || '';
+
                 const matchSearch = name.includes(query) || phone.includes(query);
                 const matchStatus = (status === 'all' || rowStatus === status);
                 const matchDate = (selectedDate === '' || rowDate === selectedDate);
-                
+
                 row.style.display = (matchSearch && matchStatus && matchDate) ? '' : 'none';
             });
         }
-        
+
         searchInput.addEventListener('input', filterTable);
         statusFilter.addEventListener('change', filterTable);
         // ======================================
@@ -703,7 +1435,7 @@
 
             const keyword = this.value.trim();
 
-            if (keyword.length < 3) {
+            if (keyword.length < 1) {
                 suggestionBox.style.display = 'none';
                 return;
             }
@@ -748,7 +1480,7 @@
         });
 
         // Ẩn khi click ngoài
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
 
             if (!suggestionBox.contains(e.target)
                 && e.target !== sdtInput) {

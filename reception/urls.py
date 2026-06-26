@@ -26,4 +26,8 @@ urlpatterns = [
     
     # 🌟 THÊM DÒNG NÀY ĐỂ KẾT NỐI API XẾP BÀN VÀO MINI MAP 🌟
     path('api/assign-table/', views.api_assign_table, name='api_assign_table'),
+
+    # ========================================================
+    # XUẤT / NHẬP DANH SÁCH KHÁCH HÀNG (CSV) -> Đã chuyển sang app customers
+    # ========================================================
 ]
